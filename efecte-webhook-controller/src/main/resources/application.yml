@@ -1,0 +1,17 @@
+# Common properties
+quarkus:
+  banner:
+    enabled: false
+  log:
+    file:
+      enable: true
+camel:
+  context:
+    name: efecte-webhook-controller
+  main:
+    routes-include-pattern: classpath:routes/*.yaml
+app:
+  name: efecte-webhook-controller
+  redis:
+    prefix:
+      request: "${app.name}:"

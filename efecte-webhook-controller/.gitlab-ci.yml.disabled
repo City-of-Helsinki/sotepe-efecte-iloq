@@ -1,0 +1,18 @@
+stages:
+  - check-for-updates
+  - quarkus-build-jar
+  - deploy-to-container-registry
+
+variables:
+  WEBHOOK_API_TOKEN: super_secret
+  KEY_EXPIRATION_SECONDS: 10
+  LEADER_POD_KEY_EXPIRATION_SECONDS: 3
+
+include:
+  - project: "devikone/labs/gitlab-pipelines"
+    ref: main
+    file: "/quarkus-build-jar.yml"
+
+  - project: "devikone/labs/gitlab-pipelines"
+    ref: main
+    file: "/deploy-to-registry.yml"

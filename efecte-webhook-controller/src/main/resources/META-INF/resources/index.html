@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Camel Route Visualization</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@joint/core@4.0.1/dist/joint.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    
+    <!--
+
+        NOTE: to use Integration Blueprint's UI, search for: `baseUrl` and `authorization` from this script and replace them with correct values.
+
+        TODO:
+
+        + [DONE] When link is clicked, then highlight the connected boxes
+        + Allow to focus only into single Route and it's connections (toggle focus-mode)
+            + We need to have a small icons inside the rectangle for these custom actions
+        + Allow to toggle Redis-keys / Endpoints (hide / show)
+        + Allow to categorize the routes -> hide/show a category
+            + Category automatically from the uri: ".in." -> IN-layer, ".process." -> PROCESS-layer, ".out." -> OUT-layer
+        + Allow search by keyword, highlight the Boxes where this key word occurs
+        + [DONE] Allow to scroll the paper, or make it draggable with mouse
+        + Create a backend to support saving and loading the view (layout)
+        + Allow to edit the route-steps
+            + Wizard-mode, to allow configuring a single step, if type is found from catalog
+        + Show / Hide Links
+        + Move INtegrationCanvas tools
+        
+        https://getbootstrap.com/docs/4.0/components/navbar/#responsive-behaviors
+    -->
+
+    <style>
+        body {
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        #mcanvas {
+            background: rgb(255, 255, 255);
+            cursor: move;
+            border: 1px solid;
+        }
+        #toolbar {
+            /*width: 100%;*/
+        }
+        #routeView {
+            
+        }
+
+        /* Styling for the block diagram */
+        .block {
+            border: 1px solid #ccc;
+            padding: 10px;
+            padding-right: 0px;
+            margin: 10px;
+            margin-right: 4px;
+            cursor: pointer; /* Add cursor pointer to indicate blocks are clickable */
+        }
+
+        .block:hover {
+            background-color: #f0f0f0; /* Change background color on hover */
+        }
+
+        .block:hover > .key {
+            background-color: #c2edd1; /* Change background color on hover */
+        }
+
+        .block > .key {
+            font-weight: bold;
+        }
+
+        .block > .value {
+            margin-left: 20px;
+        }
+        pre {
+
+        }
+        .groovy {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-left: 3px solid #f36d33;
+            color: #666;
+            font-family: monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 1.6em;
+            max-width: 100%;
+            overflow: auto;
+            padding: 1em 1.5em;
+            display: block;
+            word-wrap: break-word;
+        }
+
+        .displayNone {
+            display: none;
+        }
+        .displayBlock {
+            display: block;
+        }
+    </style>
+</head>
+<body style="overflow: scroll;">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Integration Blueprint</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Integration
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" href="#">Load</a>
+                  <a class="dropdown-item" href="#">Environment variables</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Settings</a>
+                </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="#">Disabled</a>
+            </li>
+          </ul>
+        </div>
+        <form class="input-group mb-3">
+            <input id="loginInputUsername" value="username" />
+            <input id="loginInputPassword" type="password" value="password" />
+            <button id="login" type="button" class="btn btn-secondary">Login</button>
+            <button id="logout" type="button" class="btn btn-secondary">Logout</button>
+        </form>
+      </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-4" style="background-color: rgb(255, 255, 255);">
+                <div id="routeView">
+                    <div class='card'>
+                        <nav class="nav" class="navbar navbar-expand-lg navbar-light bg-light">
+                            <a class="navbar-brand" href="#">Route inspector</a>
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item">
+                                  <a id="route-inspector-yaml" class="nav-link" href="#">YAML</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a id="route-inspector-json" class="nav-link" href="#">JSON</a>
+                                  </li>
+                                <li class="nav-item">
+                                    <a id="route-inspector-visual" class="nav-link active" href="#">Visual</a>
+                                </li>
+                            </ul>
+                            <form class="input-group mb-3">
+                                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                                <button id="route-inspector-search" class="btn btn-outline-success my-2 my-sm-0"><i class="bi bi-search"></i></button>
+                            </form>
+                        </nav>
+                        <div id="viz-holder" class='card-body' style="height: 1000px; overflow: scroll;">
+                            <div id="visualization"></div>
+                            <textarea id="routeViewTextarea" class='form-control' style='font-family: consolas;' rows="30" readonly>
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8" style="background-color: rgb(255, 255, 255);">
+                <div id="status">Status</div>
+                <!-- https://icons.getbootstrap.com/ -->
+                <nav id="toolbar" class="navbar navbar-expand-lg navbar-light bg-light">
+                    <a class="navbar-brand" href="#">Routes</a>
+                    <form class="input-group mb-3">
+                        <button id="zoom-out" type="button" class="btn btn-secondary">-</button>
+                        &nbsp;
+                        <button id="zoom-in" type="button" class="btn btn-secondary">+</button>
+                        &nbsp;
+                        <button id="scroll-up" type="button" class="btn btn-secondary"><i class="bi bi-arrow-up-square"></i></button>
+                        &nbsp;
+                        <button id="scroll-down" type="button" class="btn btn-secondary"><i class="bi bi-arrow-down-square"></i></button>
+                        &nbsp;
+                        <button id="scroll-left" type="button" class="btn btn-secondary"><i class="bi bi-arrow-left-square"></i></button>
+                        &nbsp;
+                        <button id="scroll-right" type="button" class="btn btn-secondary"><i class="bi bi-arrow-right-square"></i></button>
+                        &nbsp;
+                        <button id="paper-center" type="button" class="btn btn-secondary"><i class="bi bi-fullscreen-exit"></i></button>
+                        &nbsp;
+                        <button id="toggle-redis" type="button" class="btn btn-secondary"><i class="bi bi-toggles"></i> Redis</button>
+                        &nbsp;
+                        <button id="toggle-endpoints" type="button" class="btn btn-secondary"><i class="bi bi-toggles"></i> Endpoints</button>
+                        &nbsp;
+                        <button id="toggle-focus" type="button" class="btn btn-secondary"><i class="bi bi-eye"></i> Focus</button>
+                        &nbsp;
+                        <button id="clear-highlight" type="button" class="btn btn-secondary"><i class="bi bi-square"></i> Clear</button>
+                        &nbsp;
+                        <button id="routes-view-save-layout" type="button" class="btn btn-secondary"><i class="bi bi-sd-card"></i> Save Layout</button>
+                        &nbsp;
+                        <button id="routes-view-load-layout" type="button" class="btn btn-secondary"><i class="bi bi-grid"></i> Load Layout</button>
+                        &nbsp;
+                        <input id="routes-view-search-input" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                        <button id="routes-view-search" class="btn btn-outline-success my-2 my-sm-0"><i class="bi bi-search"></i></button>
+                </nav>
+                <div id="mcanvas"></div>
+                <div class='card'>
+                    <nav class="nav" class="navbar navbar-expand-lg navbar-light bg-light">
+                        <a class="navbar-brand" href="#">Component inspector</a>
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                              <a class="nav-link active" href="#">Catalog</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link" href="#">Documentation</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class='card-body'>
+                        <span id="inspectedComponent">TODO</span>
+                    </div>
+                </div>
+          </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8" style="background-color: rgb(255, 255, 255);">
+                <table class="table">
+                    <thead>
+                        <th>Process ID</th>
+                        <th>Timestamp</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>abc-123</td>
+                            <td>timestamp-123</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script type="module">
+        import {
+            addRouteBoxToGraph
+        } from './routesGraphModule.js';
+
+        import {
+            visualizeJSON
+        } from './routeRendererModule.js';
+
+        var namespace = joint.shapes;
+
+        document.getElementById("status").innerHTML = "Load route";
+
+        //
+        // NOTE: this URL must be customized based on the published endpoint. Trying to set `localhost` could result into CORS-issues.
+        //
+        const baseUrl = "https://8080-devikonelab-integration-176qytutrbv.ws-eu111.gitpod.io/api/ib";
+        
+        let authorization = null; // Authorization -header
+
+        let routesResponse = null;
+        let routesData = [];
+
+        // Simple cache for already fetched Routes.
+        // Key = RouteID
+        // Value = Route as YAML
+        let routeYamlMap = {};
+        let selectedRouteId = null;
+        let routeInspectorRenderRouteAs = "visual"; // yaml / json / visual
+
+        const routeBoxes = {};
+        const routeUriToIdMap = {};
+        const routeIdToUriMap = {};
+
+        const HIGHLIGHT_COLOR = "yellow";
+
+        let paperY = 0;
+        let paperX = 0;
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+        const paper = new joint.dia.Paper({
+            el: document.getElementById('mcanvas'),
+            model: graph,
+            width: '100%',
+            height: 1000, // Set the height of the paper
+            gridSize: 10,
+            interactive: true //{ linkMove: false }
+        });
+
+        // Initialize blockMap object for visualization
+        const blockMap = {};
+
+        fetchRoutesData();
+
+        function fetchRoutesData() {
+            fetch(baseUrl + '/yaml-routes/json',
+            {
+                credentials: "include",
+                headers: {
+                    'Authorization': authorization
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("DATA :: %o", data);
+                routesData = data.routes;
+                routesResponse = data;
+                showStatusMessage(data.integrationName);
+            })
+            // Catching any errors
+            .catch(error => {
+                // Printing the error to the console
+                console.error(error);
+                showStatusMessage("fetch FAILED: " + JSON.stringify(error));
+            });
+        }
+
+        function showStatusMessage(statusMessage) {
+            document.getElementById("status").innerHTML = statusMessage;
+        }
+
+        function findRouteById(routeId) {
+            for (let i = 0; i < routesData.length; i++) {
+                if (routesData[i].route && routesData[i].route.id === routeId) {
+                    return routesData[i].route;
+                }
+            }
+            return null; // Route not found
+        }
+
+        function findRouteByUri(routeUri) {
+            for (let i = 0; i < routesData.length; i++) {
+                if (routesData[i].route && routesData[i].route.uri === routeUri) {
+                    return routesData[i].route;
+                }
+            }
+            return null; // Route not found
+        }
+
+        function findCellByCamelId(camelId) {
+            const allCells = graph.getElements();
+            allCells.forEach(cell => {
+                if (cell.attributes.attrs.camelId === camelId) {
+                    return cell;
+                }
+            });
+            return null; // Cell not found
+        }
+
+        // Input: ".src/main/resources/routes/smoketest.yaml"
+        // Output: "smoketest.yaml"
+        function extractFilename(path) {
+            const parts = path.split('/');
+            return parts[parts.length - 1];
+        }
+
+        let boxesPerYPosition = 0;
+        let boxesYPosition = 100;
+
+        function visualizeRoutes(routes) {    
+            // Create route boxes
+            routes.forEach(route => {
+                if (route && route.route && route.route.id) {
+                    const routeId = route.route.id;
+                    const routeUri = route.route.from.uri;
+                    const routeFilename = extractFilename(route.routesFilename);
+
+                    // build a 2-way map:
+                    routeUriToIdMap[routeUri] = routeId;
+                    routeIdToUriMap[routeId] = routeUri;
+
+                    let xPosition = 100;
+                    
+                    // Check if there are already three boxes on the same Y-axis
+                    const INITIAL_MAX_BOXES_PER_ROW = 2;
+
+                    if (boxesPerYPosition >= INITIAL_MAX_BOXES_PER_ROW) {
+                        boxesYPosition += 150; // Adjust Y-axis position
+                        boxesPerYPosition = 0;
+                    }
+                    
+                    const box = createRouteBox(routeId, routeUri, routeFilename, xPosition, boxesYPosition, boxesPerYPosition);
+                    addRouteBoxToGraph(graph, routeBoxes, routeId, box);
+                    boxesPerYPosition += 1;
+                }
+                else {
+                    // TODO: these are e.g. "beans" or "rest", should be handled later!
+                    console.log("Found a problem route: %o", route);
+                }
+            });
+
+            //
+            // Create connections for "direct" -connections
+            //
+            routes.forEach(route => {
+                let connectionCounter = 1;
+                // Handle route -type (not bean or something else...)
+                if (route.route && route.route.from) {
+                    const sourceUri = route.route.from.uri;
+                    //console.log("LINK Source uri = " + sourceUri);
+                    route.route.from.steps.forEach(step => {
+                        let connectionCreated = traverseStep(step, sourceUri, connectionCounter);
+                        if (connectionCreated) {
+                            connectionCounter += 1;
+                        }
+                    });
+                }
+            });
+        }
+
+        function createRouteBox(routeId, routeUri, routeFilename, xPosition, yPosition, boxesPerYPosition) {
+            // Dynamically calculate the width of the box based on the length of the route ID
+            const textWidth = routeId.length * 12; // Adjust the multiplication factor based on font size and style
+            const boxWidth = Math.max(textWidth, 150); // Ensure minimum width of 150 pixels
+            const INITIAL_SPACE_BETWEEN_BOXES = 500;
+            let box = new joint.shapes.standard.HeaderedRectangle({
+                position: { x: xPosition + (boxesPerYPosition * INITIAL_SPACE_BETWEEN_BOXES), y: yPosition }, // Adjust the position based on the index
+                size: { width: boxWidth, height: 100 }, // Adjust the width of the box
+                attrs: {
+                    body: {
+                        fill: 'white', 
+                        stroke: 'black'
+                    },
+                    header: {
+                        fill: 'lightgray', 
+                        stroke: 'black'
+                    },
+                    headerText: { 
+                        text: "Id: " + routeId,
+                        textAnchor: 'left',
+                        x: 'calc(0.05*w)',
+                        y: 'calc(0.15*h)',
+                        'font-family': "consolas"
+                    },
+                    bodyText: { 
+                        text: "Uri: " + routeUri + "\nFile: " + routeFilename,
+                        textAnchor: 'left',
+                        x: 'calc(0.05*w)',
+                        //y: 'calc(0.25*h)',
+                        'font-family': "consolas"
+                    },
+                    camelType: "route",
+                    camelId: routeId,
+                    restoreColour: "white",
+                    route: {
+                        id: routeId,
+                        uri: routeUri,
+                        file: routeFilename
+                    }
+                }
+            });
+            return box;
+        }
+
+        function traverseStep(step, sourceUri, connectionCounter) {
+            let connectionCreated = false;
+            if (step.to && step.to.uri && typeof(step.to.uri) === "string" && step.to.uri.startsWith("direct:")) {
+                //console.log("Handle to.uri");
+                handleDirectConnection(step.to.uri, sourceUri, connectionCounter);
+                connectionCreated = true;
+            }
+            else if (step.to && typeof(step.to) === "string" && step.to.startsWith("direct:")) {
+                //console.log("Handle PLAIN to");
+                handleDirectConnection(step.to, sourceUri, connectionCounter);
+                connectionCreated = true;
+            }
+            else if (step.to && typeof(step.to) === "string") {
+                handleEndpointConnection(sourceUri, step.to, connectionCounter);
+                connectionCreated = true;
+            }
+            else if (step.to && step.to.uri && typeof(step.to.uri) === "string") {
+                handleEndpointConnection(sourceUri, step.to, connectionCounter);
+                connectionCreated = true;
+            }
+            else if (step.bean && step.bean.ref && typeof(step.bean.ref) === "string" && step.bean.ref === "redis") {
+                if (step.bean.method && typeof(step.bean.method) === "string") {
+                    handleRedisConnection(sourceUri, step.bean.method, connectionCounter);
+                    connectionCreated = true;
+                }
+            }
+            else {
+                for (let key in step) {
+                    if (step.hasOwnProperty(key)) {
+                        if (typeof(step[key]) === 'object') {
+                            //console.log(key + " -> " + step[key]); // This will log every key-value pair
+                            traverseStep(step[key], sourceUri, connectionCounter);
+                        }
+                    }
+                }
+            }
+            return connectionCreated;
+        }
+
+        let endpointY = 200;
+
+        function handleEndpointConnection(sourceUri, label, connectionCounter) {
+            let sourceId = routeUriToIdMap[sourceUri];
+            const sourceBox = routeBoxes[sourceId];
+
+            const endpointBox = createEndpointBox(sourceId, endpointY, label);
+            graph.addCell(endpointBox);
+            endpointY += 30;
+
+            // Link from source:
+            const link = linkEndpointToRoute(endpointBox.id, sourceBox.id, connectionCounter);
+            link.router("orthogonal");
+            graph.addCell(link);
+        }
+
+        function createEndpointBox(sourceId, endpointY, label) {
+            let box = new joint.shapes.standard.Rectangle({
+                position: { x: 1300, y: endpointY },
+                size: { width: label.length * 10, height: 30 },
+                attrs: {
+                    body: {
+                        fill: 'gray', 
+                        stroke: 'black'
+                    },
+                    label: { 
+                        text: "-> " + label,
+                        textAnchor: 'left',
+                        x: 'calc(0.05*w)',
+                        y: 'calc(0.25*h)',
+                        'font-family': "consolas"
+                    },
+                    camelType: "endpoint",
+                    camelId: ("endpoint-from-" + sourceId + "-to-" + label)
+                        .replaceAll(":", "-")
+                        .replaceAll("?", "-")
+                        .replaceAll("=", "-")
+                        .replaceAll("&", "-")
+                        .replaceAll("/", "-"),
+                    restoreColour: "gray"
+                }
+            });
+            return box;
+        }
+
+        function linkEndpointToRoute(endpointBoxId, sourceBoxId, connectionCounter) {
+            let link = new joint.shapes.standard.Link({
+                source: { id: sourceBoxId },
+                target: { id: endpointBoxId },
+                smooth: true,
+                attrs: { 
+                    '.connection': { 
+                        stroke: 'black' 
+                    }
+                },
+                labels: [
+                    {
+                        attrs: {
+                            text: {
+                                text: connectionCounter + ". call"
+                            }
+                        }
+                    }
+                ]
+            });
+            return link;
+        }
+
+        function handleDirectConnection(targetUri, sourceUri, label) {
+            let sourceId = routeUriToIdMap[sourceUri];
+            let targetId = routeUriToIdMap[targetUri]; // for routes defined in Java DSL this will be null.
+
+            const sourceBox = routeBoxes[sourceId];
+            const targetBox = routeBoxes[targetId];
+
+            //console.log("LINKING Source id = " + sourceId + " --> Target id = " + targetId);
+
+            if (sourceBox && targetBox) {
+                //console.log("  >>> Found direct connection");
+                linkDirectRoutes(sourceBox.id, targetBox.id, label);
+            }
+            else {
+                //console.log("  >>> No direct connection found. This could be due to targetRoute defined in Java DSL. Will create target from uri, but it cannot be opened.");
+                // params createRouteBox(targetUri, targetUri, routeFilename="JAVA", xPosition=100, yPosition=boxesYPosition, boxesPerYPosition=3);
+                let targetBoxForUnknownRoute = createRouteBox(targetUri, targetUri, "JAVA", 100, boxesYPosition, 3);
+                addRouteBoxToGraph(graph, routeBoxes, targetUri, targetBoxForUnknownRoute);
+                linkDirectRoutes(sourceBox.id, targetBoxForUnknownRoute.id, label);
+            }
+        }
+
+        function linkDirectRoutes(sourceBoxId, targetBoxId, label) {
+            let link = new joint.shapes.standard.Link({
+                source: { id: sourceBoxId },
+                target: { id: targetBoxId },
+                smooth: true,
+                attrs: { 
+                    '.connection': { 
+                        stroke: 'black' 
+                    }
+                },
+                labels: [
+                    {
+                        position: 0.9, // attach label at the "end-side" of the link
+                        attrs: {
+                            text: {
+                                text: label
+                            }
+                        }
+                    }
+                ]
+            });
+            link.router("orthogonal");
+            graph.addCell(link);
+        }
+
+        let redisY = 200;
+
+        function handleRedisConnection(sourceUri, label, connectionCounter) {
+            let sourceId = routeUriToIdMap[sourceUri];
+            const sourceBox = routeBoxes[sourceId];
+
+            const redisBox = createRedisBox(sourceId, redisY, label);
+            graph.addCell(redisBox);
+            redisY += 80;
+
+            // Link from source:
+            const link = linkRedisToRoute(redisBox.id, sourceBox.id, connectionCounter);
+            link.router("orthogonal");
+            graph.addCell(link);
+        }
+
+        function createRedisBox(sourceId, redisY, label) {
+            let box = new joint.shapes.standard.HeaderedRectangle({
+                position: { x: -1200, y: redisY },
+                size: { width: label.length * 10, height: 70 },
+                attrs: {
+                    header: {
+                        fill: '#FF7276', 
+                        stroke: 'gray'
+                    },
+                    body: {
+                        fill: 'white', 
+                        stroke: 'gray'
+                    },
+                    headerText: { 
+                        text: "Redis",
+                        textAnchor: 'left',
+                        //x: 'calc(0.05*w)',
+                        //y: 'calc(0.25*h)',
+                        'font-family': "consolas"
+                    },
+                    bodyText: { 
+                        text: label,
+                        textAnchor: 'left',
+                        x: 'calc(0.05*w)',
+                        //y: 'calc(0.25*h)',
+                        'font-family': "consolas"
+                    },
+                    camelType: "redis",
+                    camelId: ("redis-from-" + sourceId + "-to-" + label)
+                        .replaceAll(":", "-")
+                        .replaceAll("?", "-")
+                        .replaceAll("=", "-")
+                        .replaceAll("&", "-")
+                        .replaceAll("/", "-"),
+                    restoreColour: "#FF7276"
+                }
+            });
+            return box;
+        }
+
+        function linkRedisToRoute(redisBoxId, sourceBoxId, connectionCounter) {
+            let link = new joint.shapes.standard.Link({
+                source: { id: sourceBoxId },
+                target: { id: redisBoxId },
+                smooth: true,
+                attrs: { 
+                    '.connection': { 
+                        stroke: 'black' 
+                    }
+                },
+                labels: [
+                    {
+                        attrs: {
+                            text: {
+                                text: connectionCounter + ". call"
+                            }
+                        }
+                    }
+                ]
+            });
+            return link;
+        }
+
+        // https://github.com/clientIO/joint/blob/master/packages/joint-core/demo/html/src/html.js
+        let zoomLevel = 1;
+        let paperCenter = paper.getArea().center();
+
+        document.getElementById('zoom-in').addEventListener('click', function() {
+            zoomLevel = Math.min(3, zoomLevel + 0.2);
+            paper.scaleUniformAtPoint(zoomLevel, paperCenter);
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', function() {
+            zoomLevel = Math.max(0.2, zoomLevel - 0.2);
+            paper.scaleUniformAtPoint(zoomLevel, paperCenter);
+        });
+
+        document.getElementById('mcanvas').addEventListener('wheel', function(event) {
+            if (event.deltaY > 0) {
+                zoomLevel = Math.max(0.2, zoomLevel - 0.005);
+                paper.scaleUniformAtPoint(zoomLevel, paperCenter);
+            }
+            else {
+                zoomLevel = Math.max(0.2, zoomLevel + 0.005);
+                paper.scaleUniformAtPoint(zoomLevel, paperCenter);
+            }
+        });
+
+        // 
+        // [START] SCROLLING / DRAGGING THE PAPER
+        // 
+
+        document.getElementById('scroll-up').addEventListener('click', function() {
+            paperY = paperY + 200;
+            paper.translate(paperX, paperY);
+        });
+
+        document.getElementById('scroll-down').addEventListener('click', function() {
+            paperY = paperY - 200;
+            paper.translate(paperX, paperY);
+        });
+
+        document.getElementById('scroll-left').addEventListener('click', function() {
+            paperX = paperX + 200;
+            paper.translate(paperX, paperY);
+        });
+
+        document.getElementById('scroll-right').addEventListener('click', function() {
+            paperX = paperX - 200;
+            paper.translate(paperX, paperY);
+        });
+
+        document.getElementById('paper-center').addEventListener('click', function() {
+            const paperArea = paper.getArea();
+            const contentArea = paper.getContentArea();
+            paper.translate(
+                (paperArea.width - contentArea.width) / 2 + 800,
+                (paperArea.height - contentArea.height) / 2
+            );
+        });
+
+        let dragStartPosition = {};
+        let panningMode = false;
+
+        paper.on('blank:pointerdown', function(event, x, y) {
+            //console.log("DRAG START");
+            dragStartPosition = { x: x, y: y};
+            panningMode = true;
+        });
+
+        paper.on('blank:pointerup', function(event, x, y) {
+            if (panningMode) {
+                //console.log("DRAG END");
+                dragStartPosition = {};
+                panningMode = false;
+            }
+        });
+
+        document.body.addEventListener('mousemove', function(event) {
+            if (panningMode) {
+                //console.log('Mouse position: X=' + event.clientX + ', Y=' + event.clientY);
+                paper.translate(event.clientX - dragStartPosition.x, event.clientY - dragStartPosition.y);
+            }
+        });
+
+        // 
+        // [END] SCROLLING / DRAGGING THE PAPER
+        // 
+
+        document.getElementById('login').addEventListener('click', function() {
+            const username = document.getElementById('loginInputUsername').value;
+            const password = document.getElementById('loginInputPassword').value;
+
+            fetch(baseUrl + '/login/basic',
+                {
+                    credentials: "include",
+                    headers: {
+                        'Authorization': "Basic " + btoa(username + ":" + password)
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Login RESPONSE :: %o", data);
+                    if (typeof data.accessToken === "string") {
+                        authorization = "Bearer " + data.accessToken;
+                        showStatusMessage(data.message);
+                        document.getElementById("logout").classList.remove('displayNone');
+                        document.getElementById("logout").classList.add('displayBlock');
+                        document.getElementById("login").classList.add('displayNone');
+                        document.getElementById("loginInputUsername").classList.add('displayNone');
+                        document.getElementById("loginInputPassword").classList.add('displayNone');
+
+                        fetchRoutesData();
+                    }
+                    else if (typeof data.message === "string") {
+                        showStatusMessage(data.message);
+                    }
+                });
+        });
+
+        document.getElementById('logout').addEventListener('click', function() {
+            const username = document.getElementById('loginInputUsername').value;
+            const password = document.getElementById('loginInputPassword').value;
+
+            fetch(baseUrl + '/logout',
+                {
+                    credentials: "include",
+                    headers: {
+                        'Authorization': "Bearer " + authorization
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Logout RESPONSE :: %o", data);
+                });
+            
+            authorization = "";
+            showStatusMessage("Logged out");
+            document.getElementById("logout").classList.remove('displayBlock');
+            document.getElementById("logout").classList.add('displayNone');
+            document.getElementById("login").classList.remove('displayNone');
+            document.getElementById("login").classList.remove('displayBlock');
+            document.getElementById("loginInputUsername").classList.remove('displayNone');
+            document.getElementById("loginInputPassword").classList.remove('displayNone');
+        });
+
+        document.getElementById('route-inspector-json').addEventListener('click', function() {
+            console.log("route-inspector-json clicked");
+            routeInspectorRenderRouteAs = "json";
+            document.getElementById('route-inspector-json').classList.add("active");
+            document.getElementById('route-inspector-yaml').classList.remove("active");
+            document.getElementById('route-inspector-visual').classList.remove("active");
+            routeInspectorRenderRoute(selectedRouteId);
+        });
+
+        document.getElementById('route-inspector-yaml').addEventListener('click', function() {
+            console.log("route-inspector-yaml clicked");
+            routeInspectorRenderRouteAs = "yaml";
+            document.getElementById('route-inspector-json').classList.remove("active");
+            document.getElementById('route-inspector-yaml').classList.add("active");
+            document.getElementById('route-inspector-visual').classList.remove("active");
+            routeInspectorRenderRoute(selectedRouteId);
+        });
+
+        document.getElementById('route-inspector-visual').addEventListener('click', function() {
+            console.log("route-inspector-visual clicked");
+            routeInspectorRenderRouteAs = "visual";
+            document.getElementById('route-inspector-json').classList.remove("active");
+            document.getElementById('route-inspector-yaml').classList.remove("active");
+            document.getElementById('route-inspector-visual').classList.add("active");
+            routeInspectorRenderRoute(selectedRouteId);
+        });
+
+        document.getElementById('routes-view-save-layout').addEventListener('click', function() {
+            const allCells = graph.getElements();
+            let layoutData = {};
+            layoutData["layout"] = [];
+
+            allCells.forEach(cell => {
+                //console.log("CELL :: %o", cell);
+                let x = cell.attributes.position.x;
+                let y = cell.attributes.position.y;
+                let camelId = cell.attributes.attrs.camelId;
+                //console.log(camelId + " :: x = " + x + ", y = " + y);
+                let layoutObj = {};
+                layoutObj["elementId"] = camelId;
+                layoutObj["x"] = x;
+                layoutObj["y"] = y;
+                layoutData.layout.push(layoutObj);
+            });
+            //console.log("REQUEST=%o", layoutData);
+            fetch(baseUrl + '/routes-view/layout/save',
+                {
+                    credentials: "include",
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        'Authorization': authorization
+                    },
+                    body: JSON.stringify(layoutData)
+                }).then(response => response.json())
+                .then(data => {
+                    //console.log("RESPONSE :: %o", data);
+                    showStatusMessage(data.message);
+                });
+        });
+
+        document.getElementById('routes-view-load-layout').addEventListener('click', function() {
+            console.log("Attempt to load layout");
+            const allCells = graph.getElements();
+
+            fetch(baseUrl + '/routes-view/layout',
+                {
+                    credentials: "include",
+                    headers: {
+                        'Authorization': authorization
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Layout Load RESPONSE :: %o", data);
+                    let layoutArray = data.layout;
+
+                    if (typeof(data.layout) === "object" && Object.keys(data.layout).length > 0) {
+                        //
+                        // Assign (x, y) -position for each cell, if found from the saved layout.
+                        //
+                        allCells.forEach(cell => {
+                            camelId = cell.attributes.attrs.camelId;
+                            // find Object from layoutArray, where "elementId" === camelId
+                            let targetLayout = null;
+                            layoutArray.every(layout => {
+                                if (layout.elementId === camelId) {
+                                    targetLayout = layout;
+                                    return false; // break the iteration
+                                }
+                                return true; // continue iteration
+                            });
+                            if (targetLayout !== null) {
+                                cell.position(targetLayout.x, targetLayout.y);
+                            }
+                        });
+                        showStatusMessage(data.message);
+                    }
+                    else {
+                        showStatusMessage("No saved layout found.");
+                    }
+                });
+        });
+
+        let redisVisible = true;
+
+        document.getElementById('toggle-redis').addEventListener('click', function() {
+            // Find from graph all elements that have "camelType" === "redis" and show/hide them
+            const allCells = graph.getElements();
+            allCells.forEach(cell => {
+                //console.log("CELL :: %o", cell);
+                if (cell.attributes && cell.attributes.attrs) {
+                    if (cell.attributes.attrs.camelType && cell.attributes.attrs.camelType === 'redis') {
+                        let allCellLinks = graph.getConnectedLinks(cell);
+                        if (redisVisible) {
+                            cell.attr('./display', 'none');
+                            allCellLinks.forEach(cellLink => {
+                                //console.log("TOGGLING CELL LINK:: %o", cellLink);
+                                cellLink.attr('./display', 'none');
+                            });
+                        }
+                        else {
+                            cell.attr('./display', 'block');
+                            allCellLinks.forEach(cellLink => {
+                                //console.log("TOGGLING CELL LINK:: %o", cellLink);
+                                cellLink.attr('./display', 'block');
+                            });
+                        }
+                    }
+                }
+            });
+            redisVisible = !redisVisible;
+        });
+
+        let endpointsVisible = true;
+
+        document.getElementById('toggle-endpoints').addEventListener('click', function() {
+            // Find from graph all elements that have "camelType" === "endpoint" and show/hide them
+            const allCells = graph.getElements();
+            allCells.forEach(cell => {
+                //console.log("CELL :: %o", cell);
+                if (cell.attributes && cell.attributes.attrs) {
+                    if (cell.attributes.attrs.camelType && cell.attributes.attrs.camelType === 'endpoint') {
+                        let allCellLinks = graph.getConnectedLinks(cell);
+                        if (endpointsVisible) {
+                            cell.attr('./display', 'none');
+                            allCellLinks.forEach(cellLink => {
+                                //console.log("TOGGLING CELL LINK:: %o", cellLink);
+                                cellLink.attr('./display', 'none');
+                            });
+                        }
+                        else {
+                            cell.attr('./display', 'block');
+                            allCellLinks.forEach(cellLink => {
+                                //console.log("TOGGLING CELL LINK:: %o", cellLink);
+                                cellLink.attr('./display', 'block');
+                            });
+                        }
+                    }
+                }
+            });
+            endpointsVisible = !endpointsVisible;
+        });
+
+        //
+        // Clear highlight-selection
+        //
+        document.getElementById('clear-highlight').addEventListener('click', function() {
+            const allCells = graph.getElements();
+            allCells.forEach(cell => {
+                if (cell.attributes && cell.attributes.attrs && cell.attributes.attrs.route && cell.attributes.attrs.body.fill) {
+                    if (cell.attributes.attrs.body.fill === HIGHLIGHT_COLOR) {
+                        cell.attr('body/fill', cell.attributes.attrs.restoreColour);
+                    }
+                }
+            });
+        });
+
+        //
+        // Highlight route-elements matching the search-text
+        //
+        document.getElementById('routes-view-search').addEventListener('click', function() {
+            let searchText = document.getElementById('routes-view-search-input').value;
+            console.log("Searching:" + searchText);
+            const allCells = graph.getElements();
+            allCells.forEach(cell => {
+                if (cell.attributes && cell.attributes.attrs && cell.attributes.attrs.route) {
+                    if (cell.attributes.attrs.route.id.includes(searchText)) {
+                        cell.attr('body/fill', HIGHLIGHT_COLOR);
+                    }
+                    else if (cell.attributes.attrs.route.uri.includes(searchText)) {
+                        cell.attr('body/fill', HIGHLIGHT_COLOR);
+                    }
+                    else if (cell.attributes.attrs.route.file.includes(searchText)) {
+                        cell.attr('body/fill', HIGHLIGHT_COLOR);
+                    }
+                }
+            });
+        });
+
+        // TODO: select multiple for highlighting
+
+        // TODO: highlight the connected nodes
+
+        let focusMode = false;
+
+        //
+        // Show only elements that are highlighted.
+        // Toggle all other elements that are not connected to these (also Links) as hidden,
+        // allowing user to focus only into this group.
+        //
+        // TODO: Show in the Focus-button the activation status
+        //
+        document.getElementById('toggle-focus').addEventListener('click', function() {
+            focusMode = !focusMode;
+            const allCells = graph.getElements();
+            
+            let allLinks = [];
+
+            allCells.forEach(function(element) {
+                var elementLinks = graph.getConnectedLinks(element);
+                allLinks = allLinks.concat(elementLinks);
+            });
+
+            // First hide all the links
+            if (focusMode) {
+                allLinks.forEach(aLink => {
+                    // TODO: push the current display state into Link's own variable 
+                    //       so we know if it should be restore back into sight or not
+                    console.log("Hiding a link");
+                    aLink.attr('./display', 'none');
+                });
+            }
+            else {
+                allLinks.forEach(aLink => {
+                    aLink.attr('./display', 'block');
+                });
+            }
+
+            allCells.forEach(cell => {
+                if (cell.attributes && cell.attributes.attrs) {
+                    let allCellLinks = graph.getConnectedLinks(cell);
+
+                    if (cell.attributes.attrs.body.fill === HIGHLIGHT_COLOR && focusMode) {
+                        // Keep element visible
+                        
+                        // Restore the connected links back into sight
+                        allCellLinks.forEach(cellLink => {
+                            cellLink.attr('./display', 'block');
+                        });
+                    }
+                    else {
+                        if (focusMode) {
+                            // Hide the element from the sight
+                            cell.attr('./display', 'none');
+
+                            allCellLinks.forEach(cellLink => {
+                                let sourceModel = graph.getCell(cellLink.attributes.source.id);
+                                let targetModel = graph.getCell(cellLink.attributes.target.id);
+                                if (sourceModel.attributes.attrs.body.fill === HIGHLIGHT_COLOR) {
+                                    // Keep this element visible since it connects to focused element
+                                    cell.attr('./display', 'block');
+                                }
+                                if (targetModel.attributes.attrs.body.fill === HIGHLIGHT_COLOR) {
+                                    // Keep this element visible since it connects to focused element
+                                    cell.attr('./display', 'block');
+                                }
+                            });
+                        }
+                        else {
+                            // Restore the element back into sight
+                            cell.attr('./display', 'block');
+                        }
+                    }
+                }
+            });
+        });
+
+        function fetchRouteYamlCodeByRouteId(routeId) {
+            return new Promise((resolve, reject) => {
+                fetch(baseUrl + '/yaml-routes/by-id/' + routeId,
+                    {
+                        credentials: "include",
+                        headers: {
+                            'Authorization': authorization
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log("Route YAML RESPONSE :: %o", data);
+                        resolve(data);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching route YAML: ", error);
+                        reject(error);
+                    });
+            });
+        }
+
+        function routeInspectorRenderRoute(routeId) {
+            const routeViewTextareaElement = document.getElementById("routeViewTextarea");
+            const routeVisualizationDiv = document.getElementById('visualization');
+            const vizHolderDiv = document.getElementById('viz-holder');
+
+            if (routeInspectorRenderRouteAs === "yaml") {
+                if (routeYamlMap[routeId]) {
+                    console.log("Found from cache");
+                    data = routeYamlMap[routeId];
+                    routeViewTextareaElement.innerHTML = data;
+                }
+                else {
+                    fetchRouteYamlCodeByRouteId(routeId).then(data => {
+                        routeYamlMap[routeId] = data;
+                        routeViewTextareaElement.innerHTML = data;
+                    });
+                }
+                routeViewTextareaElement.style.visibility='visible';
+                routeVisualizationDiv.innerHTML = "";
+                routeVisualizationDiv.classList.add('displayNone');
+            }
+            else if (routeInspectorRenderRouteAs === "json") {
+                const foundRoute = findRouteById(routeId);
+                if (foundRoute) {
+                    routeViewTextareaElement.innerHTML = JSON.stringify(foundRoute, null, 2);
+                }
+                routeViewTextareaElement.style.visibility='visible';
+                routeVisualizationDiv.innerHTML = "";
+                routeVisualizationDiv.classList.add('displayNone');
+            }
+            else if (routeInspectorRenderRouteAs === "visual") {
+                const foundRoute = findRouteById(routeId);
+                if (foundRoute) {
+                    routeVisualizationDiv.innerHTML = visualizeJSON(foundRoute, blockMap);
+
+                    // Add event listeners to each block
+                    const blocks = document.querySelectorAll('.block');
+                    blocks.forEach(block => {
+                        block.addEventListener('click', (event) => {
+                            event.stopPropagation(); // Stop event from bubbling up the DOM tree
+                            const blockId = block.id;
+                            const routeStepKey = blockMap[blockId].k;
+                            const routeStepValue = blockMap[blockId].v;
+                            console.log(routeStepValue);
+                            const inspectedComponentSpan = document.getElementById("inspectedComponent");
+                            inspectedComponentSpan.innerHTML = "<p>" + JSON.stringify(routeStepKey) + "</p>";
+                        });
+                    });
+
+                    routeViewTextareaElement.style.visibility='hidden';
+                    //routeVisualizationDiv.style.visibility='visible';
+                    routeVisualizationDiv.classList.remove('displayNone');
+                    routeVisualizationDiv.classList.add('displayBlock');
+                }
+            }
+        }
+
+        //
+        // Element was clicked on RoutesView:
+        // * highlight route
+        // * display Route YAML-code
+        //
+        paper.on('cell:pointerclick', function(cellView) {
+            console.log('Element or link was clicked:', cellView.model.id + ", model: %o", cellView.model);
+            
+            // Route
+            if (cellView.model.attributes && cellView.model.attributes.attrs && cellView.model.attributes.attrs.route && cellView.model.attributes.attrs.route.id) {
+                console.log('Element or link was clicked:', cellView.model.id + " :: " + cellView.model.attributes.attrs.route.id);
+                const routeIdToFind = cellView.model.attributes.attrs.route.id;
+                selectedRouteId = routeIdToFind;
+
+                // RENDER ROUTE CODE
+                routeInspectorRenderRoute(selectedRouteId);
+
+                // HIGHLIGHT
+                let sourceModel = graph.getCell(cellView.model.id);
+                
+                if (sourceModel.attr('body/fill') !== HIGHLIGHT_COLOR) {
+                    // Try to erase the highlighting from all other elements
+                    const allCells = graph.getElements();
+                    allCells.forEach((cell) => {
+                        if (cell.attr('body/fill') === HIGHLIGHT_COLOR) {
+                            cell.attr('body/fill', cell.attributes.attrs.restoreColour);
+                        }
+                    });
+                    sourceModel.attr('body/fill', HIGHLIGHT_COLOR);
+                }
+                else {
+                    sourceModel.attr('body/fill', sourceModel.attributes.attrs.restoreColour);
+                }
+                
+            }
+            // Link:
+            else if (cellView.model.attributes && cellView.model.attributes.source && cellView.model.attributes.source.id) {
+                console.log('Link detected: source=' + cellView.model.attributes.source.id + ", target=" + cellView.model.attributes.target.id);
+                // Fetch source and target models from the graph
+                let sourceModel = graph.getCell(cellView.model.attributes.source.id);
+                let targetModel = graph.getCell(cellView.model.attributes.target.id);
+                console.log('Source model:', sourceModel);
+                console.log('Target model:', targetModel);
+                
+                if (sourceModel.attr('body/fill') !== HIGHLIGHT_COLOR) {
+                    sourceModel.attr('body/fill', HIGHLIGHT_COLOR);
+                    targetModel.attr('body/fill', HIGHLIGHT_COLOR);
+                }
+                else {
+                    sourceModel.attr('body/fill', sourceModel.attributes.attrs.restoreColour);
+
+                    console.log("TYPE=" + targetModel.attr('camelType'));
+                    targetModel.attr('body/fill', targetModel.attributes.attrs.restoreColour);
+                }
+            }
+        });
+
+
+    function waitForRoutesData() {
+        return new Promise((resolve) => {
+            // Function to check the condition
+            const checkData = () => {
+                let checkResult = false;
+                if (routesResponse !== null && typeof(routesResponse) === "object") {
+                    checkResult = true;
+                }
+                return checkResult;
+            }
+
+            // Polling interval to check if routesData is set
+            const interval = setInterval(() => {
+                if (checkData()) {
+                    clearInterval(interval);
+                    resolve(routesResponse);
+                }
+            }, 100); // Check every 100 milliseconds
+        });
+    }
+
+    waitForRoutesData().then((routesResponse) => {
+        console.log("routesResponse was set: %o", routesResponse);
+        visualizeRoutes(routesResponse.routes);
+    });
+
+    </script>
+</body>
+</html>
