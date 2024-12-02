@@ -6,10 +6,6 @@ efecte-webhook-controller on yksinkertainen viestin välittäjä, joka vastaanot
 
 ## Tiedot
 
-**Integraatiokoodi**: <https://gitlab.com/devikone/asiakkaat/helsinki/sotepe/sotepe-monorepo/-/tree/main/efecte-webhook-controller>
-
-**Kubernetes-konfiguraatiot**: <https://gitlab.com/devikone/asiakkaat/helsinki/sotepe/kubernetes>
-
 **Lähteen yhteyspiste**: HTTP
 
 **Kohteen yhteyspiste**: HTTP
