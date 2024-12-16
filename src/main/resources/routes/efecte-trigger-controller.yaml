@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- route:
+    id: direct:efecteTriggerController
+    from:
+      uri: direct:efecteTriggerController
+      steps:
+        - choice:
+            when:
+              - simple: "{{AUTOSTARTUP_EFECTE_TRIGGER_CONTROLLER}}"
+                steps:
+                  - log: "{{app.name}} :: efecteTriggerController :: Efecte trigger controller start"
+                  - convertBodyTo: java.lang.String
+                  - unmarshal:
+                      jacksonXml:
+                        unmarshalType: fi.hel.models.EfecteEntitySet
+                  - setBody:
+                      simple: ${body.entities}
+                  - to: "{{app.routes.controller.efecte.handler}}"
+                  - to: "{{app.routes.controller.efecte.cleanup}}"
+                  - log: "{{app.name}} :: efecteTriggerController :: Efecte trigger controller end"
+            otherwise:
+              steps:
+                - log: "{{app.name}} :: efecteTriggerController :: Efecte trigger controller is not operating at the moment"
+                - log: reveiced event can be found in the key '${header.webhookEvent}'
+
+- route:
+    id: direct:efecteCleanupController
+    from:
+      uri: direct:efecteCleanupController
+      steps:
+        - choice:
+            when:
+              - simple: ${bean:redis.exists({{app.redis.prefix.iLoqCurrentSessionId}})}
+                steps:
+                  - to: "{{app.routes.iLoq.killILoqSession}}"
+        - to: "{{app.routes.redis.removeCurrentILoqSessionRelatedKeys}}"
+        - to: "{{app.routes.redis.removeTempKeys}}"

@@ -3,12 +3,12 @@
   xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.devikone</groupId>
-  <artifactId>devikone-integration-parent</artifactId>
-  <packaging>pom</packaging>
-  <name>Devikone Integration Blueprint :: integration template for Quarkus</name>
-  <description>This is the basic integration template -project for Quarkus.</description>
-  <version>1.0.0-SNAPSHOT</version>
+  <groupId>fi.hel</groupId>
+  <artifactId>efecte-iloq-synchronization-integration</artifactId>
+  <packaging>jar</packaging>
+  <name>Efecte iLOQ synchronization integration</name>
+  <description>Efecten avainkorttien synkronointi iLOQ:in avaintietueiden kanssa</description>
+  <version>0.1.0-SNAPSHOT</version>
 
   <properties>
     <category>Starter</category>
@@ -71,6 +71,11 @@
     <dependency>
       <groupId>org.apache.camel.quarkus</groupId>
       <artifactId>camel-quarkus-controlbus</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.devikone</groupId>
+      <artifactId>ib-redis</artifactId>
     </dependency>
 
     <!-- languages -->
@@ -322,57 +327,28 @@
           </systemPropertyVariables>
         </configuration>
       </plugin>
+
+      <!-- <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin> -->
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>main</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>efecte-iloq-synchronization-integration</module>
-        <module>efecte-webhook-controller</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>native</id>
-      <activation>
-        <property>
-          <name>native</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${maven.failsafe-plugin.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-                <configuration>
-                  <argLine> --illegal-access=permit
-                  </argLine>
-                  <systemPropertyVariables>
-                    <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                    <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                    <maven.home>${maven.home}</maven.home>
-                  </systemPropertyVariables>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <properties>
-        <quarkus.package.type>native</quarkus.package.type>
-      </properties>
-    </profile>
-  </profiles>
 
   <repositories>
     <repository>

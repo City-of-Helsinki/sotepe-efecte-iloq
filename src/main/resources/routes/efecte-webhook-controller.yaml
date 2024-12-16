@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- route:
+    id: efecteWebhookController
+    from:
+      uri: direct:efecteWebhookController
+      steps:
+        - choice:
+            when:
+              - simple: ${bean:leaderPodResolver.isLeaderPod()}
+                steps:
+                  - choice:
+                      when:
+                        - simple: ${header.Authorization} == 'Bearer {{WEBHOOK_API.TOKEN}}'
+                          steps:
+                            - log: "{{app.name}} :: efecteWebhookController :: Efecte event received"
+                            - setProperty:
+                                name: datetime
+                                simple: ${date-with-timezone:now:Europe/Helsinki:yyyy-MM-dd_HH:mm:ss}
+                            - setProperty:
+                                name: webhookEvent
+                                simple: "{{app.redis.prefix.webhook}}${header.datetime}"
+                            - bean:
+                                ref: redis
+                                method: setex(${header.webhookEvent}, ${body}, {{WEBHOOK_REQUEST_KEY_EXPIRATION_SECONDS}})
+                            - removeHeaders: "*"
+                            - wireTap:
+                                uri: direct:efecteTriggerController
+                            - setHeader:
+                                name: Exchange.HTTP_RESPONSE_CODE
+                                constant: "200"
+                            - setBody:
+                                constant: OK
+                      otherwise:
+                        steps:
+                          - log: "{{app.name}} :: webhook controller :: invalid Authentication, token: '${header.Authorization}'"
+                          - setHeader:
+                              name: CamelHttpResponseCode
+                              constant: "401"
+            otherwise:
+              steps:
+                - log: "{{app.name}} :: efecteWebhookController :: Skip handling the received event (not the leader pod)"

@@ -63,6 +63,7 @@ nb-configuration.xml
 # Local environment
 .env
 src/main/java/**/*.class
+src/main/resources/dev-routes
 quarkus.log
 quarkus.log.*
 wip

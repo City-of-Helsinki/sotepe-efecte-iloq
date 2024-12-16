@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- route:
+    id: efecteQuartzController
+    autoStartup: "{{AUTOSTARTUP_EFECTE_QUARTZ_CONTROLLER}}"
+    from:
+      uri: "{{app.routes.controller.efecte.quartz}}"
+      steps:
+        - choice:
+            when:
+              - simple: ${bean:leaderPodResolver.isLeaderPod()}
+                steps:
+                  - log: "{{app.name}} :: efecteQuartzController :: Efecte quartz controller start"
+                  - to: "{{app.routes.redis.getMaxUpdated}}"
+                  - to: "{{app.routes.redis.createNewMaxUpdated}}"
+                  - to: direct:fetchKeyCardsFromEfecte
+                  - to: "{{app.routes.controller.efecte.handler}}"
+                  - to: "{{app.routes.redis.setMaxUpdated}}"
+                  - to: "{{app.routes.controller.efecte.cleanup}}"
+                  - log: "{{app.name}} :: efecteQuartzController :: Efecte quartz controller end"
+            otherwise:
+              steps:
+                - log: "{{app.name}} :: efecteQuartzController :: Skip handling the scheduled process (not the leader pod)"
+
+- route:
+    id: direct:fetchKeyCardsFromEfecte
+    from:
+      uri: direct:fetchKeyCardsFromEfecte
+      steps:
+        - setProperty:
+            name: efecteEntityType
+            constant: key
+        - setProperty:
+            name: efecteQuery
+            simple: SELECT entity FROM entity WHERE template.code = 'avain' AND $avain_tyyppi$ = 'iLOQ' AND $updated$ >= '${header.maxUpdated}' ORDER BY $avain_katuosoite$
+        - to: "{{app.routes.efecte.getEfecteEntity}}"
+        - removeHeaders: "*"

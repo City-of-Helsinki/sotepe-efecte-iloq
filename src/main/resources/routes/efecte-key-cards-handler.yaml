@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- route:
+    id: direct:efecteKeyCardsHandler
+    from:
+      uri: direct:efecteKeyCardsHandler
+      steps:
+        - choice:
+            when:
+              - simple: ${body.size} > 0
+                steps:
+                  - log: "{{app.name}} :: efecteKeyCardsHandler :: Start processing Efecte key cards"
+        - split:
+            simple: ${body}
+            steps:
+              - setProperty:
+                  name: efecteKey
+                  simple: ${body}
+              - setProperty:
+                  name: efecteKeyEntityId
+                  simple: ${exchangeProperty[efecteKey].id}
+              - setProperty:
+                  name: efecteKeyEfecteId
+                  simple: ${exchangeProperty[efecteKey].getAttributeValue(KEY_EFECTE_ID)}
+              - choice:
+                  when:
+                    - simple: ${bean:efecteKeyProcessor.isValidated}
+                      steps:
+                        - log: "{{app.name}} :: efecteKeyCardsHandler :: Start processing validated key ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (efecteId: ${header.efecteKeyEfecteId})."
+                        - bean:
+                            ref: iLoqKeyProcessor
+                            method: setCurrentILoqCredentials
+                        - bean:
+                            ref: iLoqKeyProcessor
+                            method: processKey
+                        - choice:
+                            when:
+                              - simple: ${header.shouldCreateILoqKey}
+                                steps:
+                                  - to: direct:handleILoqKeyCreation
+                                  - to: "{{app.routes.redis.saveMappedKeys}}"
+                                  - setProperty:
+                                      name: efecteQuery
+                                      constant: folderCode=avaimet&updateDataCards=true
+                                  - to: direct:handleEfecteUpdate
+                                  - bean:
+                                      ref: efecteKeyProcessor
+                                      method: updatePreviousEfecteKeyValue
+                              - simple: ${header.shouldUpdateILoqKey}
+                                steps:
+                                  - choice:
+                                      when:
+                                        - simple: ${header.newILoqSecurityAccessIds} != null
+                                          steps:
+                                            - log: "{{app.name}} :: efecteKeyCardsHandler :: Key's security accesses needs updating"
+                                            - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
+                                        - simple: ${header.iLoqPayload} != null
+                                          steps:
+                                            - log: "{{app.name}} :: efecteKeyCardsHandler :: Key's validity date needs updating"
+                                            - to: direct:handleILoqKeyUpdate
+                              - simple: ${header.shouldDisableILoqKey}
+                                steps:
+                                  - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been passived, and its security accesses need to be removed"
+                                  - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
+                                  - setProperty:
+                                      name: efecteQuery
+                                      constant: folderCode=avaimet&updateDataCards=true&removeEmptyValues=true
+                                  - to: direct:handleEfecteUpdate
+                                  - to: "{{app.routes.redis.deleteKey}}"
+                            otherwise:
+                              steps:
+                                - log: "{{app.name}} :: efecteKeyCardsHandler :: Key is up to date"
+                        - choice:
+                            when:
+                              - simple: ${header.newPreviousEfecteKey} != null
+                                steps:
+                                  - to: "{{app.routes.redis.savePreviousKeyInfos}}"
+                  otherwise:
+                    steps:
+                      - log: "{{app.name}} :: efecteKeyCardsHandler :: Efecte key (id: ${header.efecteKeyEntityId}, efecteId: ${header.efecteKeyEfecteId}) did not pass validation, stopping"
+        - bean:
+            ref: iLoqPersonResolver
+            method: resetCache
+        - log: "{{app.name}} :: efecteKeyCardsHandler :: End"
+
+- route:
+    id: direct:handleILoqKeyCreation
+    from:
+      uri: direct:handleILoqKeyCreation
+      steps:
+        - setProperty:
+            name: operation
+            constant: create
+        - setProperty:
+            name: method
+            constant: POST
+        - setProperty:
+            name: from
+            simple: ${type:fi.hel.models.enumerations.EnumDirection.EFECTE}
+        - setProperty:
+            name: to
+            simple: ${type:fi.hel.models.enumerations.EnumDirection.ILOQ}
+        - to: "{{app.routes.iLoq.processILoqKey}}"
+        - unmarshal:
+            json:
+              unmarshalType: fi.hel.models.ILoqKey
+        - convertBodyTo: fi.hel.models.ILoqKey
+
+- route:
+    id: direct:handleILoqKeyUpdate
+    from:
+      uri: direct:handleILoqKeyUpdate
+      steps:
+        - setProperty:
+            name: operation
+            constant: update
+        - setProperty:
+            name: method
+            constant: PUT
+        - setProperty:
+            name: from
+            simple: ${type:fi.hel.models.enumerations.EnumDirection.EFECTE}
+        - setProperty:
+            name: to
+            simple: ${type:fi.hel.models.enumerations.EnumDirection.ILOQ}
+        - to: "{{app.routes.iLoq.processILoqKey}}"
+
+- route:
+    id: direct:handleEfecteUpdate
+    from:
+      uri: direct:handleEfecteUpdate
+      steps:
+        - setProperty:
+            name: efecteEntityType
+            constant: key
+        - setProperty:
+            name: efecteOperation
+            constant: update
+        - setProperty:
+            name: entityId
+            simple: ${header.efecteKeyEntityId}
+        - setProperty:
+            name: efecteId
+            simple: ${header.efecteKeyEfecteId}
+        - setProperty:
+            name: iLoqId
+            simple: ${header.iLoqKeyId}
+        - setProperty:
+            name: efectePath
+            constant: /dataCardImport.ws
+        - to: "{{app.routes.efecte.processEfecteRequest}}"
