@@ -18,7 +18,7 @@
         <httpHeaders>
           <property>
             <name>Deploy-Token</name>
-            <value>${ci_gitlab_deploy_token}</value>
+            <value>${CI_GITLAB_DEPLOY_TOKEN}</value>
           </property>
         </httpHeaders>
       </configuration>
