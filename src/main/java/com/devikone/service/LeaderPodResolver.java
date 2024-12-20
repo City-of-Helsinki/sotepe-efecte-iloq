@@ -14,11 +14,14 @@ public class LeaderPodResolver {
 
     @Inject
     Redis redis;
+    @ConfigProperty(name = "QUARKUS_PROFILE")
+    String environment;
     @ConfigProperty(name = "LEADER_POD_KEY_EXPIRATION_SECONDS")
     long keyExpirationSeconds;
 
     public boolean isLeaderPod() throws Exception {
-        String result = redis.setIfNotExists("efecte-iloq-synchronization-integration-leader-pod-key", "leader",
+        String result = redis.setIfNotExists(
+                "efecte-iloq-synchronization-integration:leader-pod-key:" + environment, "leader",
                 keyExpirationSeconds);
 
         if ("OK".equals(result)) {

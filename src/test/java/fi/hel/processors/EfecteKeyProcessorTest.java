@@ -373,6 +373,7 @@ public class EfecteKeyProcessorTest {
             throws Exception {
         String iLoqKeyId = "abc-123";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
+        String urlEncodedEfecteAddress = "this is url encoded value of efecteAddress";
         String expectedEfecteQuery = """
                 SELECT entity
                 FROM entity
@@ -381,7 +382,7 @@ public class EfecteKeyProcessorTest {
                     AND $avain_tyyppi$ = 'iLOQ'
                     AND $avain_katuosoite$ = '%s'
                     AND $avain_external_id$ IS NULL
-                """.formatted(efecteAddress).replaceAll("\\s+", " ").trim();
+                """.formatted(urlEncodedEfecteAddress).replaceAll("\\s+", " ").trim();
 
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
         enrichedILoqKey.setRealEstateId("irrelevant, but not null");
@@ -393,13 +394,17 @@ public class EfecteKeyProcessorTest {
         setDefaultResponses();
         when(redis.get(anyString())).thenReturn(null);
         when(configProvider.getEfecteAddressNameByILoqRealEstateId(any())).thenReturn(efecteAddress);
+        when(helper.urlEncode(efecteAddress)).thenReturn(urlEncodedEfecteAddress);
 
         mocked.getGetEfecteEntity().expectedMessageCount(1);
         mocked.getGetEfecteEntity().expectedPropertyReceived("efecteEntityType", "key");
         mocked.getGetEfecteEntity().expectedPropertyReceived("efecteQuery", expectedEfecteQuery);
 
+        verifyNoInteractions(helper);
+
         efecteKeyProcessor.buildEfecteKey(ex);
 
+        verify(helper).urlEncode(efecteAddress);
         mocked.getGetEfecteEntity().assertIsSatisfied();
     }
 

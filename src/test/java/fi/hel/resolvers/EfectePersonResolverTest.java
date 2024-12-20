@@ -173,7 +173,9 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     void testShouldFetchTheEfecteKeyHolderWithTheILoqPersonName() throws Exception {
         String iLoqPersonId = "123";
         String firstName = "John";
+        String urlEncodedFirstName = "url encoded value of John";
         String lastName = "Doe";
+        String urlEncodedLastName = "url encoded value of Doe";
         ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, iLoqPersonId);
         String expectedEfecteQuery = """
                 SELECT entity
@@ -182,17 +184,23 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
                     template.code = 'person'
                     AND $first_name$ = '%s'
                     AND $last_name$ = '%s'
-                """.formatted(firstName, lastName).replaceAll("\\s+", " ").trim();
+                """.formatted(urlEncodedFirstName, urlEncodedLastName).replaceAll("\\s+", " ").trim();
 
         mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
+        when(helper.urlEncode(firstName)).thenReturn(urlEncodedFirstName);
+        when(helper.urlEncode(lastName)).thenReturn(urlEncodedLastName);
 
         mocked.getGetEfecteEntity().expectedMessageCount(1);
         mocked.getGetEfecteEntity().expectedPropertyReceived("efecteEntityType", "person");
         mocked.getGetEfecteEntity().expectedPropertyReceived("efecteQuery", expectedEfecteQuery);
 
+        verifyNoInteractions(helper);
+
         efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
 
+        verify(helper).urlEncode(firstName);
+        verify(helper).urlEncode(lastName);
         mocked.getGetEfecteEntity().assertIsSatisfied();
     }
 
@@ -203,7 +211,9 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         String firstName = "John ";
         String lastName = " Doe";
         String expectedFirstName = "John";
+        String urlEncodedFirstName = "url encoded value of John";
         String expectedLastName = "Doe";
+        String urlEncodedLastName = "url encoded value of Doe";
         ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, iLoqPersonId);
         String expectedEfecteQuery = """
                 SELECT entity
@@ -213,17 +223,23 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
                     AND $first_name$ = '%s'
                     AND $last_name$ = '%s'
                 """
-                .formatted(expectedFirstName, expectedLastName)
+                .formatted(urlEncodedFirstName, urlEncodedLastName)
                 .trim().replaceAll("\\s+", " ");
 
         mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
+        when(helper.urlEncode(expectedFirstName)).thenReturn(urlEncodedFirstName);
+        when(helper.urlEncode(expectedLastName)).thenReturn(urlEncodedLastName);
 
         mocked.getGetEfecteEntity().expectedMessageCount(1);
         mocked.getGetEfecteEntity().expectedPropertyReceived("efecteQuery", expectedEfecteQuery);
 
+        verifyNoInteractions(helper);
+
         efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
 
+        verify(helper).urlEncode(expectedFirstName);
+        verify(helper).urlEncode(expectedLastName);
         mocked.getGetEfecteEntity().assertIsSatisfied();
     }
 

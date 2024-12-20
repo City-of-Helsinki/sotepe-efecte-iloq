@@ -87,10 +87,8 @@ public class MockEndpointInjector {
     MockEndpoint getILoqPersonByExternalId;
     @EndpointInject("{{app.routes.iLoq.updateILoqKeySecurityAccesses}}")
     MockEndpoint updateILoqKeySecurityAccesses;
-    @EndpointInject("{{app.routes.iLoq.canAddKeyToBlocklist}}")
-    MockEndpoint canAddKeyToBlocklist;
-    @EndpointInject("{{app.routes.iLoq.addKeyToBlocklist}}")
-    MockEndpoint addKeyToBlocklist;
+    @EndpointInject("{{app.routes.iLoq.updateMainZone}}")
+    MockEndpoint updateMainZone;
 
     @EndpointInject("{{app.endpoints.oldhost}}")
     MockEndpoint oldhost;
@@ -223,14 +221,6 @@ public class MockEndpointInjector {
         return this.setMaxUpdated;
     }
 
-    public MockEndpoint getAddKeyToBlocklist() {
-        return this.addKeyToBlocklist;
-    }
-
-    public MockEndpoint getCanAddKeyToBlocklist() {
-        return this.canAddKeyToBlocklist;
-    }
-
     public MockEndpoint getGetILoqPersonByExternalId() {
         return this.getILoqPersonByExternalId;
     }
@@ -249,6 +239,10 @@ public class MockEndpointInjector {
 
     public MockEndpoint getEfecteControllerCleanup() {
         return this.efecteControllerCleanup;
+    }
+
+    public MockEndpoint getUpdateMainZone() {
+        return this.updateMainZone;
     }
 
 }

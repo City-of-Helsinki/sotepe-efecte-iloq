@@ -48,7 +48,7 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
 
     @ConfigProperty(name = "EFECTE_INITIAL_MAX_UPDATED")
     String initialMaxUpdated;
-    @ConfigProperty(name = "DELETED_KEY_EXPIRATION_TIME")
+    @ConfigProperty(name = "DELETED_KEY_EXPIRATION_SECONDS")
     Long deletedKeyExpirationTime;
 
     private String getMaxUpdatedEndpoint = "direct:getMaxUpdated";

@@ -290,6 +290,34 @@ public class EfecteKeyCardsHandlerTest extends CamelQuarkusTestSupport {
 
     @Test
     @DisplayName("direct:efecteKeyCardsHandler - create new iLOQ key")
+    void testShouldUpdateTheCreatedILoqKeyMainZone() throws Exception {
+        String expectedILoqId = "abc-123";
+        String expectedMainZoneId = "xyz-456";
+        Exchange ex = testUtils.createExchange(createInput());
+
+        when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+
+            exchange.setProperty("shouldCreateILoqKey", true);
+            exchange.setProperty("iLoqKeyId", expectedILoqId);
+            exchange.setProperty("mainZoneId", expectedMainZoneId);
+
+            return null;
+        }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
+        mocked.getProcessILoqKey().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("{}"));
+
+        mocked.getUpdateMainZone().expectedMessageCount(1);
+        mocked.getUpdateMainZone().expectedPropertyReceived("iLoqKeyId", expectedILoqId);
+        mocked.getUpdateMainZone().expectedPropertyReceived("mainZoneId", expectedMainZoneId);
+
+        template.send(efecteKeyCardsHandlerEndpoint, ex);
+
+        mocked.getUpdateMainZone().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:efecteKeyCardsHandler - create new iLOQ key")
     void testShouldUpdateTheEfecteKeyAfterCreatingAnILoqKey() throws Exception {
         String expectedEntityId = "12345";
         String expectedEfecteId = "KEY-00123";

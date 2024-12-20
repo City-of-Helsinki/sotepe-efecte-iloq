@@ -13,7 +13,7 @@ public class AuditExceptionProcessor {
 
     @Inject
     ResourceInjector ri;
-    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_TIME")
+    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
     long auditExceptionExpirationTime;
 
     public String setAuditException(

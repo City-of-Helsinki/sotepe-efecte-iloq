@@ -68,3 +68,4 @@ quarkus.log
 quarkus.log.*
 wip
 effective-pom.xml
+README_DEV.md

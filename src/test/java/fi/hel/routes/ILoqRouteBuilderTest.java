@@ -77,6 +77,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     private String getILoqPersonByExternalIdEndpoint = "direct:getILoqPersonByExternalId";
     private String processILoqKeyEndpoint = "direct:processILoqKey";
     private String getILoqKeyEndpoint = "direct:getILoqKey";
+    private String updateMainZoneEndpoint = "direct:updateMainZone";
 
     private String mockEndpoint = "mock:mockEndpoint";
     private MockEndpoint mock;
@@ -160,6 +161,24 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
             Exchange ex = testUtils.createExchange(null);
             mocked.getOldhost().expectedMessageCount(1);
             mocked.getOldhost().expectedHeaderReceived("CamelHttpMethod", "POST");
+
+            template.send(endpointUri, ex);
+
+            mocked.getOldhost().assertIsSatisfied();
+            mocked.getOldhost().reset();
+        }
+    }
+
+    @Test
+    @DisplayName("any iLOQ route")
+    void testShouldSetTheHttpMethodAsPUT() throws Exception {
+        List<String> endpoints = List.of(
+                updateMainZoneEndpoint);
+
+        for (String endpointUri : endpoints) {
+            Exchange ex = testUtils.createExchange(null);
+            mocked.getOldhost().expectedMessageCount(1);
+            mocked.getOldhost().expectedHeaderReceived("CamelHttpMethod", "PUT");
 
             template.send(endpointUri, ex);
 
@@ -586,7 +605,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 updateILoqKeySecurityAccessesEndpoint,
                 getILoqPersonByExternalIdEndpoint,
                 getILoqKeyEndpoint,
-                processILoqKeyEndpoint);
+                processILoqKeyEndpoint,
+                updateMainZoneEndpoint);
 
         for (String route : entityRoutes) {
             Exchange ex = testUtils.createExchange(null);
@@ -1305,6 +1325,44 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         assertThat(iLoqKeyResponse.getPersonId()).isEqualTo(expectedPersonId);
         assertThat(iLoqKeyResponse.getRealEstateId()).isEqualTo(expectedRealEstateId);
         assertThat(iLoqKeyResponse.getState()).isEqualTo(expcetedState);
+    }
+
+    @Test
+    @DisplayName("direct:updateMainZone")
+    void testShouldSetTheHttpPath_UpdateMainZone() throws Exception {
+        String keyId = "abc-123";
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("iLoqKeyId", keyId);
+
+        String expectedHttpPath = "/Keys/" + keyId + "/UpdateMainZone";
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+
+        template.send(updateMainZoneEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:updateMainZone")
+    void testShouldSetThePayload_UpdateMainZone() throws Exception {
+        String mainZoneId = "abc-123";
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("mainZoneId", mainZoneId);
+
+        String expectedPayload = """
+                {
+                    "Zone_ID": "%s"
+                }
+                """.formatted(mainZoneId).trim();
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedBodiesReceived(expectedPayload);
+
+        template.send(updateMainZoneEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
     }
 
     private void increaseCounter(Exchange ex) {

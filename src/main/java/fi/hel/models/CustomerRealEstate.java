@@ -10,6 +10,7 @@ public class CustomerRealEstate {
     private CustomerEfecteInfo efecte;
     @JsonProperty("iLoq")
     private CustomerILoqInfo iLoq;
+    private String agreedMainZoneId;
 
     public CustomerEfecteInfo getEfecte() {
         return this.efecte;
@@ -25,6 +26,14 @@ public class CustomerRealEstate {
 
     public void setILoq(CustomerILoqInfo iLoq) {
         this.iLoq = iLoq;
+    }
+
+    public String getAgreedMainZoneId() {
+        return this.agreedMainZoneId;
+    }
+
+    public void setAgreedMainZoneId(String agreedMainZoneId) {
+        this.agreedMainZoneId = agreedMainZoneId;
     }
 
     @Override

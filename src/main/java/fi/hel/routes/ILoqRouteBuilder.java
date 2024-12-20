@@ -291,6 +291,24 @@ public class ILoqRouteBuilder extends RouteBuilder {
             .removeHeaders("*")
         ;
 
+        from("direct:updateMainZone")
+            .routeId("direct:updateMainZone")
+            .to("{{app.routes.iLoq.configureILoqSession}}")
+            .log("{{app.name}} :: updateMainZone :: Updating iLOQ key main zone to '${header.mainZoneId}'")
+            .setBody(simple("""
+                    {
+                        "Zone_ID": "${header.mainZoneId}"
+                    }
+                    """))
+            .setHeaders(
+                Exchange.HTTP_METHOD, simple("PUT"),
+                Exchange.HTTP_PATH, simple("/Keys/${header.iLoqKeyId}/UpdateMainZone")
+            )
+            .to("{{app.endpoints.oldhost}}")
+            .log("{{app.name}} :: updateMainZone :: Updating succeeded")
+            .removeHeaders("*")
+        ;
+
     }
 
     private Predicate hasExistingValidILoqSession() {

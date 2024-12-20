@@ -247,6 +247,21 @@ public class ConfigProvider {
                         + "'");
     }
 
+    public String getILoqMainZoneId(String efecteAddressEntityId) throws Exception {
+        CustomerConfiguration customerConfiguration = getCustomerConfiguration();
+
+        for (CustomerRealEstate customerRealEstate : customerConfiguration.getRealEstates()) {
+            if (customerRealEstate.getEfecte().getEntityId().equals(efecteAddressEntityId)) {
+                return customerRealEstate.getAgreedMainZoneId();
+            }
+        }
+
+        throw new Exception(
+                "ConfigProvider: Could not find a main zone id for the given Efecte address entity id '"
+                        + efecteAddressEntityId
+                        + "'");
+    }
+
     private CustomerConfiguration getCustomerConfigurationByEfecteAddress(String efecteAddressEntityId)
             throws Exception {
         for (CustomerConfiguration customerConfiguration : this.customerConfigurations) {

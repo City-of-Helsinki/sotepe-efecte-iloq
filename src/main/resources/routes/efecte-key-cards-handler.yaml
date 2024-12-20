@@ -39,6 +39,7 @@
                                 steps:
                                   - to: direct:handleILoqKeyCreation
                                   - to: "{{app.routes.redis.saveMappedKeys}}"
+                                  - to: "{{app.routes.iLoq.updateMainZone}}"
                                   - setProperty:
                                       name: efecteQuery
                                       constant: folderCode=avaimet&updateDataCards=true

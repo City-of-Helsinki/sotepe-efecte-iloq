@@ -1,10 +1,9 @@
 package com.devikone.test_utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,10 +34,12 @@ public class TestUtils {
     CamelContext camelContext;
 
     public String readFile(String fileName) throws URISyntaxException, IOException {
-        java.net.URI fileUri = this.getClass().getResource(fileName).toURI();
-        String result = String.join("\n", Files.readAllLines(
-                Paths.get(fileUri), Charset.defaultCharset()));
-        return result;
+        try (InputStream is = this.getClass().getResourceAsStream(fileName)) {
+            if (is == null) {
+                throw new IllegalArgumentException("File not found in resources: " + fileName);
+            }
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     public void restoreRedis(Redis redis) throws InterruptedException {

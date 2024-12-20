@@ -35,7 +35,7 @@ public class AuditExceptionProcessorTest {
     @InjectMock
     Redis redis;
 
-    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_TIME")
+    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
     long auditExceptionExpirationTime;
 
     @Test

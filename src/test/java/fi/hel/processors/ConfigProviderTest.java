@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -422,23 +421,22 @@ public class ConfigProviderTest {
     }
 
     @Test
-    @DisplayName("minify customer configuration")
-    void minifyCustomerConfiguration() throws Exception {
-        String customerConfigurationJson = """
-                []
-                """;
-        String minifiedJson = testUtils.minifyJson(customerConfigurationJson);
+    @DisplayName("getILoqMainZoneId")
+    void testShouldGetTheAgreedILoqMainZoneIdForEfecteAddress() throws Exception {
+        String mainZoneId = configProvider.getILoqMainZoneId(testEfecteAddressEntityId1);
 
-        System.out.println(minifiedJson);
-        System.out.println("===");
+        assertThat(mainZoneId).isEqualTo(testILoqZoneId);
+    }
 
-        int byteSize = customerConfigurationJson.getBytes(StandardCharsets.UTF_8).length;
+    @Test
+    @DisplayName("getILoqMainZoneId")
+    void testShouldThrowAnExceptionWhenAMainZoneIdCannotBeFound()
+            throws Exception {
+        String invalidEfecteAddressEntityId = "invalid";
+        String expectedExceptionMessage = "ConfigProvider: Could not find a main zone id for the given Efecte address entity id '"
+                + invalidEfecteAddressEntityId + "'";
 
-        if (byteSize < 25600) {
-            System.out.println("byteSize: " + byteSize + " is less than the AKV limit 25600 bytes");
-        } else {
-            System.out.println("byteSize: " + byteSize
-                    + " is over than the limit 25600 bytes. You cannot store a json larger than 25k to AKV");
-        }
+        assertThatThrownBy(() -> configProvider.getILoqMainZoneId(invalidEfecteAddressEntityId))
+                .hasMessage(expectedExceptionMessage);
     }
 }

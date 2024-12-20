@@ -1,11 +1,3 @@
-# NOTE: if this "smallrye"-block is given, then the command
-#   `mvn package -Dquarkus.profile=test` fails
-#   to use the correct profile (test), therefore
-#   this is not used.
-#smallrye:
-#    config:
-#        profile: dev
-
 # Common properties
 quarkus:
   banner:
@@ -92,31 +84,26 @@ app:
       createILoqPerson: direct:createILoqPerson
       processILoqKey: direct:processILoqKey
       updateILoqKeySecurityAccesses: direct:updateILoqKeySecurityAccesses
-      canAddKeyToBlocklist: direct:canAddKeyToBlocklist
-      addKeyToBlocklist: direct:addKeyToBlocklist
+      updateMainZone: direct:updateMainZone
   endpoints:
     oldhost: http://oldhost
 
-#
-# This is used in local-development: mvn compile quarkus:dev
-#
-"%dev":
+"%development":
   camel:
     main:
-      routes-include-pattern: classpath:routes/*.yaml
+      routes-include-pattern: classpath:routes/*.yaml,classpath:dev-routes/*.yaml
   app:
     routes:
       controller:
         iLoq:
           # quartz: timer://iloq-controller?repeatCount=1
-          quartz: direct:iloq-controller
+          # quartz: direct:iloq-controller
+          quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
         efecte:
           # quartz: timer://efecte-controller?repeatCount=1
-          quartz: direct:efecte-controller
-#
-# This profile is activated during unit-tests.
-# Command: `mvn clean test`
-#
+          # quartz: direct:efecte-controller
+          quartz: quartz://efecte-controller?cron=${EFECTE_POLLING_SCHEDULE}
+
 "%test":
   camel:
     main:
@@ -169,16 +156,11 @@ app:
         createILoqPerson: mock:createILoqPerson
         processILoqKey: mock:processILoqKey
         updateILoqKeySecurityAccesses: mock:updateILoqKeySecurityAccesses
-        canAddKeyToBlocklist: mock:canAddKeyToBlocklist
-        addKeyToBlocklist: mock:addKeyToBlocklist
+        updateMainZone: mock:updateMainZone
     endpoints:
       oldhost: mock:oldhost
 
-# For the 'kubernetes'-profile we give the routes from file-system,
-# which quarkus in hot-reload -mode cannot use.
-# The use of routes from file-system is for Devikone's Kubernetes
-# Deployment-files, which may contain extra-routes from Config-files.
-"%kubernetes":
+"%production":
   app:
     routes:
       controller:
@@ -186,3 +168,17 @@ app:
           quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
         efecte:
           quartz: quartz://efecte-controller?cron=${EFECTE_POLLING_SCHEDULE}
+
+"%customer-configuration":
+  camel:
+    main:
+      routes-include-pattern: ""
+  app:
+    routes:
+      controller:
+        efecte:
+          quartz: mock:efecteQuartzController
+        iLoq:
+          quartz: mock:iLoqController
+    endpoints:
+      oldhost: http://oldhost

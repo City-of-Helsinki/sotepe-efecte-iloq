@@ -90,8 +90,8 @@ public class EfectePersonResolver {
                     AND $%s$ = '%s'
                     AND $%s$ = '%s'
                 """.formatted(
-                EnumEfecteAttribute.PERSON_FIRSTNAME.getCode(), firstName,
-                EnumEfecteAttribute.PERSON_LASTNAME.getCode(), lastName)
+                EnumEfecteAttribute.PERSON_FIRSTNAME.getCode(), ri.getHelper().urlEncode(firstName),
+                EnumEfecteAttribute.PERSON_LASTNAME.getCode(), ri.getHelper().urlEncode(lastName))
                 .replaceAll("\\s+", " ")
                 .trim();
 

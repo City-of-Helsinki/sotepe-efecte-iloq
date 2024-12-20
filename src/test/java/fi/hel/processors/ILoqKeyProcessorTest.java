@@ -92,11 +92,14 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         String securityAccessEntityId = "12345";
         String efecteId = "KEY-000123";
         String validityDate = "foobar";
+        String efecteAddressEntityId = "567234";
+        String expectedMainZoneId = "foo-159";
 
         for (EnumEfecteKeyState state : states) {
             EfecteEntity expectedEfecteEntity = new EfecteEntityBuilder()
                     .withKeyEfecteId(efecteId)
                     .withExternalId(null)
+                    .withStreetAddress(efecteAddressEntityId, "irrelevant street name")
                     .withState(state)
                     .withValidityDate(validityDate)
                     .withSecurityAccesses(new EfecteReference(securityAccessEntityId))
@@ -123,6 +126,7 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
                     .build());
 
             when(iLoqKeyMapper.buildNewILoqKey(expectedEfecteEntity)).thenReturn(expectedNewILoqKey);
+            when(configProvider.getILoqMainZoneId(efecteAddressEntityId)).thenReturn(expectedMainZoneId);
 
             iLoqKeyProcessor.processKey(ex);
 
@@ -134,8 +138,10 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
             PreviousEfecteKey newPreviousEfecteKey = ex.getProperty("newPreviousEfecteKey",
                     PreviousEfecteKey.class);
             EfecteEntitySet efectePayload = ex.getProperty("efectePayload", EfecteEntitySet.class);
+            String mainZoneId = ex.getProperty("mainZoneId", String.class);
 
             verify(iLoqKeyMapper).buildNewILoqKey(expectedEfecteEntity);
+            verify(configProvider).getILoqMainZoneId(efecteAddressEntityId);
             assertThat(iLoqPayload).isEqualTo(expectedNewILoqKey);
             assertThat(iLoqKeyId).isEqualTo(expectedILoqKeyId);
             assertThat(shouldCreateILoqKey).isTrue();
@@ -143,6 +149,7 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
             assertThat(newILoqSecurityAccessIds).isEqualTo(expectedNewILoqSecurityAccessIds);
             assertThat(newPreviousEfecteKey).isEqualTo(expectedNewPreviousEfecteKey);
             assertThat(efectePayload).isEqualTo(expectedEfectePayload);
+            assertThat(mainZoneId).isEqualTo(expectedMainZoneId);
 
             reset(iLoqKeyMapper);
         }

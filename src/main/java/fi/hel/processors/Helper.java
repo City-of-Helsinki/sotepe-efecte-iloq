@@ -53,6 +53,18 @@ public class Helper {
         return URLEncoder.encode(input, "utf-8");
     }
 
+    public String encodeUnicode(String input) throws Exception {
+        StringBuilder encoded = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (c >= 128) {
+                encoded.append(String.format("\\u%04x", (int) c));
+            } else {
+                encoded.append(c);
+            }
+        }
+        return encoded.toString();
+    }
+
     public <T> T writeAsPojo(String json, Class<T> valueType) throws JsonProcessingException {
         return new ObjectMapper().readValue(json, valueType);
     }

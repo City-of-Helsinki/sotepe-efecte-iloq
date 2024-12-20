@@ -240,7 +240,7 @@ public class EfecteKeyProcessor {
                     AND $avain_katuosoite$ = '%s'
                     AND $avain_external_id$ IS NULL
                 """
-                .formatted(efecteStreetAddress)
+                .formatted(ri.getHelper().urlEncode(efecteStreetAddress))
                 .replaceAll("\\s+", " ")
                 .trim();
 

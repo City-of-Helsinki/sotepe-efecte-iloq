@@ -117,7 +117,7 @@ public class RedisRouteBuilder extends RouteBuilder {
             .bean(ri.getRedis(), "del({{app.redis.prefix.mapped.key.efecte}}${header.efecteKeyEfecteId})")
             .bean(ri.getRedis(), "del({{app.redis.prefix.mapped.key.iLoq}}${header.iLoqKeyId})")
 
-            .bean(ri.getRedis(), "setex('{{app.redis.prefix.temp.deleted.key}}${date-with-timezone:now:Europe/Helsinki:yyyy-MM-dd_HH:mm}:${header.efecteKeyEfecteId}', '${header.iLoqKeyId}', {{DELETED_KEY_EXPIRATION_TIME}})")
+            .bean(ri.getRedis(), "setex('{{app.redis.prefix.temp.deleted.key}}${date-with-timezone:now:Europe/Helsinki:yyyy-MM-dd_HH:mm}:${header.efecteKeyEfecteId}', '${header.iLoqKeyId}', {{DELETED_KEY_EXPIRATION_SECONDS}})")
         ;
 
         from("direct:removeTempKeys")

@@ -51,6 +51,7 @@ public class ILoqKeyProcessor {
         PreviousEfecteKey oldPreviousEfecteKey = null;
         PreviousEfecteKey newPreviousEfecteKey = null;
         EfecteEntitySet efectePayload = null;
+        String mainZoneId = null;
 
         Set<String> newEfecteSecurityAccessEntityIds = efecteKey
                 .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS)
@@ -67,6 +68,8 @@ public class ILoqKeyProcessor {
                 iLoqKeyId = iLoqPayload.getKey().getFnKeyId();
                 shouldCreateILoqKey = true;
                 newPreviousEfecteKey = new PreviousEfecteKey(keyState, newEfecteSecurityAccessEntityIds, validityDate);
+                mainZoneId = ri.getConfigProvider().getILoqMainZoneId(
+                        efecteKey.getAttributeReferences(EnumEfecteAttribute.KEY_STREET_ADDRESS).get(0).getId());
                 efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
                         .withTemplate(EnumEfecteTemplate.KEY.getCode())
                         .withKeyEfecteId(efecteId)
@@ -138,6 +141,7 @@ public class ILoqKeyProcessor {
         ex.setProperty("newPreviousEfecteKey", newPreviousEfecteKey);
         ex.setProperty("newILoqSecurityAccessIds", newILoqSecurityAccessIds);
         ex.setProperty("efectePayload", efectePayload);
+        ex.setProperty("mainZoneId", mainZoneId);
     }
 
     public void setCurrentILoqCredentials(Exchange ex) throws Exception {
