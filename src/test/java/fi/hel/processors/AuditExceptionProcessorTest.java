@@ -81,6 +81,34 @@ public class AuditExceptionProcessorTest {
 
     @Test
     @DisplayName("setAuditException")
+    void testShouldUseILoqIdInTheKeyWhenEfecteIdIsNotAvailable() throws Exception {
+        EnumDirection from = EnumDirection.ILOQ;
+        EnumDirection to = EnumDirection.EFECTE;
+        String entityId = "12345";
+        String efecteId = null;
+        String iLoqId = "abc-123";
+        String message = "foobar";
+
+        String timestamp = testUtils.createDatetimeNow("yyyy-MM-dd'T'HH:mm:ss");
+        String expectedPrefix = ri.getAuditExceptionPrefix() + timestamp + ":" + iLoqId;
+
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> expirationTimeCaptor = ArgumentCaptor.forClass(Long.class);
+
+        verifyNoInteractions(redis);
+
+        auditExceptionProcessor.setAuditException(from, to, entityId, efecteId, iLoqId, message);
+
+        verify(redis).setex(keyCaptor.capture(), valueCaptor.capture(), expirationTimeCaptor.capture());
+
+        String key = keyCaptor.getValue();
+
+        assertThat(key).isEqualTo(expectedPrefix);
+    }
+
+    @Test
+    @DisplayName("setAuditException")
     void testShoulSetTheAuditExceptionInProcessKeyWhenProcessingAnAuditException() throws Exception {
         EnumDirection from = EnumDirection.ILOQ;
         EnumDirection to = EnumDirection.EFECTE;

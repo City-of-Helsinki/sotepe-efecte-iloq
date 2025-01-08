@@ -194,7 +194,6 @@ public class EfecteKeyProcessor {
                             .withKeyEfecteId(efecteKeyEfecteId)
                             .withValidityDate(previousEfecteKey.getValidityDate())
                             .build();
-                    System.out.println("mitä tämä on: " + efecteEntity.toJson());
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(efecteEntity, iLoqKeyResponse);
                 }
             }

@@ -26,7 +26,8 @@ public class AuditExceptionProcessor {
         AuditExceptionRecord auditExceptionRecord = new AuditExceptionRecord(
                 from, to, entityId, efecteId, iLoqId, message);
         String auditExceptionJson = auditExceptionRecord.toJson();
-        String prefix = ri.getAuditExceptionPrefix() + auditExceptionRecord.getTimestamp() + ":" + efecteId;
+        String suffix = efecteId != null ? efecteId : iLoqId;
+        String prefix = ri.getAuditExceptionPrefix() + auditExceptionRecord.getTimestamp() + ":" + suffix;
 
         if (!ri.getRedis().exists(ri.getAuditExceptionInProgressPrefix())) {
             ri.getRedis().setex(prefix, auditExceptionJson, auditExceptionExpirationTime);

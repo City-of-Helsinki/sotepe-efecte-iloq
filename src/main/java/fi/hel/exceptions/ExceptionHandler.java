@@ -28,10 +28,9 @@ public class ExceptionHandler extends RouteConfigurationBuilder {
             .handled(true)
             .choice()
                 .when(exchangeProperty("CamelExceptionCaught").isInstanceOf(HttpOperationFailedException.class))
-                    .log("{{app.name}} :: HTTP ERROR OCCURRED :: ${exception.message}")
-                    .log("{{app.name}} :: Http-response: ${exchangeProperty[CamelExceptionCaught].getResponseBody()}")
+                    .to("sentry-log:{{app.name}} :: HTTP ERROR OCCURRED :: ${exception.message}, response: ${exchangeProperty[CamelExceptionCaught].getResponseBody()}?loggingLevel=ERROR")
                 .otherwise()
-                    .log("{{app.name}} :: ERROR OCCURRED :: ${exception.message}")
+                    .to("sentry-log:{{app.name}} :: ERROR OCCURRED :: ${exception.message}?loggingLevel=ERROR")
             .end()
             .stop()
         ;
@@ -40,7 +39,7 @@ public class ExceptionHandler extends RouteConfigurationBuilder {
             .precondition(this.useExceptionHandling ? "true" : "{{app.configuration.useExceptionHandling}}")
             .onException(AuditException.class)
             .handled(true)
-            .log("{{app.name}} :: AUDIT EXCEPTION OCCURRED :: ${exception.message}")
+            .to("sentry-log:{{app.name}} :: AUDIT EXCEPTION OCCURRED :: ${exception.message}?loggingLevel=ERROR")
             .bean("redis", "del({{app.redis.prefix.auditExceptionInProgress}})")
             .stop()
         ;
