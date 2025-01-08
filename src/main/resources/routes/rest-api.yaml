@@ -1,12 +1,11 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
 
 - rest:
-    path: /api
     get:
-      - path: /ready
+      - path: /readiness
         id: get.readiness-probe
         to: direct:readiness-probe
-      - path: /alive
+      - path: /healthz
         id: get.alive-probe
         to: direct:aliveness-probe
     post:
@@ -24,7 +23,6 @@
             constant: "200"
         - setBody:
             simple: "{{app.name}}: Alive"
-        - log: Alive (${header.X-forwarded-for})
 
 - route:
     id: readiness-probe.route
@@ -36,4 +34,3 @@
             constant: "200"
         - setBody:
             simple: "{{app.name}}: Ready"
-        - log: Ready (${header.X-forwarded-for})
