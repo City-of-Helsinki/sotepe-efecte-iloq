@@ -11,7 +11,7 @@
                 steps:
                   - choice:
                       when:
-                        - simple: ${header.Authorization} == 'Bearer {{WEBHOOK_API.TOKEN}}'
+                        - simple: ${header.CamelHttpQuery} contains 'token={{WEBHOOK_API.TOKEN}}'
                           steps:
                             - log: "{{app.name}} :: efecteWebhookController :: Efecte event received"
                             - setProperty:
@@ -33,7 +33,7 @@
                                 constant: OK
                       otherwise:
                         steps:
-                          - log: "{{app.name}} :: webhook controller :: invalid Authentication, token: '${header.Authorization}'"
+                          - log: "{{app.name}} :: webhook controller :: invalid Authentication, token: '${header.CamelHttpQuery}'"
                           - setHeader:
                               name: CamelHttpResponseCode
                               constant: "401"
