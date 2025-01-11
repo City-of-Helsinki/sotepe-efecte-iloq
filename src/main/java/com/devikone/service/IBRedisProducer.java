@@ -14,6 +14,7 @@ public class IBRedisProducer {
 
     private String redisHost = "localhost";
     private String redisPassword = "";
+    private int redisPort = 6379;
     private Redis redis;
 
     @Produces
@@ -29,9 +30,14 @@ public class IBRedisProducer {
             if (env.get("REDIS_PASSWORD") != null) {
                 redisPassword = env.get("REDIS_PASSWORD");
             }
+            if (env.get("REDIS_PORT") != null) {
+                System.out.println("debug: " + env.get("REDIS_PORT"));
+                redisPort = Integer.valueOf(env.get("REDIS_PORT"));
+            }
 
             redis.setRedisHost(redisHost);
             redis.setRedisPassword(redisPassword);
+            redis.setRedisPort(redisPort);
         }
 
         return redis;
