@@ -26,6 +26,8 @@
                             - removeHeaders: "*"
                             - wireTap:
                                 uri: direct:efecteTriggerController
+                                copy: true
+                                pattern: InOnly
                             - setHeader:
                                 name: Exchange.HTTP_RESPONSE_CODE
                                 constant: "200"
