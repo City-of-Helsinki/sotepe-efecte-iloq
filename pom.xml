@@ -30,7 +30,7 @@
     <quarkus.platform.version>3.13.0</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <camel.operon.version>0.9.18-RELEASE</camel.operon.version>
-    <ib.redis.version>0.5.3-RELEASE</ib.redis.version>
+    <ib.redis.version>0.6.0-RELEASE</ib.redis.version>
     <log4j.version>2.22.1</log4j.version>
     <assertj.version>3.25.3</assertj.version>
     <rest-assured.version>5.4.0</rest-assured.version>
