@@ -637,7 +637,7 @@ public class EfecteKeyProcessorTest {
         assertThat(shouldUpdateEfecteKey).isFalse();
         assertThat(shouldCreateEfecteKey).isTrue();
         assertThat(payload).isEqualTo(expectedPayload);
-        assertThat(newILoqSecurityAccessIds).isNull();
+        assertThat(newILoqSecurityAccessIds).isEmpty();
         assertThat(newPreviousEfecteKey).isEqualTo(expectedNewPreviousEfecteKey);
     }
 
@@ -1144,4 +1144,5 @@ public class EfecteKeyProcessorTest {
         // when(efecteKeyMapper.buildEfecteEntitySetUpdate(any(), any())).thenReturn(efecteEntitySet);
         when(efecteKeyMapper.buildNewEfecteEntitySetImport(any())).thenReturn(efecteEntitySet);
     }
+
 }

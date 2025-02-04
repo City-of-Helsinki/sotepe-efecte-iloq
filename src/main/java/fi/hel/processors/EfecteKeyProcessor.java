@@ -259,10 +259,6 @@ public class EfecteKeyProcessor {
     }
 
     private Set<String> getNewILoqSecurityAccessIds(Set<ILoqSecurityAccess> iLoqSecurityAccesses) {
-        if (iLoqSecurityAccesses.isEmpty()) {
-            return null;
-        }
-
         return iLoqSecurityAccesses.stream()
                 .map(sa -> sa.getSecurityAccessId())
                 .collect(Collectors.toSet());

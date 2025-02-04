@@ -40,6 +40,8 @@
                                   - to: direct:handleILoqKeyCreation
                                   - to: "{{app.routes.redis.saveMappedKeys}}"
                                   - to: "{{app.routes.iLoq.updateMainZone}}"
+                                  # /CanOrder
+                                  # /Order
                                   - setProperty:
                                       name: efecteQuery
                                       constant: folderCode=avaimet&updateDataCards=true
@@ -59,6 +61,8 @@
                                           steps:
                                             - log: "{{app.name}} :: efecteKeyCardsHandler :: Key's validity date needs updating"
                                             - to: direct:handleILoqKeyUpdate
+                                            # /CanOrder
+                                            # /Order
                               - simple: ${header.shouldDisableILoqKey}
                                 steps:
                                   - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been passived, and its security accesses need to be removed"

@@ -317,6 +317,38 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
     }
 
     @Test
+    @DisplayName("direct:savePreviousKeyInfos")
+    void testShouldNotSavePreviousILoqKeySecurityAccessesWhenTheKeyHasNoSecurityAccesses() throws Exception {
+        String efecteId = "KEY-00123";
+        String iLoqId = "abc-123";
+        String iLoqSecurityAccessId1 = "11";
+        String iLoqSecurityAccessId2 = "22";
+        PreviousEfecteKey previousEfecteKey = new PreviousEfecteKey("Aktiivinen", Set.of(
+                iLoqSecurityAccessId1, iLoqSecurityAccessId2));
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("efecteKeyEfecteId", efecteId);
+        ex.setProperty("iLoqKeyId", iLoqId);
+        ex.setProperty("newPreviousEfecteKey", previousEfecteKey);
+        ex.setProperty("newILoqSecurityAccessIds", Set.of());
+
+        String expectedPreviousEfecteKey = testUtils.writeAsJson(previousEfecteKey);
+        String expectedEfectePrefix = ri.getPreviousKeyEfectePrefix() + efecteId;
+        String expectedILoqPrefix = ri.getPreviousKeyILoqPrefix() + iLoqId;
+
+        when(helper.writeAsJson(previousEfecteKey)).thenReturn(expectedPreviousEfecteKey);
+
+        verifyNoInteractions(redis);
+        verifyNoInteractions(helper);
+
+        template.send(savePreviousKeyInfosEndpoint, ex);
+
+        verify(redis).set(expectedEfectePrefix, expectedPreviousEfecteKey);
+        verify(redis, times(0)).del(expectedILoqPrefix);
+        verify(redis, times(0)).addSet(any(), any(), any());
+        verify(helper).writeAsJson(previousEfecteKey);
+    }
+
+    @Test
     @DisplayName("direct:deleteKey")
     void testShouldEmptyTheCachedKeysRelatedToADisabledKey() throws Exception {
         String efecteId = "KEY-00123";

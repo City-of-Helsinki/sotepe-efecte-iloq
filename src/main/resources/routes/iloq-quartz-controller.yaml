@@ -21,7 +21,7 @@
                         - log: "{{app.name}} :: iLoqQuartzController :: Processing customer code ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (${body})"
                         - to: direct:initializeILoqCredentials
                         - to: "{{app.routes.iLoq.listILoqKeys}}"
-                        - log: "{{app.name}} :: iLoqQuartzController :: Found total of ${body.size} keys. Start processing only keys with verified real estate"
+                        - log: "{{app.name}} :: iLoqQuartzController :: Found total of ${body.size} keys. Start processing keys with verified real estate"
                         - bean:
                             ref: iLoqKeyProcessor
                             method: getILoqKeysWithVerifiedRealEstate
@@ -45,6 +45,7 @@
                                             description: The Integration will not handle iLOQ keys of which are missing the person connection. Adding them to a blocklist is not adviced (- iLOQ support).
                               # TODO: tähän väliin versiopäivityksenä toiminto, jossa edellisestä ajosta puuttuvat iLOQ avaimet käsitellään "palautettuina", ja vastaavat avainkortit efectestä asetetaan tilaan "poistettu"
                               - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
+                              - log: "{{app.name}} :: iLoqQuartzController :: Enriched iLOQ key"
                               - bean:
                                   ref: efecteKeyProcessor
                                   method: buildEfecteKey

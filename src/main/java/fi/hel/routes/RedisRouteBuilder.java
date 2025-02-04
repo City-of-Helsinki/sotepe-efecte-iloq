@@ -101,7 +101,7 @@ public class RedisRouteBuilder extends RouteBuilder {
 
                 ri.getRedis().set(ri.getPreviousKeyEfectePrefix() + efecteId, ri.getHelper().writeAsJson(newPreviousEfecteKey));
                 
-                if (newILoqSecurityAccessIds != null) {
+                if (newILoqSecurityAccessIds != null && !newILoqSecurityAccessIds.isEmpty()) {
                     // Deleting the previous iLOQ key since the value is a Set (full update instead of patching)
                     ri.getRedis().del(ri.getPreviousKeyILoqPrefix() + iLoqId);
                     ri.getRedis().addSet(ri.getPreviousKeyILoqPrefix() + iLoqId, newILoqSecurityAccessIds.toArray(new String[0]));
