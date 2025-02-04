@@ -1,6 +1,7 @@
 package fi.hel.processors;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -166,7 +167,7 @@ public class EfecteKeyProcessor {
 
         if (!isMissingInfoText(iLoqKeyInfoText) || efecteEntityIdentifierJson != null) {
             // Key is previously mapped
-            if (!newILoqSecurityAccessIds.equals(previousILoqKeySecurityAccesses)) {
+            if (!Objects.equals(newILoqSecurityAccessIds, previousILoqKeySecurityAccesses)) {
                 EfecteEntityIdentifier efecteEntityIdentifier = ri.getHelper()
                         .writeAsPojo(efecteEntityIdentifierJson, EfecteEntityIdentifier.class);
                 efecteKeyEntityId = efecteEntityIdentifier.getEntityId();
@@ -258,6 +259,10 @@ public class EfecteKeyProcessor {
     }
 
     private Set<String> getNewILoqSecurityAccessIds(Set<ILoqSecurityAccess> iLoqSecurityAccesses) {
+        if (iLoqSecurityAccesses.isEmpty()) {
+            return null;
+        }
+
         return iLoqSecurityAccesses.stream()
                 .map(sa -> sa.getSecurityAccessId())
                 .collect(Collectors.toSet());

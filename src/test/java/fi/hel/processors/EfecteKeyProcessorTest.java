@@ -595,6 +595,53 @@ public class EfecteKeyProcessorTest {
     }
 
     @Test
+    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS NOT found")
+    void testShouldAllowEmptySecurityAccessesWhenCreatingTheEfecteKey() throws Exception {
+        String iLoqKeyId = "abc-123";
+        Set<ILoqSecurityAccess> iLoqSecurityAccesses = Set.of();
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
+        enrichedILoqKey.setRealEstateId("irrelevant, but not null");
+        enrichedILoqKey.setSecurityAccesses(iLoqSecurityAccesses);
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        Set<String> efecteSecurityAccessEntityIds = Set.of();
+        String validityDate = "foo";
+        EfecteEntityImport entityImport = new EfecteEntityImport(
+                EnumEfecteTemplate.KEY,
+                List.of(new EfecteAttributeImport(
+                        EnumEfecteAttribute.KEY_VALIDITY_DATE, validityDate)));
+        EfecteEntitySetImport expectedPayload = new EfecteEntitySetImport();
+        expectedPayload.setEntity(entityImport);
+        PreviousEfecteKey expectedNewPreviousEfecteKey = new PreviousEfecteKey(
+                EnumEfecteKeyState.AKTIIVINEN.getName(),
+                efecteSecurityAccessEntityIds,
+                validityDate);
+
+        when(redis.get(any())).thenReturn(null);
+        when(efecteKeyResolver.findMatchingEfecteKey(any(), any())).thenReturn(null);
+        when(efecteKeyMapper.buildNewEfecteEntitySetImport(any())).thenReturn(expectedPayload);
+        when(efecteKeyResolver.getNewEfecteSecurityAccessEntityIds(iLoqSecurityAccesses))
+                .thenReturn(efecteSecurityAccessEntityIds);
+
+        efecteKeyProcessor.buildEfecteKey(ex);
+
+        boolean shouldUpdateEfecteKey = ex.getProperty("shouldUpdateEfecteKey", boolean.class);
+        boolean shouldCreateEfecteKey = ex.getProperty("shouldCreateEfecteKey", boolean.class);
+        EfecteEntitySetImport payload = ex.getProperty("efectePayload", EfecteEntitySetImport.class);
+        Set<String> newILoqSecurityAccessIds = ex.getProperty("newILoqSecurityAccessIds", Set.class);
+        PreviousEfecteKey newPreviousEfecteKey = ex.getProperty("newPreviousEfecteKey",
+                PreviousEfecteKey.class);
+
+        assertThat(shouldUpdateEfecteKey).isFalse();
+        assertThat(shouldCreateEfecteKey).isTrue();
+        assertThat(payload).isEqualTo(expectedPayload);
+        assertThat(newILoqSecurityAccessIds).isNull();
+        assertThat(newPreviousEfecteKey).isEqualTo(expectedNewPreviousEfecteKey);
+    }
+
+    @Test
     @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found")
     void testShouldSaveTheMappedKeysWhenAMatchIsFound() throws Exception {
         String expectedILoqKeyId = "abc-123";
