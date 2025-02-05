@@ -238,6 +238,28 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     }
 
     @Test
+    @DisplayName("buildEqualEfecteKey")
+    void testShouldNotSetTheEfecteSecurityAccessReferenceWhenILoqKeyHasNoSecurityAccessesSet()
+            throws Exception {
+        String personId = "irrelevant";
+        String efecteAddress = "Testikatu 1, 00100, Helsinki";
+        EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
+        iLoqKey.setPersonId(personId);
+        iLoqKey.setSecurityAccesses(Set.of());
+
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(anyString()))
+                .thenReturn("irrelevant");
+        when(redis.get(anyString())).thenReturn("something but not null person id");
+
+        EfecteEntity efecteEntity = efecteKeyResolver.buildEqualEfecteKey(iLoqKey, efecteAddress);
+
+        List<EfecteReference> securityAccessReferences = efecteEntity
+                .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS);
+
+        assertThat(securityAccessReferences).isNull();
+    }
+
+    @Test
     @DisplayName("getNewEfecteSecurityAccessEntityIds")
     void testShouldReturnTheEfecteKeySecurityAccessEntityIds() throws Exception {
         String expectedSecurityAccessEntityId1 = "SA0001";

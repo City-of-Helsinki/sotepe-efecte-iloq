@@ -60,7 +60,9 @@ public class EfecteKeyResolver {
             }
         }
 
-        entityBuilder.withSecurityAccesses(efecteSecurityAccessReferences.toArray(new EfecteReference[0]));
+        if (!efecteSecurityAccessEntityIds.isEmpty()) {
+            entityBuilder.withSecurityAccesses(efecteSecurityAccessReferences.toArray(new EfecteReference[0]));
+        }
 
         return entityBuilder.build();
     }
