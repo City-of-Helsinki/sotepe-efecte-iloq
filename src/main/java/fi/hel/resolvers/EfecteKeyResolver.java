@@ -143,11 +143,24 @@ public class EfecteKeyResolver {
     }
 
     private boolean hasMatchingSecurityAccesses(EfecteEntity builtKey, EfecteEntity key) throws Exception {
-        Set<String> keySecurityAccessEntityIds = key.getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS)
-                .stream().map(sa -> sa.getId()).collect(Collectors.toSet());
-        Set<String> builtKeySecurityAccessEntityIds = builtKey
-                .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS)
-                .stream().map(sa -> sa.getId()).collect(Collectors.toSet());
+        List<EfecteReference> keySecurityAccesses = key.getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS);
+        List<EfecteReference> builtKeySecurityAccesses = builtKey
+                .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS);
+
+        if (keySecurityAccesses == null && builtKeySecurityAccesses == null) {
+            return true;
+        }
+
+        if (keySecurityAccesses == null || builtKeySecurityAccesses == null) {
+            return false;
+        }
+
+        Set<String> keySecurityAccessEntityIds = keySecurityAccesses.stream()
+                .map(sa -> sa.getId())
+                .collect(Collectors.toSet());
+        Set<String> builtKeySecurityAccessEntityIds = builtKeySecurityAccesses.stream()
+                .map(sa -> sa.getId())
+                .collect(Collectors.toSet());
 
         return keySecurityAccessEntityIds.equals(builtKeySecurityAccessEntityIds);
     }

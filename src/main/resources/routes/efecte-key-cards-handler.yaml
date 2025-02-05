@@ -67,11 +67,11 @@
                                 steps:
                                   - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been passived, and its security accesses need to be removed"
                                   - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
-                                  - setProperty:
-                                      name: efecteQuery
-                                      constant: folderCode=avaimet&updateDataCards=true&removeEmptyValues=true
-                                  - to: direct:handleEfecteUpdate
-                                  - to: "{{app.routes.redis.deleteKey}}"
+                                  # - setProperty:
+                                  #     name: efecteQuery
+                                  #     constant: folderCode=avaimet&updateDataCards=true&removeEmptyValues=true
+                                  # - to: direct:handleEfecteUpdate
+                                  # - to: "{{app.routes.redis.deleteKey}}"
                             otherwise:
                               steps:
                                 - log: "{{app.name}} :: efecteKeyCardsHandler :: Key is up to date"

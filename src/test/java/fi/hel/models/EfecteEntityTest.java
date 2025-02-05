@@ -2,6 +2,8 @@ package fi.hel.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -52,6 +54,17 @@ public class EfecteEntityTest {
 
         assertThat(securityAccessReference.getId()).isEqualTo(expectedSecurityAccessId);
         assertThat(securityAccessReference.getName()).isEqualTo(expectedSecurityAccessName);
+    }
+
+    @Test
+    @DisplayName("getKeyId")
+    void testShouldAllowEmptySecurityAccesses() throws Exception {
+        EfecteEntity efecteEntity = new EfecteEntityBuilder().build();
+
+        List<EfecteReference> securityAccessReference = efecteEntity
+                .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS);
+
+        assertThat(securityAccessReference).isNull();
     }
 
     private EfecteAttribute buildEfecteAttributeWithValue(String attributeId, String value) {

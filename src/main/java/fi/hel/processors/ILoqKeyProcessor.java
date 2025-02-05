@@ -110,11 +110,13 @@ public class ILoqKeyProcessor {
                     } else if (keyState.equals(EnumEfecteKeyState.PASSIIVINEN.getName())) {
                         shouldDisableILoqKey = true;
                         newILoqSecurityAccessIds = new HashSet<>();
-                        efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
-                                .withTemplate(EnumEfecteTemplate.KEY.getCode())
-                                .withKeyEfecteId(efecteId)
-                                .withExternalId(null)
-                                .build());
+                        newPreviousEfecteKey = new PreviousEfecteKey(keyState, newEfecteSecurityAccessEntityIds);
+                        // TODO: kun avain poistetaan iLOQ managerissa, tulee tämä hyödyntää (mutta ei tässä)
+                        // efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
+                        //         .withTemplate(EnumEfecteTemplate.KEY.getCode())
+                        //         .withKeyEfecteId(efecteId)
+                        //         .withExternalId(null)
+                        //         .build());
                     }
                 } else if (oldPreviousEfecteKey.getState().equals(EnumEfecteKeyState.ODOTTAA_AKTIVOINTIA.getName())) {
                     if (keyState.equals(EnumEfecteKeyState.AKTIIVINEN.getName())) {
@@ -123,6 +125,9 @@ public class ILoqKeyProcessor {
                                 "Efecte key state has been manually updated at Efecte from 'Odottaa aktivointia' to 'Aktiivinen'");
                         newPreviousEfecteKey = new PreviousEfecteKey(keyState, newEfecteSecurityAccessEntityIds);
                     }
+                } else if (oldPreviousEfecteKey.getState().equals(EnumEfecteKeyState.PASSIIVINEN.getName())) {
+                    System.out.println(
+                            "Efecte key has previously been passived. Will skip the handling now and wait for the matching iLOQ key to be removed (manually) before removing the mapped keys from the cycle.");
                 }
             } else {
                 String auditMessage = "The id has been mapped, but the previous Efecte key info has been deleted from Redis. Deleting also the mapped ids results in creating a new iLOQ key.";

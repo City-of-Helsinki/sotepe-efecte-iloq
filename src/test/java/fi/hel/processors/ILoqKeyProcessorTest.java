@@ -385,11 +385,8 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
                 previousKeyState, Set.of(securityAccessEntityId));
         String previousEfecteKeyJson = testUtils.writeAsJson(previousEfecteKey);
 
-        EfecteEntitySet expectedEfectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
-                .withTemplate(EnumEfecteTemplate.KEY.getCode())
-                .withKeyEfecteId(efecteId)
-                .withExternalId(null)
-                .build());
+        PreviousEfecteKey expectedNewPreviousEfecteKey = new PreviousEfecteKey(
+                keyState.getName(), Set.of(securityAccessEntityId));
 
         when(redis.get(anyString())).thenReturn(previousEfecteKeyJson);
         when(helper.writeAsPojo(previousEfecteKeyJson, PreviousEfecteKey.class)).thenReturn(previousEfecteKey);
@@ -411,10 +408,10 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         assertThat(shouldCreateILoqKey).isFalse();
         assertThat(shouldUpdateILoqKey).isFalse();
         assertThat(shouldDisableILoqKey).isTrue();
-        assertThat(newPreviousEfecteKey).isNull();
+        assertThat(newPreviousEfecteKey).isEqualTo(expectedNewPreviousEfecteKey);
         assertThat(newILoqSecurityAccessIds).isEmpty();
         verifyNoInteractions(iLoqKeyMapper);
-        assertThat(efectePayload).isEqualTo(expectedEfectePayload);
+        assertThat(efectePayload).isNull();
     }
 
     @Test

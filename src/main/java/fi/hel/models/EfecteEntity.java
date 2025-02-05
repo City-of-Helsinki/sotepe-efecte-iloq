@@ -77,6 +77,10 @@ public class EfecteEntity {
     public List<EfecteReference> getAttributeReferences(EnumEfecteAttribute efecteEntityAttribute) throws Exception {
         EfecteAttribute efecteAttribute = getAttributeById(efecteEntityAttribute);
 
+        if (efecteAttribute == null) {
+            return null;
+        }
+
         return efecteAttribute.getReferences();
     }
 
@@ -87,8 +91,12 @@ public class EfecteEntity {
                 .orElse(null);
 
         if (efecteAttribute == null) {
-            throw new Exception("EfecteEntity.getAttributeById: No attribute found for '"
-                    + efecteEntityAttribute.getCode() + "'");
+            if (efecteEntityAttribute.getCode().equals(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getCode())) {
+                return null;
+            } else {
+                throw new Exception("EfecteEntity.getAttributeById: No attribute found for '"
+                        + efecteEntityAttribute.getCode() + "'");
+            }
         }
 
         return efecteAttribute;
