@@ -97,9 +97,9 @@ app:
     routes:
       controller:
         iLoq:
-          quartz: timer://iloq-controller?repeatCount=1
+          # quartz: timer://iloq-controller?repeatCount=1
           # quartz: direct:iloq-controller
-          # quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
+          quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
         efecte:
           # quartz: timer://efecte-controller?repeatCount=1
           # quartz: direct:efecte-controller

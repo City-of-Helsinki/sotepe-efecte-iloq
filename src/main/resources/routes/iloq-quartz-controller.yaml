@@ -45,7 +45,6 @@
                                             description: The Integration will not handle iLOQ keys of which are missing the person connection. Adding them to a blocklist is not adviced (- iLOQ support).
                               # TODO: tähän väliin versiopäivityksenä toiminto, jossa edellisestä ajosta puuttuvat iLOQ avaimet käsitellään "palautettuina", ja vastaavat avainkortit efectestä asetetaan tilaan "poistettu"
                               - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
-                              - log: "{{app.name}} :: iLoqQuartzController :: Enriched iLOQ key"
                               - bean:
                                   ref: efecteKeyProcessor
                                   method: buildEfecteKey
