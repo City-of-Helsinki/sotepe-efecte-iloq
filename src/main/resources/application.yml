@@ -86,6 +86,8 @@ app:
       processILoqKey: direct:processILoqKey
       updateILoqKeySecurityAccesses: direct:updateILoqKeySecurityAccesses
       updateMainZone: direct:updateMainZone
+      canOrderKey: direct:canOrderKey
+      orderKey: direct:orderKey
   endpoints:
     oldhost: http://oldhost
 
@@ -158,6 +160,8 @@ app:
         processILoqKey: mock:processILoqKey
         updateILoqKeySecurityAccesses: mock:updateILoqKeySecurityAccesses
         updateMainZone: mock:updateMainZone
+        canOrderKey: mock:canOrderKey
+        orderKey: mock:orderKey
     endpoints:
       oldhost: mock:oldhost
 

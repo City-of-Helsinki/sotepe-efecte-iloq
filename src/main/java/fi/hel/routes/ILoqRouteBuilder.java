@@ -309,6 +309,57 @@ public class ILoqRouteBuilder extends RouteBuilder {
             .removeHeaders("*")
         ;
 
+        from("direct:canOrderKey")
+            .routeId("direct:canOrderKey")
+            .to("{{app.routes.iLoq.configureILoqSession}}")
+            .setHeaders(
+                Exchange.HTTP_METHOD, simple("GET"),
+                Exchange.HTTP_PATH, simple("/Keys/${header.iLoqKeyId}/CanOrder")
+            )
+            .to("{{app.endpoints.oldhost}}")
+            .choice()
+                .when(body().isEqualTo("0"))
+                    .setProperty("canOrder", constant(true))
+                .otherwise()
+                    .choice()
+                        .when(body().isEqualTo("1"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key has changes which require iLOQ Manager + token to order.")
+                        .when(body().isEqualTo("3"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key can't be ordered because the license limit has been exceeded. Return keys or contact iLOQ to acquire more licenses.")
+                        .when(body().isEqualTo("4"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key is in wrong state. Only keys in planning state can be ordered.")
+                        .when(body().isEqualTo("5"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key's id is too large.")
+                        .when(body().isEqualTo("6"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key has security access outside its zones. This can only occur if the key is a new key.")
+                        .when(body().isEqualTo("7"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key has time limit outside its zones. This can only occur if the key is a new key.")
+                        .when(body().isEqualTo("8"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key is in block list.")
+                        .when(body().isEqualTo("11"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key has too many timelimits defined.")
+                        .when(body().isEqualTo("12"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key main zone is not set and is required.")
+                        .when(body().isEqualTo("13"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: key doesn't have a person attached to it")
+                        .when(body().isEqualTo("14"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: external Key doesn't have TagKey set")
+                        .when(body().isEqualTo("-1"))
+                            .log("{{app.name}} :: canOrderKey :: Cannot order the key, reason: error occurred during checking")
+                    .endChoice()
+            .end()
+        ;
+
+        from("direct:orderKey")
+            .routeId("direct:orderKey")
+            .to("{{app.routes.iLoq.configureILoqSession}}")
+            .setHeaders(
+                Exchange.HTTP_METHOD, simple("POST"),
+                Exchange.HTTP_PATH, simple("/Keys/${header.iLoqKeyId}/Order")
+            )
+            .setBody(simple(null))
+            .to("{{app.endpoints.oldhost}}")
+        ;
     }
 
     private Predicate hasExistingValidILoqSession() {

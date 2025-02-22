@@ -111,12 +111,12 @@ public class ILoqKeyProcessor {
                         shouldDisableILoqKey = true;
                         newILoqSecurityAccessIds = new HashSet<>();
                         newPreviousEfecteKey = new PreviousEfecteKey(keyState, newEfecteSecurityAccessEntityIds);
-                        // TODO: kun avain poistetaan iLOQ managerissa, tulee tämä hyödyntää (mutta ei tässä)
-                        // efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
-                        //         .withTemplate(EnumEfecteTemplate.KEY.getCode())
-                        //         .withKeyEfecteId(efecteId)
-                        //         .withExternalId(null)
-                        //         .build());
+                        // Note: While we remove the connection between Efecte and iLOQ keys from Efecte, currently we do not remove this connection from iLOQ (InfoText-field remains as is).
+                        efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
+                                .withTemplate(EnumEfecteTemplate.KEY.getCode())
+                                .withKeyEfecteId(efecteId)
+                                .withExternalId(null)
+                                .build());
                     }
                 } else if (oldPreviousEfecteKey.getState().equals(EnumEfecteKeyState.ODOTTAA_AKTIVOINTIA.getName())) {
                     if (keyState.equals(EnumEfecteKeyState.AKTIIVINEN.getName())) {

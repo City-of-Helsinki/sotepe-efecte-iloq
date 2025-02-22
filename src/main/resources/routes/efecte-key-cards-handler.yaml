@@ -40,8 +40,6 @@
                                   - to: direct:handleILoqKeyCreation
                                   - to: "{{app.routes.redis.saveMappedKeys}}"
                                   - to: "{{app.routes.iLoq.updateMainZone}}"
-                                  # /CanOrder
-                                  # /Order
                                   - setProperty:
                                       name: efecteQuery
                                       constant: folderCode=avaimet&updateDataCards=true
@@ -57,21 +55,32 @@
                                           steps:
                                             - log: "{{app.name}} :: efecteKeyCardsHandler :: Key's security accesses needs updating"
                                             - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
+                                  - choice:
+                                      when:
                                         - simple: ${header.iLoqPayload} != null
                                           steps:
                                             - log: "{{app.name}} :: efecteKeyCardsHandler :: Key's validity date needs updating"
                                             - to: direct:handleILoqKeyUpdate
-                                            # /CanOrder
-                                            # /Order
+                                  - to: "{{app.routes.iLoq.canOrderKey}}"
+                                  - choice:
+                                      when:
+                                        - simple: ${header.canOrder}
+                                          steps:
+                                            - to: "{{app.routes.iLoq.orderKey}}"
                               - simple: ${header.shouldDisableILoqKey}
                                 steps:
-                                  - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been passived, and its security accesses need to be removed"
+                                  - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been disabled, and its security accesses needs to be removed"
                                   - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
-                                  # - setProperty:
-                                  #     name: efecteQuery
-                                  #     constant: folderCode=avaimet&updateDataCards=true&removeEmptyValues=true
-                                  # - to: direct:handleEfecteUpdate
-                                  # - to: "{{app.routes.redis.deleteKey}}"
+                                  - to: "{{app.routes.iLoq.canOrderKey}}"
+                                  - choice:
+                                      when:
+                                        - simple: ${header.canOrder}
+                                          steps:
+                                            - to: "{{app.routes.iLoq.orderKey}}"
+                                  - setProperty:
+                                      name: efecteQuery
+                                      constant: folderCode=avaimet&updateDataCards=true&removeEmptyValues=true
+                                  - to: direct:handleEfecteUpdate
                             otherwise:
                               steps:
                                 - log: "{{app.name}} :: efecteKeyCardsHandler :: Key is up to date"

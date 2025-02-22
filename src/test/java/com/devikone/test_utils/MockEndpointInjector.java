@@ -89,6 +89,10 @@ public class MockEndpointInjector {
     MockEndpoint updateILoqKeySecurityAccesses;
     @EndpointInject("{{app.routes.iLoq.updateMainZone}}")
     MockEndpoint updateMainZone;
+    @EndpointInject("{{app.routes.iLoq.canOrderKey}}")
+    MockEndpoint canOrderKey;
+    @EndpointInject("{{app.routes.iLoq.orderKey}}")
+    MockEndpoint orderKey;
 
     @EndpointInject("{{app.endpoints.oldhost}}")
     MockEndpoint oldhost;
@@ -243,6 +247,14 @@ public class MockEndpointInjector {
 
     public MockEndpoint getUpdateMainZone() {
         return this.updateMainZone;
+    }
+
+    public MockEndpoint getCanOrderKey() {
+        return this.canOrderKey;
+    }
+
+    public MockEndpoint getOrderKey() {
+        return this.orderKey;
     }
 
 }

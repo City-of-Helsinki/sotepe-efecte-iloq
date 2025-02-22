@@ -78,6 +78,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     private String processILoqKeyEndpoint = "direct:processILoqKey";
     private String getILoqKeyEndpoint = "direct:getILoqKey";
     private String updateMainZoneEndpoint = "direct:updateMainZone";
+    private String canOrderKeyEndpoint = "direct:canOrderKey";
+    private String orderKeyEndpoint = "direct:orderKey";
 
     private String mockEndpoint = "mock:mockEndpoint";
     private MockEndpoint mock;
@@ -135,7 +137,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 getILoqLockGroupsEndpoint,
                 killILoqSessionEndpoint,
                 getILoqPersonByExternalIdEndpoint,
-                getILoqKeyEndpoint);
+                getILoqKeyEndpoint,
+                canOrderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange(null);
@@ -155,7 +158,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         List<String> endpoints = List.of(
                 getILoqUriEndpoint,
                 setILoqLockGroupEndpoint,
-                createILoqPersonEndpoint);
+                createILoqPersonEndpoint,
+                orderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange(null);
@@ -193,7 +197,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String expectedPayload = null;
         List<String> endpoints = List.of(
                 getILoqLockGroupsEndpoint,
-                getILoqPersonEndpoint);
+                getILoqPersonEndpoint,
+                orderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange("foobar");
@@ -606,7 +611,9 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 getILoqPersonByExternalIdEndpoint,
                 getILoqKeyEndpoint,
                 processILoqKeyEndpoint,
-                updateMainZoneEndpoint);
+                updateMainZoneEndpoint,
+                canOrderKeyEndpoint,
+                orderKeyEndpoint);
 
         for (String route : entityRoutes) {
             Exchange ex = testUtils.createExchange(null);
@@ -1361,6 +1368,72 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         mocked.getOldhost().expectedBodiesReceived(expectedPayload);
 
         template.send(updateMainZoneEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:canOrderKey")
+    void testShouldSetTheHttpPath_CanOrderKey() throws Exception {
+        String keyId = "abc-123";
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("iLoqKeyId", keyId);
+
+        String expectedHttpPath = "/Keys/" + keyId + "/CanOrder";
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+
+        template.send(canOrderKeyEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:canOrderKey")
+    void testShouldSetThePropertyValueAsTrueWhenAKeyCanBeOrdered() throws Exception {
+        Exchange ex = testUtils.createExchange("foo");
+
+        String fakeResponse = "0";
+
+        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
+
+        template.send(canOrderKeyEndpoint, ex);
+
+        boolean canOrder = ex.getProperty("canOrder", boolean.class);
+
+        assertThat(canOrder).isTrue();
+    }
+
+    @Test
+    @DisplayName("direct:canOrderKey")
+    void testShouldSetThePropertyValueAsFalseWhenAKeyCanNotBeOrdered() throws Exception {
+        Exchange ex = testUtils.createExchange("foo");
+
+        String fakeResponse = "1";
+
+        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
+
+        template.send(canOrderKeyEndpoint, ex);
+
+        boolean canOrder = ex.getProperty("canOrder", boolean.class);
+
+        assertThat(canOrder).isFalse();
+    }
+
+    @Test
+    @DisplayName("direct:orderKey")
+    void testShouldSetTheHttpPath_OrderKey() throws Exception {
+        String keyId = "abc-123";
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("iLoqKeyId", keyId);
+
+        String expectedHttpPath = "/Keys/" + keyId + "/Order";
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+
+        template.send(orderKeyEndpoint, ex);
 
         mocked.getOldhost().assertIsSatisfied();
     }
