@@ -429,79 +429,81 @@ public class EfecteKeyCardsHandlerTest extends CamelQuarkusTestSupport {
                 mocked.getProcessILoqKey());
     }
 
-    @Test
-    @DisplayName("direct:efecteKeyCardsHandler - update existing iLOQ key")
-    void testShouldOrderTheKeyAfterUpdating() throws Exception {
-        Exchange ex = testUtils.createExchange(createInput());
+    // Enable this if API security accesses are being used
+    // @Test
+    // @DisplayName("direct:efecteKeyCardsHandler - update existing iLOQ key")
+    // void testShouldOrderTheKeyAfterUpdating() throws Exception {
+    //     Exchange ex = testUtils.createExchange(createInput());
 
-        String iLoqSecurityAccessId = "1";
-        String expectedILoqKeyId = "abc-123";
+    //     String iLoqSecurityAccessId = "1";
+    //     String expectedILoqKeyId = "abc-123";
 
-        Set<String> expectedILoqSecurityAccessIds = Set.of(iLoqSecurityAccessId);
+    //     Set<String> expectedILoqSecurityAccessIds = Set.of(iLoqSecurityAccessId);
 
-        when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
-        doAnswer(i -> {
-            Exchange exchange = i.getArgument(0);
+    //     when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
+    //     doAnswer(i -> {
+    //         Exchange exchange = i.getArgument(0);
 
-            exchange.setProperty("shouldUpdateILoqKey", true);
-            exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
-            exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
+    //         exchange.setProperty("shouldUpdateILoqKey", true);
+    //         exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
+    //         exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
 
-            return null;
-        }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
+    //         return null;
+    //     }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
 
-        mocked.getUpdateILoqKeySecurityAccesses()
-                .whenAnyExchangeReceived(exchange -> exchange.setProperty("foo", "bar"));
-        mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", true));
+    //     mocked.getUpdateILoqKeySecurityAccesses()
+    //             .whenAnyExchangeReceived(exchange -> exchange.setProperty("foo", "bar"));
+    //     mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", true));
 
-        mocked.getCanOrderKey().expectedMessageCount(1);
-        mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getCanOrderKey().expectedPropertyReceived("foo", "bar");
-        mocked.getOrderKey().expectedMessageCount(1);
-        mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getOrderKey().expectedPropertyReceived("foo", "bar");
+    //     mocked.getCanOrderKey().expectedMessageCount(1);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("foo", "bar");
+    //     mocked.getOrderKey().expectedMessageCount(1);
+    //     mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getOrderKey().expectedPropertyReceived("foo", "bar");
 
-        template.send(efecteKeyCardsHandlerEndpoint, ex);
+    //     template.send(efecteKeyCardsHandlerEndpoint, ex);
 
-        MockEndpoint.assertIsSatisfied(
-                mocked.getCanOrderKey(),
-                mocked.getOrderKey());
-    }
+    //     MockEndpoint.assertIsSatisfied(
+    //             mocked.getCanOrderKey(),
+    //             mocked.getOrderKey());
+    // }
 
-    @Test
-    @DisplayName("direct:efecteKeyCardsHandler - update existing iLOQ key")
-    void testShouldNotTryToOrderTheKeyWhenTheMadeChangesCannotBeOrdered_Updating() throws Exception {
-        Exchange ex = testUtils.createExchange(createInput());
+    // Enable this if API security accesses are being used
+    // @Test
+    // @DisplayName("direct:efecteKeyCardsHandler - update existing iLOQ key")
+    // void testShouldNotTryToOrderTheKeyWhenTheMadeChangesCannotBeOrdered_Updating() throws Exception {
+    //     Exchange ex = testUtils.createExchange(createInput());
 
-        String iLoqSecurityAccessId = "1";
-        String expectedILoqKeyId = "abc-123";
+    //     String iLoqSecurityAccessId = "1";
+    //     String expectedILoqKeyId = "abc-123";
 
-        Set<String> expectedILoqSecurityAccessIds = Set.of(iLoqSecurityAccessId);
+    //     Set<String> expectedILoqSecurityAccessIds = Set.of(iLoqSecurityAccessId);
 
-        when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
-        doAnswer(i -> {
-            Exchange exchange = i.getArgument(0);
+    //     when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
+    //     doAnswer(i -> {
+    //         Exchange exchange = i.getArgument(0);
 
-            exchange.setProperty("shouldUpdateILoqKey", true);
-            exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
-            exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
+    //         exchange.setProperty("shouldUpdateILoqKey", true);
+    //         exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
+    //         exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
 
-            return null;
-        }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
+    //         return null;
+    //     }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
 
-        mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", false));
+    //     mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", false));
 
-        mocked.getCanOrderKey().expectedMessageCount(1);
-        mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getOrderKey().expectedMessageCount(0);
-        mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getCanOrderKey().expectedMessageCount(1);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getOrderKey().expectedMessageCount(0);
+    //     mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
 
-        template.send(efecteKeyCardsHandlerEndpoint, ex);
+    //     template.send(efecteKeyCardsHandlerEndpoint, ex);
 
-        MockEndpoint.assertIsSatisfied(
-                mocked.getCanOrderKey(),
-                mocked.getOrderKey());
-    }
+    //     MockEndpoint.assertIsSatisfied(
+    //             mocked.getCanOrderKey(),
+    //             mocked.getOrderKey());
+    // }
 
     @Test
     @DisplayName("direct:efecteKeyCardsHandler - update existing iLOQ key expire date")
@@ -570,75 +572,77 @@ public class EfecteKeyCardsHandlerTest extends CamelQuarkusTestSupport {
                 mocked.getProcessILoqKey());
     }
 
-    @Test
-    @DisplayName("direct:efecteKeyCardsHandler - disable existing iLOQ key")
-    void testShouldOrderTheKeyAfterDisabling() throws Exception {
-        Exchange ex = testUtils.createExchange(createInput());
+    // Enable this if API security accesses are being used
+    // @Test
+    // @DisplayName("direct:efecteKeyCardsHandler - disable existing iLOQ key")
+    // void testShouldOrderTheKeyAfterDisabling() throws Exception {
+    //     Exchange ex = testUtils.createExchange(createInput());
 
-        String expectedILoqKeyId = "abc-123";
-        Set<String> expectedILoqSecurityAccessIds = Set.of();
+    //     String expectedILoqKeyId = "abc-123";
+    //     Set<String> expectedILoqSecurityAccessIds = Set.of();
 
-        when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
-        doAnswer(i -> {
-            Exchange exchange = i.getArgument(0);
+    //     when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
+    //     doAnswer(i -> {
+    //         Exchange exchange = i.getArgument(0);
 
-            exchange.setProperty("shouldDisableILoqKey", true);
-            exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
-            exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
+    //         exchange.setProperty("shouldDisableILoqKey", true);
+    //         exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
+    //         exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
 
-            return null;
-        }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
+    //         return null;
+    //     }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
 
-        mocked.getUpdateILoqKeySecurityAccesses()
-                .whenAnyExchangeReceived(exchange -> exchange.setProperty("foo", "bar"));
-        mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", true));
+    //     mocked.getUpdateILoqKeySecurityAccesses()
+    //             .whenAnyExchangeReceived(exchange -> exchange.setProperty("foo", "bar"));
+    //     mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", true));
 
-        mocked.getCanOrderKey().expectedMessageCount(1);
-        mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getCanOrderKey().expectedPropertyReceived("foo", "bar");
-        mocked.getOrderKey().expectedMessageCount(1);
-        mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getOrderKey().expectedPropertyReceived("foo", "bar");
+    //     mocked.getCanOrderKey().expectedMessageCount(1);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("foo", "bar");
+    //     mocked.getOrderKey().expectedMessageCount(1);
+    //     mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getOrderKey().expectedPropertyReceived("foo", "bar");
 
-        template.send(efecteKeyCardsHandlerEndpoint, ex);
+    //     template.send(efecteKeyCardsHandlerEndpoint, ex);
 
-        MockEndpoint.assertIsSatisfied(
-                mocked.getCanOrderKey(),
-                mocked.getOrderKey());
-    }
+    //     MockEndpoint.assertIsSatisfied(
+    //             mocked.getCanOrderKey(),
+    //             mocked.getOrderKey());
+    // }
 
-    @Test
-    @DisplayName("direct:efecteKeyCardsHandler - disable existing iLOQ key")
-    void testShouldNotTryToOrderTheKeyWhenTheMadeChangesCannotBeOrdered_Disabling() throws Exception {
-        Exchange ex = testUtils.createExchange(createInput());
+    // Enable this if API security accesses are being used
+    // @Test
+    // @DisplayName("direct:efecteKeyCardsHandler - disable existing iLOQ key")
+    // void testShouldNotTryToOrderTheKeyWhenTheMadeChangesCannotBeOrdered_Disabling() throws Exception {
+    //     Exchange ex = testUtils.createExchange(createInput());
 
-        String expectedILoqKeyId = "abc-123";
-        Set<String> expectedILoqSecurityAccessIds = Set.of();
+    //     String expectedILoqKeyId = "abc-123";
+    //     Set<String> expectedILoqSecurityAccessIds = Set.of();
 
-        when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
-        doAnswer(i -> {
-            Exchange exchange = i.getArgument(0);
+    //     when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
+    //     doAnswer(i -> {
+    //         Exchange exchange = i.getArgument(0);
 
-            exchange.setProperty("shouldDisableILoqKey", true);
-            exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
-            exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
+    //         exchange.setProperty("shouldDisableILoqKey", true);
+    //         exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
+    //         exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
 
-            return null;
-        }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
+    //         return null;
+    //     }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
 
-        mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", false));
+    //     mocked.getCanOrderKey().whenAnyExchangeReceived(exchange -> exchange.setProperty("canOrder", false));
 
-        mocked.getCanOrderKey().expectedMessageCount(1);
-        mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
-        mocked.getOrderKey().expectedMessageCount(0);
-        mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getCanOrderKey().expectedMessageCount(1);
+    //     mocked.getCanOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+    //     mocked.getOrderKey().expectedMessageCount(0);
+    //     mocked.getOrderKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
 
-        template.send(efecteKeyCardsHandlerEndpoint, ex);
+    //     template.send(efecteKeyCardsHandlerEndpoint, ex);
 
-        MockEndpoint.assertIsSatisfied(
-                mocked.getCanOrderKey(),
-                mocked.getOrderKey());
-    }
+    //     MockEndpoint.assertIsSatisfied(
+    //             mocked.getCanOrderKey(),
+    //             mocked.getOrderKey());
+    // }
 
     @Test
     @DisplayName("direct:efecteKeyCardsHandler - disable existing iLOQ key")
