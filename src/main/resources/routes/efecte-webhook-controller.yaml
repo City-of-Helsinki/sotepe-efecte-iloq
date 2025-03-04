@@ -42,3 +42,8 @@
             otherwise:
               steps:
                 - log: "{{app.name}} :: efecteWebhookController :: Skip handling the received event (not the leader pod)"
+                - setHeader:
+                    name: Exchange.HTTP_RESPONSE_CODE
+                    constant: "200"
+                - setBody:
+                    constant: OK
