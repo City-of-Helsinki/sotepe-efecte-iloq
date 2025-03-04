@@ -16,13 +16,13 @@ public class LeaderPodResolver {
     Redis redis;
     @ConfigProperty(name = "QUARKUS_PROFILE")
     String environment;
-    @ConfigProperty(name = "LEADER_POD_KEY_EXPIRATION_SECONDS")
-    long keyExpirationSeconds;
+    @ConfigProperty(name = "LEADER_POD_KEY_EXPIRATION_MILLISECONDS")
+    long keyExpirationMilliseconds;
 
     public boolean isLeaderPod() throws Exception {
         String result = redis.setIfNotExists(
                 "efecte-iloq-synchronization-integration:leader-pod-key:" + environment, "leader",
-                keyExpirationSeconds);
+                keyExpirationMilliseconds);
 
         if ("OK".equals(result)) {
             return true;
