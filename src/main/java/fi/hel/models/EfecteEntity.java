@@ -84,18 +84,21 @@ public class EfecteEntity {
         return efecteAttribute.getReferences();
     }
 
-    private EfecteAttribute getAttributeById(EnumEfecteAttribute efecteEntityAttribute) throws Exception {
+    private EfecteAttribute getAttributeById(EnumEfecteAttribute enumEfecteAttribute) throws Exception {
+        System.out.println("DEBUG: enumEfecteAttribute: " + enumEfecteAttribute);
         EfecteAttribute efecteAttribute = attributes.stream()
-                .filter(attribute -> attribute.getId().equals(efecteEntityAttribute.getAttributeId()))
+                .filter(attribute -> attribute.getId().equals(enumEfecteAttribute.getId()))
                 .findFirst()
                 .orElse(null);
+        System.out.println("DEBUG: result: " + efecteAttribute);
 
         if (efecteAttribute == null) {
-            if (efecteEntityAttribute.getCode().equals(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getCode())) {
+            if (enumEfecteAttribute.getId()
+                    .equals(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getId())) {
                 return null;
             } else {
                 throw new Exception("EfecteEntity.getAttributeById: No attribute found for '"
-                        + efecteEntityAttribute.getCode() + "'");
+                        + enumEfecteAttribute.getId() + "'");
             }
         }
 
@@ -126,6 +129,12 @@ public class EfecteEntity {
     }
 
     public String toJson() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        return objectMapper.writeValueAsString(this);
+    }
+
+    public String toJsonPretty() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 

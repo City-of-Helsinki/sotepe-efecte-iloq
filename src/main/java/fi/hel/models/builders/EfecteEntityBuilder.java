@@ -50,7 +50,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withKeyEfecteId(String efecteId) {
         this.efecteId = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_EFECTE_ID.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_EFECTE_ID.getId())
                 .withCode(EnumEfecteAttribute.KEY_EFECTE_ID.getCode())
                 .withValue(efecteId)
                 .build();
@@ -60,7 +60,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withPersonEfecteId(String efecteId) {
         this.efecteId = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.PERSON_EFECTE_ID.getAttributeId())
+                .withId(EnumEfecteAttribute.PERSON_EFECTE_ID.getId())
                 .withCode(EnumEfecteAttribute.PERSON_EFECTE_ID.getCode())
                 .withValue(efecteId)
                 .build();
@@ -70,7 +70,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withExternalId(String externalId) {
         this.externalId = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_EXTERNAL_ID.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_EXTERNAL_ID.getId())
                 .withCode(EnumEfecteAttribute.KEY_EXTERNAL_ID.getCode())
                 .withValue(externalId)
                 .build();
@@ -79,7 +79,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withState(EnumEfecteKeyState enumEfecteKeyState) {
         this.state = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_STATE.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_STATE.getId())
                 .withCode(EnumEfecteAttribute.KEY_STATE.getCode())
                 .withValue(enumEfecteKeyState.getName())
                 .build();
@@ -88,7 +88,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withKeyHolderReference(String referenceId) {
         this.keyHolder = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_HOLDER.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_HOLDER.getId())
                 .withCode(EnumEfecteAttribute.KEY_HOLDER.getCode())
                 .withReference(referenceId)
                 .build();
@@ -97,7 +97,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withKeyHolderReference(String referenceId, String referenceName) {
         this.keyHolder = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_HOLDER.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_HOLDER.getId())
                 .withCode(EnumEfecteAttribute.KEY_HOLDER.getCode())
                 .withReference(referenceId, referenceName)
                 .build();
@@ -106,7 +106,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withKeyHolderReference(EfecteReference keyHolderReference) {
         this.keyHolder = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_HOLDER.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_HOLDER.getId())
                 .withCode(EnumEfecteAttribute.KEY_HOLDER.getCode())
                 .withReference(keyHolderReference)
                 .build();
@@ -115,7 +115,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withStreetAddress(String referenceId, String referenceName) {
         this.streetAddress = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_STREET_ADDRESS.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_STREET_ADDRESS.getId())
                 .withCode(EnumEfecteAttribute.KEY_STREET_ADDRESS.getCode())
                 .withReference(referenceId, referenceName)
                 .build();
@@ -124,7 +124,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withSecurityAccesses(EfecteReference... securityAccessReferences) {
         this.securityAccess = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getId())
                 .withCode(EnumEfecteAttribute.KEY_SECURITY_ACCESS.getCode())
                 .withReferences(Arrays.asList(securityAccessReferences))
                 .build();
@@ -133,7 +133,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withIsOutsider(boolean isOutsider) {
         this.isOutsider = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_IS_OUTSIDER.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_IS_OUTSIDER.getId())
                 .withCode(EnumEfecteAttribute.KEY_IS_OUTSIDER.getCode())
                 .withValue(isOutsider ? "Kyllä" : "Ei")
                 .build();
@@ -143,7 +143,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withOutsiderName(String outsiderName) {
         this.outsiderName = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_OUTSIDER_NAME.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_OUTSIDER_NAME.getId())
                 .withCode(EnumEfecteAttribute.KEY_OUTSIDER_NAME.getCode())
                 .withValue(outsiderName)
                 .build();
@@ -153,7 +153,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withOutsiderEmail(String outsiderEmail) {
         this.outsiderEmail = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL.getId())
                 .withCode(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL.getCode())
                 .withValue(outsiderEmail)
                 .build();
@@ -163,7 +163,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withValidityDate(String validityDate) {
         this.validityDate = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_VALIDITY_DATE.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_VALIDITY_DATE.getId())
                 .withCode(EnumEfecteAttribute.KEY_VALIDITY_DATE.getCode())
                 .withValue(validityDate)
                 .build();
@@ -173,7 +173,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withKeyType(String keyType) {
         this.keyType = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.KEY_TYPE.getAttributeId())
+                .withId(EnumEfecteAttribute.KEY_TYPE.getId())
                 .withCode(EnumEfecteAttribute.KEY_TYPE.getCode())
                 .withValue(keyType)
                 .build();
@@ -183,7 +183,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withFirstName(String firstName) {
         this.firstName = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.PERSON_FIRSTNAME.getAttributeId())
+                .withId(EnumEfecteAttribute.PERSON_FIRSTNAME.getId())
                 .withCode(EnumEfecteAttribute.PERSON_FIRSTNAME.getCode())
                 .withValue(firstName)
                 .build();
@@ -192,7 +192,7 @@ public class EfecteEntityBuilder {
 
     public EfecteEntityBuilder withLastName(String lastName) {
         this.lastName = new EfecteAttributeBuilder()
-                .withId(EnumEfecteAttribute.PERSON_LASTNAME.getAttributeId())
+                .withId(EnumEfecteAttribute.PERSON_LASTNAME.getId())
                 .withCode(EnumEfecteAttribute.PERSON_LASTNAME.getCode())
                 .withValue(lastName)
                 .build();

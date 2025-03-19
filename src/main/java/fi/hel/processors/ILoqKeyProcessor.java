@@ -167,6 +167,7 @@ public class ILoqKeyProcessor {
     }
 
     private String getILoqKeyId(EfecteEntity efecteKey) throws Exception {
+        System.out.println("DEBUG: efecteKey: " + efecteKey.toJson());
         try {
             return efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_EXTERNAL_ID);
         } catch (Exception e) {

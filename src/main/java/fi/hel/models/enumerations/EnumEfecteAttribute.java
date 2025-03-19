@@ -29,25 +29,25 @@ public enum EnumEfecteAttribute {
     PERSON_LASTNAME("1337", "1337", "last_name"),
     PERSON_STATUS("1782", "1782", "status");
 
-    private String attributeId;
-    private String codeProd;
-    private String codeDev;
+    private String idProd;
+    private String idDev;
+    private String code;
 
-    EnumEfecteAttribute(String attributeId, String codeProd, String codeDev) {
-        this.attributeId = attributeId;
-        this.codeProd = codeProd;
-        this.codeDev = codeDev;
-    }
-
-    public String getAttributeId() {
-        return this.attributeId;
+    EnumEfecteAttribute(String idProd, String idDev, String code) {
+        this.idProd = idProd;
+        this.idDev = idDev;
+        this.code = code;
     }
 
     public String getCode() {
+        return this.code;
+    }
+
+    public String getId() {
         if (ConfigProvider.getConfig().getConfigValue("QUARKUS_PROFILE").getValue().equals("production")) {
-            return codeProd;
+            return idProd;
         } else {
-            return codeDev;
+            return idDev;
         }
     }
 }

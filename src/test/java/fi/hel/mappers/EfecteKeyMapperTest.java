@@ -323,7 +323,8 @@ public class EfecteKeyMapperTest {
         EfecteAttributeImport keyValidityDateAttribute = newKeyCard
                 .getAttributeByType(EnumEfecteAttribute.KEY_VALIDITY_DATE);
 
-        assertThat(keyValidityDateAttribute.getCode()).isEqualTo(EnumEfecteAttribute.KEY_VALIDITY_DATE.getCode());
+        assertThat(keyValidityDateAttribute.getCode())
+                .isEqualTo(EnumEfecteAttribute.KEY_VALIDITY_DATE.getCode());
         assertThat(keyValidityDateAttribute.getValues().size()).isEqualTo(1);
         assertThat(keyValidityDateAttribute.getValues().get(0)).isEqualTo(expectedValidityDate);
     }
