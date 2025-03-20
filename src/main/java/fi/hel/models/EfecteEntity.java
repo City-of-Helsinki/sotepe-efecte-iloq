@@ -85,12 +85,10 @@ public class EfecteEntity {
     }
 
     private EfecteAttribute getAttributeById(EnumEfecteAttribute enumEfecteAttribute) throws Exception {
-        System.out.println("DEBUG: enumEfecteAttribute: " + enumEfecteAttribute);
         EfecteAttribute efecteAttribute = attributes.stream()
                 .filter(attribute -> attribute.getId().equals(enumEfecteAttribute.getId()))
                 .findFirst()
                 .orElse(null);
-        System.out.println("DEBUG: result: " + efecteAttribute);
 
         if (efecteAttribute == null) {
             if (enumEfecteAttribute.getId()
