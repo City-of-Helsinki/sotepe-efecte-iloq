@@ -124,9 +124,10 @@ public class EfecteKeyResolver {
     }
 
     private boolean hasMatchingOutsider(EfecteEntity builtKey, EfecteEntity key) throws Exception {
+        String builtKeyOutsiderName = builtKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
+
         if (hasMappedOutsider(builtKey)) {
             String builtKeyOutsiderEmail = builtKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL);
-            String builtKeyOutsiderName = builtKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
 
             try {
                 String keyOutsiderEmail = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL);
@@ -137,10 +138,13 @@ public class EfecteKeyResolver {
                 return false;
             }
         } else {
-            String builtKeyOutsiderName = builtKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
-            String keyOutsiderName = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
+            try {
+                String keyOutsiderName = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
 
-            return keyOutsiderName.equals(builtKeyOutsiderName);
+                return keyOutsiderName.equals(builtKeyOutsiderName);
+            } catch (Exception e) {
+                return false;
+            }
         }
     }
 

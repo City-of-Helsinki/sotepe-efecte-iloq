@@ -96,7 +96,7 @@ public class EfecteEntity {
                 return null;
             } else {
                 throw new Exception("EfecteEntity.getAttributeById: No attribute found for '"
-                        + enumEfecteAttribute.getId() + "'");
+                        + enumEfecteAttribute.getId() + "' (" + enumEfecteAttribute.getCode() + "). Key id: " + id);
             }
         }
 

@@ -44,7 +44,7 @@
                                         - stop:
                                             description: The Integration will not handle iLOQ keys of which are missing the person connection. Adding them to a blocklist is not adviced (- iLOQ support).
                               # TODO: tähän väliin versiopäivityksenä toiminto, jossa edellisestä ajosta puuttuvat iLOQ avaimet käsitellään "palautettuina", ja vastaavat avainkortit efectestä asetetaan tilaan "poistettu" (vai passivoitu, tarkista tämä viikkopalavereiden muistiinpanoista). Efecten avainkorttiin ei kuitenkaan haluta tehdä mitään muutoksia, jos sen tila on jo "passiivinen", tällöin riittää ainoastaan poistaa rediksestä vastaavat avaimet.
-                              # TODO: kun avain poistetaan iLOQ managerissa, tulee tätä kutsua:
+                              # TODO: kun avain palautetaan iLOQ managerissa, tulee tätä kutsua:
                               # - to: "{{app.routes.redis.deleteKey}}"
                               - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
                               - bean:
@@ -131,6 +131,11 @@
         - to: "{{app.routes.iLoq.getILoqKeySecurityAccesses}}"
         - choice:
             when:
+              - simple: ${body.isEmpty()}
+                steps:
+                  - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key does not contain any security accesses (key's infoText: ${exchangeProperty.currentILoqKey.infoText})"
+                  - stop:
+                      description: iLOQ key does not contain any security accesses
               - simple: ${bean:iLoqKeyProcessor.hasValidSecurityAccesses}
                 steps:
                   - bean:

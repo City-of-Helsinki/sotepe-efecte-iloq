@@ -3,6 +3,7 @@ package fi.hel.routes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -734,6 +735,29 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
         template.send(enrichKeyWithSecurityAccessesEndpoint, ex);
 
         mocked.getGetILoqKeySecurityAccesses().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:enrichKeyWithSecurityAccesses")
+    void testShouldNotProcessKeysWithoutSecurityAccesses() throws Exception {
+        String iLoqKeyId = "abc-123";
+        ILoqKeyResponse iLoqKeyResponse = new ILoqKeyResponse(iLoqKeyId);
+        iLoqKeyResponse.setInfoText("foobar");
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("currentILoqKey", iLoqKeyResponse);
+        ex.setProperty("iLoqKeyId", iLoqKeyId);
+
+        Set<ILoqSecurityAccess> iLoqSecurityAccesses = Set.of();
+
+        mocked.getGetILoqKeySecurityAccesses()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqSecurityAccesses));
+
+        verifyNoInteractions(iLoqKeyProcessor);
+
+        template.send(enrichKeyWithSecurityAccessesEndpoint, ex);
+
+        verify(iLoqKeyProcessor, times(0)).hasValidSecurityAccesses(any());
+        verifyNoInteractions(efecteKeyProcessor);
     }
 
     @Test
