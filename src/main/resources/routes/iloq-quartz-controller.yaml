@@ -133,7 +133,7 @@
             when:
               - simple: ${body.isEmpty()}
                 steps:
-                  - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key does not contain any security accesses (key's infoText: ${exchangeProperty.currentILoqKey.infoText})"
+                  - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key does not contain any security accesses (key might have been passived through Efecte, infoText: '${exchangeProperty.currentILoqKey.infoText})'"
                   - stop:
                       description: iLOQ key does not contain any security accesses
               - simple: ${bean:iLoqKeyProcessor.hasValidSecurityAccesses}

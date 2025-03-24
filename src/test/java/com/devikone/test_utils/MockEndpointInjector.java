@@ -94,6 +94,11 @@ public class MockEndpointInjector {
     @EndpointInject("{{app.routes.iLoq.orderKey}}")
     MockEndpoint orderKey;
 
+    @EndpointInject("{{app.routes.exceptionHandler.saveHeadersAndBody}}")
+    MockEndpoint saveHeadersAndBody;
+    @EndpointInject("{{app.routes.exceptionHandler.restoreHeadersAndBody}}")
+    MockEndpoint restoreHeadersAndBody;
+
     @EndpointInject("{{app.endpoints.oldhost}}")
     MockEndpoint oldhost;
 
@@ -255,6 +260,14 @@ public class MockEndpointInjector {
 
     public MockEndpoint getOrderKey() {
         return this.orderKey;
+    }
+
+    public MockEndpoint getSaveHeadersAndBody() {
+        return this.saveHeadersAndBody;
+    }
+
+    public MockEndpoint getRestoreHeadersAndBody() {
+        return this.restoreHeadersAndBody;
     }
 
 }

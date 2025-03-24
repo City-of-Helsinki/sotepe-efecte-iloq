@@ -49,6 +49,9 @@ app:
         cleanup: direct:efecteCleanupController
       iLoq:
         enrichKeyWithSecurityAccesses: direct:enrichKeyWithSecurityAccesses
+    exceptionHandler:
+      saveHeadersAndBody: direct:saveHeadersAndBody
+      restoreHeadersAndBody: direct:restoreHeadersAndBody
     redis:
       getILoqCredentials: direct:getILoqCredentials
       saveILoqBaseUrlToRedis: direct:saveILoqBaseUrlToRedis
@@ -123,6 +126,9 @@ app:
         iLoq:
           quartz: direct:iLoqController
           enrichKeyWithSecurityAccesses: mock:enrichKeyWithSecurityAccesses
+      exceptionHandler:
+        saveHeadersAndBody: mock:saveHeadersAndBody
+        restoreHeadersAndBody: mock:restoreHeadersAndBody
       redis:
         getILoqCredentials: mock:getILoqCredentials
         saveILoqBaseUrlToRedis: mock:saveILoqBaseUrlToRedis
