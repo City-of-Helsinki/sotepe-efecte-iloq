@@ -43,6 +43,8 @@ public class ExceptionHandlerTest extends CamelQuarkusTestSupport {
     ConfigProvider configProvider;
     @ConfigProperty(name = "app.redis.prefix.auditExceptionInProgress")
     String auditExceptionInProgressPrefix;
+    @ConfigProperty(name = "app.redis.prefix.iLoqCurrentCustomerCodeHasChanged")
+    String iLoqCurrentCustomerCodeHasChangedPrefix;
 
     private MockEndpoint mock;
     private MockEndpoint throwingMock;
@@ -96,6 +98,11 @@ public class ExceptionHandlerTest extends CamelQuarkusTestSupport {
         doAnswer(i -> {
             testUtils.increaseCounter(ex);
             return null;
+        }).when(redis).set(iLoqCurrentCustomerCodeHasChangedPrefix, "true");
+
+        doAnswer(i -> {
+            testUtils.increaseCounter(ex);
+            return null;
         }).when(configProvider).getConfiguredCustomerCodes();
         mocked.getSaveHeadersAndBody().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getConfigureILoqSession().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
@@ -104,18 +111,19 @@ public class ExceptionHandlerTest extends CamelQuarkusTestSupport {
 
         verifyNoInteractions(configProvider);
         mocked.getSaveHeadersAndBody().expectedMessageCount(1);
-        mocked.getSaveHeadersAndBody().expectedPropertyReceived("counter", 2);
+        mocked.getSaveHeadersAndBody().expectedPropertyReceived("counter", 3);
         mocked.getConfigureILoqSession().expectedMessageCount(1);
-        mocked.getConfigureILoqSession().expectedPropertyReceived("counter", 3);
+        mocked.getConfigureILoqSession().expectedPropertyReceived("counter", 4);
         mocked.getRestoreHeadersAndBody().expectedMessageCount(1);
-        mocked.getRestoreHeadersAndBody().expectedPropertyReceived("counter", 4);
+        mocked.getRestoreHeadersAndBody().expectedPropertyReceived("counter", 5);
         mocked.getOldhost().expectedMessageCount(1);
-        mocked.getOldhost().expectedPropertyReceived("counter", 5);
+        mocked.getOldhost().expectedPropertyReceived("counter", 6);
         mock.expectedMessageCount(1);
-        mock.expectedPropertyReceived("counter", 6);
+        mock.expectedPropertyReceived("counter", 7);
 
         template.send(testRoute, ex);
 
+        verify(redis).set(iLoqCurrentCustomerCodeHasChangedPrefix, "true");
         verify(configProvider).getConfiguredCustomerCodes();
 
         MockEndpoint.assertIsSatisfied(

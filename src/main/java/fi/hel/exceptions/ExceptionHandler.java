@@ -26,6 +26,7 @@ public class ExceptionHandler extends RouteConfigurationBuilder {
             .onException(HttpOperationFailedException.class)
                 .onWhen(hasInvalidILoqSessionId())
                     .continued(true)
+                    .bean("redis", "set('{{app.redis.prefix.iLoqCurrentCustomerCodeHasChanged}}', 'true')")
                     .bean("configProvider", "getConfiguredCustomerCodes")
                     .to("{{app.routes.exceptionHandler.saveHeadersAndBody}}")
                     .log("{{app.name}} :: ExceptionHandler :: iLOQ session failed, refreshing session")
