@@ -7,12 +7,12 @@
       steps:
         - setProperty:
             name: "retryCount"
-            constant: "1"
+            constant: "0"
         - loop:
             doWhile: true
-            simple: "${exchangeProperty.retryCount} <= {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}} && ${bean:leaderResolver.isLeaderRoute()} == false"
+            simple: "${exchangeProperty.retryCount} < {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}} && ${bean:leaderResolver.isLeaderRoute()} == false"
             steps:
-              - log: "{{app.name}} :: leaderRouteResolver :: Waiting for leader route availability (attempt ${exchangeProperty.retryCount}/{{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}})"
+              - log: "{{app.name}} :: leaderRouteResolver :: Waiting for leader route availability (attempt ${exchangeProperty.retryCount}++ / {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}})"
               - delay:
                   constant: "{{DELAY_MS_BETWEEN_RESOLVING_LEADER_ROUTE}}"
               - setProperty:
@@ -20,11 +20,11 @@
                   simple: "${exchangeProperty.retryCount}++"
         - choice:
             when:
-              - simple: "${bean:leaderResolver.isLeaderRoute()}"
+              - simple: "${exchangeProperty.retryCount} == {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}}"
                 steps:
-                  - log: "{{app.name}} :: leaderRouteResolver :: Acquired leader route status, continuing processing"
+                  - log: "{{app.name}} :: leaderRouteResolver :: Failed to acquire leader route status after {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}} attempts. Stopping route."
+                  - stop:
+                      description: Failed to acquire leader route status after maximum attempts
             otherwise:
               steps:
-                - log: "{{app.name}} :: leaderRouteResolver :: Failed to acquire leader route status after {{MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT}} attempts. Stopping route."
-                - stop:
-                    description: Failed to acquire leader route status after maximum attempts
+                - log: "{{app.name}} :: leaderRouteResolver :: Acquired leader route status, continuing processing"

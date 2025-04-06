@@ -71,7 +71,7 @@ public class LeaderRouteResolverTest extends CamelQuarkusTestSupport {
 
         template.send(leaderRouteResolverEndpoint, ex);
 
-        verify(leaderResolver, times(2)).isLeaderRoute();
+        verify(leaderResolver).isLeaderRoute();
         mock.assertIsSatisfied();
     }
 
@@ -80,14 +80,12 @@ public class LeaderRouteResolverTest extends CamelQuarkusTestSupport {
     void testShouldTryTheMaximumTimesToAcquireTheLeaderRouteStatus() throws Exception {
         Exchange ex = testUtils.createExchange();
 
-        Integer expectedLeaderRouteStatusCheckingCount = maxLeaderRouteResolvingRetryCount + 1;
-
         when(leaderResolver.isLeaderRoute()).thenReturn(false);
         verifyNoInteractions(leaderResolver);
 
         template.send(leaderRouteResolverEndpoint, ex);
 
-        verify(leaderResolver, times(expectedLeaderRouteStatusCheckingCount)).isLeaderRoute();
+        verify(leaderResolver, times(maxLeaderRouteResolvingRetryCount)).isLeaderRoute();
     }
 
     @Test
