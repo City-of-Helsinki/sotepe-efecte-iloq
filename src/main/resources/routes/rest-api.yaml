@@ -8,9 +8,12 @@
       - path: /healthz
         id: get.alive-probe
         to: direct:aliveness-probe
+      - path: /webhook
+        id: get.webhook
+        to: direct:webhook-probe
     post:
       - path: /webhook
-        id: post.efecteWebhookController
+        id: post.webhook
         to: direct:efecteWebhookController
 
 - route:
@@ -22,7 +25,7 @@
             name: CamelHttpResponseCode
             constant: "200"
         - setBody:
-            simple: "{{app.name}}: Alive"
+            simple: "Alive"
 
 - route:
     id: readiness-probe.route
@@ -33,4 +36,15 @@
             name: CamelHttpResponseCode
             constant: "200"
         - setBody:
-            simple: "{{app.name}}: Ready"
+            simple: "Ready"
+
+- route:
+    id: webhook-probe.route
+    from:
+      uri: direct:webhook-probe
+      steps:
+        - setHeader:
+            name: CamelHttpResponseCode
+            constant: "200"
+        - setBody:
+            simple: "Webhook OK"

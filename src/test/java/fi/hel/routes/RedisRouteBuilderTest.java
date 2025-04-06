@@ -184,7 +184,7 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
 
         template.send(saveILoqBaseUrlToRedisEndpoint, ex);
 
-        verify(redis).set(ri.getILoqBaseUrlPrefix(), expectedILoqBaseUrl);
+        verify(redis).set(ri.getILoqCurrentBaseUrlPrefix(), expectedILoqBaseUrl);
     }
 
     @Test
@@ -197,7 +197,7 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
 
         template.send(saveILoqSessionIdToRedisEndpoint, ex);
 
-        verify(redis).set(ri.getILoqSessionIdPrefix(), expectedSessionId);
+        verify(redis).set(ri.getILoqCurrentSessionIdPrefix(), expectedSessionId);
     }
 
     @Test
@@ -209,8 +209,8 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
 
         template.send(removeCurrentILoqSessionRelatedKeysEndpoint, ex);
 
-        verify(redis).del(ri.getILoqBaseUrlPrefix());
-        verify(redis).del(ri.getILoqSessionIdPrefix());
+        verify(redis).del(ri.getILoqCurrentBaseUrlPrefix());
+        verify(redis).del(ri.getILoqCurrentSessionIdPrefix());
         verify(redis).del(ri.getILoqCurrentCustomerCodePrefix());
         verify(redis).del(ri.getILoqCurrentCustomerCodeHasChangedPrefix());
         verify(redis).del(ri.getILoqCurrentCustomerCodePasswordPrefix());

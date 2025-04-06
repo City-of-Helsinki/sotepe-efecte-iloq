@@ -8,8 +8,9 @@
       steps:
         - choice:
             when:
-              - simple: ${bean:leaderPodResolver.isLeaderPod()}
+              - simple: ${bean:leaderResolver.isLeaderPod()}
                 steps:
+                  - to: "{{app.routes.controller.leaderRouteResolver}}"
                   - log: "{{app.name}} :: iLoqQuartzController :: Start"
                   - bean:
                       ref: configProvider
@@ -106,6 +107,10 @@
                                       steps:
                                         - to: "{{app.routes.redis.savePreviousKeyInfos}}"
                         - to: direct:cleanResources
+                  - bean:
+                      ref: leaderResolver
+                      method: releaseLeaderRoute
+                  - log: "{{app.name}} :: iLoqQuartzController :: Leader route status released"
                   - log: "{{app.name}} :: iLoqQuartzController :: End"
             otherwise:
               steps:
@@ -202,7 +207,7 @@
             method: resetCache
         - choice:
             when:
-              - simple: ${bean:redis.get('efecte-iLoq-synchronization-integration:iLoqCurrentSessionId')}
+              - simple: ${bean:redis.get('{{app.redis.prefix.iLoqCurrentSessionId}}')}
                 steps:
                   - to: "{{app.routes.iLoq.killILoqSession}}"
                   - to: "{{app.routes.redis.removeCurrentILoqSessionRelatedKeys}}"

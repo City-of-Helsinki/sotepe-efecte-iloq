@@ -7,7 +7,7 @@
       steps:
         - choice:
             when:
-              - simple: ${bean:leaderPodResolver.isLeaderPod()}
+              - simple: ${bean:leaderResolver.isLeaderPod()}
                 steps:
                   - choice:
                       when:

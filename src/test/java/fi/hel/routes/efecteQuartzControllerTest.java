@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import com.devikone.service.LeaderPodResolver;
+import com.devikone.service.LeaderResolver;
 import com.devikone.test_utils.MockEndpointInjector;
 import com.devikone.test_utils.TestUtils;
 import com.devikone.transports.Redis;
@@ -33,7 +33,7 @@ public class efecteQuartzControllerTest extends CamelQuarkusTestSupport {
     @Inject
     MockEndpointInjector mocked;
     @InjectMock
-    LeaderPodResolver leaderPodResolver;
+    LeaderResolver leaderResolver;
 
     @InjectMock
     Redis redis;
@@ -43,7 +43,7 @@ public class efecteQuartzControllerTest extends CamelQuarkusTestSupport {
 
     @Override
     protected void doPostSetup() throws Exception {
-        when(leaderPodResolver.isLeaderPod()).thenReturn(true);
+        when(leaderResolver.isLeaderPod()).thenReturn(true);
     }
 
     @Override
@@ -57,29 +57,33 @@ public class efecteQuartzControllerTest extends CamelQuarkusTestSupport {
         Exchange ex = testUtils.createExchange();
         ex.setProperty("counter", 1);
 
+        mocked.getLeaderRouteResolver().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getGetMaxUpdated().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getCreateNewMaxUpdated().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getEfecteKeyCardsHandler().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getSetMaxUpdated().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
-        when(redis.exists(ri.getILoqSessionIdPrefix())).thenReturn(true);
+        when(redis.exists(ri.getILoqCurrentSessionIdPrefix())).thenReturn(true);
 
+        mocked.getLeaderRouteResolver().expectedMessageCount(1);
+        mocked.getLeaderRouteResolver().expectedPropertyReceived("counter", 1);
         mocked.getGetMaxUpdated().expectedMessageCount(1);
-        mocked.getGetMaxUpdated().expectedPropertyReceived("counter", 1);
+        mocked.getGetMaxUpdated().expectedPropertyReceived("counter", 2);
         mocked.getCreateNewMaxUpdated().expectedMessageCount(1);
-        mocked.getCreateNewMaxUpdated().expectedPropertyReceived("counter", 2);
+        mocked.getCreateNewMaxUpdated().expectedPropertyReceived("counter", 3);
         mocked.getGetEfecteEntity().expectedMessageCount(1);
-        mocked.getGetEfecteEntity().expectedPropertyReceived("counter", 3);
+        mocked.getGetEfecteEntity().expectedPropertyReceived("counter", 4);
         mocked.getEfecteKeyCardsHandler().expectedMessageCount(1);
-        mocked.getEfecteKeyCardsHandler().expectedPropertyReceived("counter", 4);
+        mocked.getEfecteKeyCardsHandler().expectedPropertyReceived("counter", 5);
         mocked.getSetMaxUpdated().expectedMessageCount(1);
-        mocked.getSetMaxUpdated().expectedPropertyReceived("counter", 5);
+        mocked.getSetMaxUpdated().expectedPropertyReceived("counter", 6);
         mocked.getEfecteControllerCleanup().expectedMessageCount(1);
-        mocked.getEfecteControllerCleanup().expectedPropertyReceived("counter", 6);
+        mocked.getEfecteControllerCleanup().expectedPropertyReceived("counter", 7);
 
         template.send(efecteQuartzControllerEndpoint, ex);
 
         MockEndpoint.assertIsSatisfied(
+                mocked.getLeaderRouteResolver(),
                 mocked.getGetMaxUpdated(),
                 mocked.getCreateNewMaxUpdated(),
                 mocked.getGetEfecteEntity(),

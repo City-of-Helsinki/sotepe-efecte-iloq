@@ -554,7 +554,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String expectedHttpUri = "www.foobar.com/something/something";
         Exchange ex = testUtils.createExchange(null);
 
-        when(redis.get(ri.getILoqBaseUrlPrefix())).thenReturn(expectedHttpUri);
+        when(redis.get(ri.getILoqCurrentBaseUrlPrefix())).thenReturn(expectedHttpUri);
 
         mock.expectedMessageCount(1);
         mock.expectedHeaderReceived("CamelHttpUri", expectedHttpUri);
@@ -570,7 +570,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String expectedSessionId = "a5f0f07b-f5db-4663-960d-0547319b8322";
         Exchange ex = testUtils.createExchange(null);
 
-        when(redis.get(ri.getILoqSessionIdPrefix())).thenReturn(expectedSessionId);
+        when(redis.get(ri.getILoqCurrentSessionIdPrefix())).thenReturn(expectedSessionId);
 
         mock.expectedMessageCount(1);
         mock.expectedHeaderReceived("SessionId", expectedSessionId);

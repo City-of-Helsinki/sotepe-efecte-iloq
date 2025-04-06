@@ -8,8 +8,9 @@
       steps:
         - choice:
             when:
-              - simple: ${bean:leaderPodResolver.isLeaderPod()}
+              - simple: ${bean:leaderResolver.isLeaderPod()}
                 steps:
+                  - to: "{{app.routes.controller.leaderRouteResolver}}"
                   - log: "{{app.name}} :: efecteQuartzController :: Efecte quartz controller start"
                   - to: "{{app.routes.redis.getMaxUpdated}}"
                   - to: "{{app.routes.redis.createNewMaxUpdated}}"

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import com.devikone.service.LeaderPodResolver;
+import com.devikone.service.LeaderResolver;
 import com.devikone.test_utils.MockEndpointInjector;
 import com.devikone.test_utils.TestUtils;
 import com.devikone.transports.Redis;
@@ -72,7 +72,7 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
     @InjectMock
     EfecteKeyProcessor efecteKeyProcessor;
     @InjectMock
-    LeaderPodResolver leaderPodResolver;
+    LeaderResolver leaderResolver;
 
     private String iLoqControllerEndpoint = "direct:iLoqController";
     private String enrichKeyWithSecurityAccessesEndpoint = "direct:enrichKeyWithSecurityAccesses";
@@ -82,7 +82,7 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
 
     @Override
     protected void doPostSetup() throws Exception {
-        when(leaderPodResolver.isLeaderPod()).thenReturn(true);
+        when(leaderResolver.isLeaderPod()).thenReturn(true);
         mock = getMockEndpoint(mockEndpoint);
     }
 
@@ -95,6 +95,34 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
     protected void doPreSetup() throws Exception {
         super.doPostSetup();
         testConfiguration().withUseRouteBuilder(false);
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
+    void testShouldResolveTheLeaderRouteStatus() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        AtomicBoolean leaderRouteResolved = new AtomicBoolean(false);
+        AtomicBoolean throwException = new AtomicBoolean(false);
+
+        mocked.getLeaderRouteResolver().whenAnyExchangeReceived(e -> leaderRouteResolved.set(true));
+        doAnswer(i -> {
+            if (!leaderRouteResolved.get()) {
+                throwException.set(true);
+            }
+            return null;
+        }).when(configProvider).getConfiguredCustomerCodes();
+
+        mocked.getLeaderRouteResolver().expectedMessageCount(1);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        mocked.getLeaderRouteResolver().assertIsSatisfied();
+
+        if (throwException.get()) {
+            throw new Exception(
+                    "Invalid route sequence order");
+        }
     }
 
     @Test
@@ -661,7 +689,7 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
                         .setBody(List.of(
                                 new EfecteEntityBuilder()
                                         .withDefaults(EnumEfecteTemplate.KEY).build())));
-        when(redis.get(ri.getILoqSessionIdPrefix())).thenReturn("irrelevant but not null");
+        when(redis.get(ri.getILoqCurrentSessionIdPrefix())).thenReturn("irrelevant but not null");
 
         mocked.getKillILoqSession().expectedMessageCount(1);
         mocked.getRemoveCurrentILoqSessionRelatedKeys().expectedMessageCount(1);
@@ -709,7 +737,7 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
                         .setBody(List.of(
                                 new EfecteEntityBuilder()
                                         .withDefaults(EnumEfecteTemplate.KEY).build())));
-        when(redis.get(ri.getILoqSessionIdPrefix())).thenReturn(null);
+        when(redis.get(ri.getILoqCurrentSessionIdPrefix())).thenReturn(null);
 
         mocked.getKillILoqSession().expectedMessageCount(0);
         mocked.getRemoveCurrentILoqSessionRelatedKeys().expectedMessageCount(0);
@@ -720,6 +748,37 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
         assertIsSatisfied(
                 mocked.getKillILoqSession(),
                 mocked.getRemoveCurrentILoqSessionRelatedKeys());
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
+    void testShouldReleaseTheLeaderRouteStatusAtTheEnd() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        AtomicBoolean handled = new AtomicBoolean(false);
+        AtomicBoolean throwException = new AtomicBoolean(true);
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+        mocked.getRemoveCurrentILoqSessionRelatedKeys().whenAnyExchangeReceived(e -> handled.set(true));
+        mocked.getListILoqKeys()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(new ILoqKeyResponse())));
+        when(redis.get(ri.getILoqCurrentSessionIdPrefix())).thenReturn("irrelevant");
+
+        doAnswer(i -> {
+            if (handled.get()) {
+                throwException.set(false);
+            }
+            return null;
+        }).when(leaderResolver).releaseLeaderRoute();
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        verify(leaderResolver).releaseLeaderRoute();
+
+        if (throwException.get()) {
+            throw new Exception(
+                    "Invalid route sequence order");
+        }
     }
 
     @Test

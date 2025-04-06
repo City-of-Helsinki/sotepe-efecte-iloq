@@ -9,6 +9,7 @@
             when:
               - simple: "{{AUTOSTARTUP_EFECTE_TRIGGER_CONTROLLER}}"
                 steps:
+                  - to: "{{app.routes.controller.leaderRouteResolver}}"
                   - log: "{{app.name}} :: efecteTriggerController :: Efecte trigger controller start"
                   - convertBodyTo: java.lang.String
                   - unmarshal:
@@ -36,3 +37,7 @@
                   - to: "{{app.routes.iLoq.killILoqSession}}"
         - to: "{{app.routes.redis.removeCurrentILoqSessionRelatedKeys}}"
         - to: "{{app.routes.redis.removeTempKeys}}"
+        - bean:
+            ref: leaderResolver
+            method: releaseLeaderRoute
+        - log: "{{app.name}} :: efecteCleanupController :: Leader route status released"

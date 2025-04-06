@@ -27,6 +27,8 @@ app:
       auditMessage: ${app.name}:auditMessage
       auditException: "${app.name}:auditException:"
       auditExceptionInProgress: ${app.name}:auditExceptionInProgress
+      leaderPodKey: "${app.name}:leader-pod-key:"
+      leaderRouteKey: "${app.name}:leader-route-key:"
       previousKey:
         efecte: "${app.name}:previousKey:efecte:"
         iLoq: "${app.name}:previousKey:iLoq:"
@@ -49,6 +51,7 @@ app:
         cleanup: direct:efecteCleanupController
       iLoq:
         enrichKeyWithSecurityAccesses: direct:enrichKeyWithSecurityAccesses
+      leaderRouteResolver: direct:leaderRouteResolver
     exceptionHandler:
       saveHeadersAndBody: direct:saveHeadersAndBody
       restoreHeadersAndBody: direct:restoreHeadersAndBody
@@ -113,7 +116,7 @@ app:
 "%test":
   camel:
     main:
-      routes-include-pattern: classpath:routes/efecte-key-cards-handler.yaml,classpath:routes/efecte-quartz-controller.yaml,classpath:routes/efecte-trigger-controller.yaml,classpath:routes/iloq-quartz-controller.yaml
+      routes-include-pattern: classpath:routes/efecte-key-cards-handler.yaml,classpath:routes/efecte-quartz-controller.yaml,classpath:routes/efecte-trigger-controller.yaml,classpath:routes/iloq-quartz-controller.yaml,classpath:routes/leader-route-resolver.yaml
   app:
     configuration:
       useExceptionHandling: false
@@ -126,6 +129,7 @@ app:
         iLoq:
           quartz: direct:iLoqController
           enrichKeyWithSecurityAccesses: mock:enrichKeyWithSecurityAccesses
+        leaderRouteResolver: mock:leaderRouteResolver
       exceptionHandler:
         saveHeadersAndBody: mock:saveHeadersAndBody
         restoreHeadersAndBody: mock:restoreHeadersAndBody

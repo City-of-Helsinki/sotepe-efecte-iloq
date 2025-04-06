@@ -1,10 +1,14 @@
 package fi.hel.routes;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -14,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import com.devikone.service.LeaderPodResolver;
+import com.devikone.service.LeaderResolver;
 import com.devikone.test_utils.MockEndpointInjector;
 import com.devikone.test_utils.TestUtils;
 import com.devikone.transports.Redis;
@@ -41,7 +45,7 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
     @Inject
     MockEndpointInjector mocked;
     @InjectMock
-    LeaderPodResolver leaderPodResolver;
+    LeaderResolver leaderResolver;
 
     @InjectMock
     Redis redis;
@@ -51,7 +55,7 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
 
     @Override
     protected void doPostSetup() throws Exception {
-        when(leaderPodResolver.isLeaderPod()).thenReturn(true);
+        when(leaderResolver.isLeaderPod()).thenReturn(true);
     }
 
     @Override
@@ -66,16 +70,20 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
         Exchange ex = testUtils.createExchange(testUtils.writeAsXml(new EfecteEntitySet()));
         ex.setProperty("counter", 1);
 
+        mocked.getLeaderRouteResolver().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getEfecteKeyCardsHandler().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
 
+        mocked.getLeaderRouteResolver().expectedMessageCount(1);
+        mocked.getLeaderRouteResolver().expectedPropertyReceived("counter", 1);
         mocked.getEfecteKeyCardsHandler().expectedMessageCount(1);
-        mocked.getEfecteKeyCardsHandler().expectedPropertyReceived("counter", 1);
+        mocked.getEfecteKeyCardsHandler().expectedPropertyReceived("counter", 2);
         mocked.getEfecteControllerCleanup().expectedMessageCount(1);
-        mocked.getEfecteControllerCleanup().expectedPropertyReceived("counter", 2);
+        mocked.getEfecteControllerCleanup().expectedPropertyReceived("counter", 3);
 
         template.send(efecteTriggerControllerEndpoint, ex);
 
         MockEndpoint.assertIsSatisfied(
+                mocked.getLeaderRouteResolver(),
                 mocked.getEfecteKeyCardsHandler(),
                 mocked.getEfecteControllerCleanup());
     }
@@ -105,7 +113,7 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
     void testShouldNotTryToKillAnILoqSessionWhenThereAreNoOngoingSessions() throws Exception {
         Exchange ex = testUtils.createExchange(testUtils.writeAsXml(new EfecteEntitySet()));
 
-        when(redis.exists(ri.getILoqSessionIdPrefix())).thenReturn(false);
+        when(redis.exists(ri.getILoqCurrentSessionIdPrefix())).thenReturn(false);
 
         mocked.getKillILoqSession().expectedMessageCount(0);
 
@@ -120,7 +128,7 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
         Exchange ex = testUtils.createExchange(testUtils.writeAsXml(new EfecteEntitySet()));
         ex.setProperty("counter", 1);
 
-        when(redis.exists(ri.getILoqSessionIdPrefix())).thenReturn(true);
+        when(redis.exists(ri.getILoqCurrentSessionIdPrefix())).thenReturn(true);
 
         mocked.getKillILoqSession().whenAnyExchangeReceived(exchange -> testUtils.increaseCounter(exchange));
         mocked.getRemoveCurrentILoqSessionRelatedKeys()
@@ -139,5 +147,32 @@ public class EfecteTriggerControllerTest extends CamelQuarkusTestSupport {
                 mocked.getKillILoqSession(),
                 mocked.getEfecteControllerCleanup(),
                 mocked.getRemoveTempKeys());
+    }
+
+    @Test
+    @DisplayName("direct:efecteCleanupController")
+    void testShouldReleaseTheLeaderRouteStatusAtTheEnd() throws Exception {
+        Exchange ex = testUtils.createExchange();
+        AtomicBoolean handled = new AtomicBoolean(false);
+        AtomicBoolean throwException = new AtomicBoolean(true);
+
+        mocked.getRemoveTempKeys().whenAnyExchangeReceived(e -> handled.set(true));
+        doAnswer(i -> {
+            if (handled.get()) {
+                throwException.set(false);
+            }
+            return null;
+        }).when(leaderResolver).releaseLeaderRoute();
+
+        verifyNoInteractions(leaderResolver);
+
+        template.send(efecteCleanupControllerEndpoint, ex);
+
+        verify(leaderResolver).releaseLeaderRoute();
+
+        if (throwException.get()) {
+            throw new Exception(
+                    "Invalid route sequence order");
+        }
     }
 }

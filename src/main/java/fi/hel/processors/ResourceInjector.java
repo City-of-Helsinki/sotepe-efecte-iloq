@@ -91,6 +91,10 @@ public class ResourceInjector {
     String tempEfectePersonPrefix;
     @ConfigProperty(name = "app.redis.prefix.temp.deleted.key")
     String tempDeletedKeyPrefix;
+    @ConfigProperty(name = "app.redis.prefix.leaderPodKey")
+    String leaderPodKeyPrefix;
+    @ConfigProperty(name = "app.redis.prefix.leaderRouteKey")
+    String leaderRouteKeyPrefix;
 
     // Routes Redis:
     @ConfigProperty(name = "app.routes.redis.saveILoqBaseUrlToRedis")
@@ -184,11 +188,11 @@ public class ResourceInjector {
         return this.maxUpdatedPrefix;
     }
 
-    public String getILoqBaseUrlPrefix() {
+    public String getILoqCurrentBaseUrlPrefix() {
         return this.iLoqCurrentBaseUrlPrefix;
     }
 
-    public String getILoqSessionIdPrefix() {
+    public String getILoqCurrentSessionIdPrefix() {
         return this.iLoqCurrentSessionIdPrefix;
     }
 
@@ -262,14 +266,6 @@ public class ResourceInjector {
 
     public String getILoqCurrentCustomerCodePasswordPrefix() {
         return this.iLoqCurrentCustomerCodePasswordPrefix;
-    }
-
-    public String getILoqCurrentBaseUrlPrefix() {
-        return this.iLoqCurrentBaseUrlPrefix;
-    }
-
-    public String getILoqCurrentSessionIdPrefix() {
-        return this.iLoqCurrentSessionIdPrefix;
     }
 
     public String getILoqCurrentCustomerCodeHasChangedPrefix() {
@@ -346,6 +342,14 @@ public class ResourceInjector {
 
     public String getAuditExceptionInProgressPrefix() {
         return this.auditExceptionInProgressPrefix;
+    }
+
+    public String getLeaderPodKeyPrefix() {
+        return this.leaderPodKeyPrefix;
+    }
+
+    public String getLeaderRouteKeyPrefix() {
+        return this.leaderRouteKeyPrefix;
     }
 
 }

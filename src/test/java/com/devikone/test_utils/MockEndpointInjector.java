@@ -18,6 +18,8 @@ public class MockEndpointInjector {
     MockEndpoint efecteControllerCleanup;
     @EndpointInject("{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}")
     MockEndpoint enrichKeyWithSecurityAccesses;
+    @EndpointInject("{{app.routes.controller.leaderRouteResolver}}")
+    MockEndpoint leaderRouteResolver;
 
     @EndpointInject("{{app.routes.efecte.setEfecteAuthorization}}")
     MockEndpoint setEfecteAuthorization;
@@ -102,12 +104,52 @@ public class MockEndpointInjector {
     @EndpointInject("{{app.endpoints.oldhost}}")
     MockEndpoint oldhost;
 
+    public MockEndpoint getEfecteKeyCardsHandler() {
+        return this.efecteKeyCardsHandler;
+    }
+
+    public MockEndpoint getEfecteControllerCleanup() {
+        return this.efecteControllerCleanup;
+    }
+
+    public MockEndpoint getEnrichKeyWithSecurityAccesses() {
+        return this.enrichKeyWithSecurityAccesses;
+    }
+
+    public MockEndpoint getLeaderRouteResolver() {
+        return this.leaderRouteResolver;
+    }
+
     public MockEndpoint getSetEfecteAuthorization() {
         return this.setEfecteAuthorization;
     }
 
     public MockEndpoint getSendEfecteRequest() {
         return this.sendEfecteRequest;
+    }
+
+    public MockEndpoint getGetEfecteEntity() {
+        return this.getEfecteEntity;
+    }
+
+    public MockEndpoint getConvertToEfecteEntity() {
+        return this.convertToEfecteEntity;
+    }
+
+    public MockEndpoint getProcessEfecteRequest() {
+        return this.processEfecteRequest;
+    }
+
+    public MockEndpoint getGetMaxUpdated() {
+        return this.getMaxUpdated;
+    }
+
+    public MockEndpoint getCreateNewMaxUpdated() {
+        return this.createNewMaxUpdated;
+    }
+
+    public MockEndpoint getSetMaxUpdated() {
+        return this.setMaxUpdated;
     }
 
     public MockEndpoint getGetILoqCredentials() {
@@ -122,8 +164,28 @@ public class MockEndpointInjector {
         return this.saveILoqSessionIdToRedis;
     }
 
+    public MockEndpoint getSaveILoqSessionStatusToRedis() {
+        return this.saveILoqSessionStatusToRedis;
+    }
+
     public MockEndpoint getRemoveCurrentILoqSessionRelatedKeys() {
         return this.removeCurrentILoqSessionRelatedKeys;
+    }
+
+    public MockEndpoint getSaveMappedKeys() {
+        return this.saveMappedKeys;
+    }
+
+    public MockEndpoint getSavePreviousKeyInfos() {
+        return this.savePreviousKeyInfos;
+    }
+
+    public MockEndpoint getDeleteKey() {
+        return this.deleteKey;
+    }
+
+    public MockEndpoint getRemoveTempKeys() {
+        return this.removeTempKeys;
     }
 
     public MockEndpoint getConfigureILoqSession() {
@@ -150,104 +212,44 @@ public class MockEndpointInjector {
         return this.setILoqHeaders;
     }
 
-    public MockEndpoint getOldhost() {
-        return this.oldhost;
+    public MockEndpoint getKillILoqSession() {
+        return this.killILoqSession;
     }
 
     public MockEndpoint getCreateILoqPerson() {
         return this.createILoqPerson;
     }
 
-    public MockEndpoint getListILoqPersons() {
-        return this.listILoqPersons;
-    }
-
-    public MockEndpoint getSaveILoqSessionStatusToRedis() {
-        return this.saveILoqSessionStatusToRedis;
+    public MockEndpoint getProcessILoqKey() {
+        return this.processILoqKey;
     }
 
     public MockEndpoint getListILoqKeys() {
         return this.listILoqKeys;
     }
 
-    public MockEndpoint getEnrichKeyWithSecurityAccesses() {
-        return this.enrichKeyWithSecurityAccesses;
-    }
-
     public MockEndpoint getGetILoqKeySecurityAccesses() {
         return this.getILoqKeySecurityAccesses;
     }
 
-    public MockEndpoint getGetILoqPerson() {
-        return this.getILoqPerson;
-    }
-
-    public MockEndpoint getGetEfecteEntity() {
-        return this.getEfecteEntity;
-    }
-
-    public MockEndpoint getProcessILoqKey() {
-        return this.processILoqKey;
-    }
-
-    public MockEndpoint getUpdateILoqKeySecurityAccesses() {
-        return this.updateILoqKeySecurityAccesses;
-    }
-
-    public MockEndpoint getSavePreviousKeyInfos() {
-        return this.savePreviousKeyInfos;
-    }
-
-    public MockEndpoint getConvertToEfecteEntity() {
-        return this.convertToEfecteEntity;
-    }
-
-    public MockEndpoint getProcessEfecteRequest() {
-        return this.processEfecteRequest;
-    }
-
-    public MockEndpoint getSaveMappedKeys() {
-        return this.saveMappedKeys;
-    }
-
-    public MockEndpoint getEfecteKeyCardsHandler() {
-        return this.efecteKeyCardsHandler;
-    }
-
-    public MockEndpoint getKillILoqSession() {
-        return this.killILoqSession;
-    }
-
-    public MockEndpoint getGetMaxUpdated() {
-        return this.getMaxUpdated;
-    }
-
-    public MockEndpoint getCreateNewMaxUpdated() {
-        return this.createNewMaxUpdated;
-    }
-
-    public MockEndpoint getSetMaxUpdated() {
-        return this.setMaxUpdated;
-    }
-
-    public MockEndpoint getGetILoqPersonByExternalId() {
-        return this.getILoqPersonByExternalId;
+    public MockEndpoint getListILoqPersons() {
+        return this.listILoqPersons;
     }
 
     public MockEndpoint getGetILoqKey() {
         return this.getILoqKey;
     }
 
-    public MockEndpoint getDeleteKey() {
-        return this.deleteKey;
+    public MockEndpoint getGetILoqPerson() {
+        return this.getILoqPerson;
     }
 
-    public MockEndpoint getRemoveTempKeys() {
-        return this.removeTempKeys;
+    public MockEndpoint getGetILoqPersonByExternalId() {
+        return this.getILoqPersonByExternalId;
     }
 
-    public MockEndpoint getEfecteControllerCleanup() {
-        return this.efecteControllerCleanup;
+    public MockEndpoint getUpdateILoqKeySecurityAccesses() {
+        return this.updateILoqKeySecurityAccesses;
     }
 
     public MockEndpoint getUpdateMainZone() {
@@ -268,6 +270,10 @@ public class MockEndpointInjector {
 
     public MockEndpoint getRestoreHeadersAndBody() {
         return this.restoreHeadersAndBody;
+    }
+
+    public MockEndpoint getOldhost() {
+        return this.oldhost;
     }
 
 }
