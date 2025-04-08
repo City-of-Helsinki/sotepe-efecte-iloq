@@ -77,7 +77,7 @@
 ###
 # Check the latest version periodically from: https://catalog.redhat.com/software/containers/search?q=openjdk
 ###
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.18
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.21
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
