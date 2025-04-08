@@ -1,0 +1,199 @@
+# Common properties
+quarkus:
+  banner:
+    enabled: false
+  log:
+    # level: DEBUG
+    file:
+      enable: false
+camel:
+  context:
+    name: efecte-iLoq-synchronization-integration
+  main:
+    routes-include-pattern: classpath:routes/*.yaml
+app:
+  configuration:
+    useExceptionHandling: true
+  name: efecte-iLoq-synchronization-integration
+  redis:
+    prefix:
+      webhook: "${app.name}:webhook:"
+      maxUpdated: ${app.name}:maxUpdated
+      iLoqCurrentBaseUrl: ${app.name}:iLoqCurrentBaseUrl
+      iLoqCurrentSessionId: ${app.name}:iLoqCurrentSessionId
+      iLoqCurrentCustomerCode: ${app.name}:iLoqCurrentCustomerCode
+      iLoqCurrentCustomerCodePassword: ${app.name}:iLoqCurrentCustomerCodePassword
+      iLoqCurrentCustomerCodeHasChanged: ${app.name}:iLoqCurrentCustomerCodeHasChanged
+      auditMessage: ${app.name}:auditMessage
+      auditException: "${app.name}:auditException:"
+      auditExceptionInProgress: ${app.name}:auditExceptionInProgress
+      leaderPodKey: "${app.name}:leader-pod-key:"
+      leaderRouteKey: "${app.name}:leader-route-key:"
+      previousKey:
+        efecte: "${app.name}:previousKey:efecte:"
+        iLoq: "${app.name}:previousKey:iLoq:"
+      mapped:
+        key:
+          efecte: "${app.name}:mapped:key:efecte:"
+          iLoq: "${app.name}:mapped:key:iLoq:"
+        person:
+          efecte: "${app.name}:mapped:person:efecte:"
+          iLoq: "${app.name}:mapped:person:iLoq:"
+      temp:
+        efecte:
+          person: "${app.name}:temp:efecte:person:"
+        deleted:
+          key: "${app.name}:temp:deleted:key:"
+  routes:
+    controller:
+      efecte:
+        handler: direct:efecteKeyCardsHandler
+        cleanup: direct:efecteCleanupController
+      iLoq:
+        enrichKeyWithSecurityAccesses: direct:enrichKeyWithSecurityAccesses
+      leaderRouteResolver: direct:leaderRouteResolver
+    exceptionHandler:
+      saveHeadersAndBody: direct:saveHeadersAndBody
+      restoreHeadersAndBody: direct:restoreHeadersAndBody
+    redis:
+      getILoqCredentials: direct:getILoqCredentials
+      saveILoqBaseUrlToRedis: direct:saveILoqBaseUrlToRedis
+      saveILoqSessionIdToRedis: direct:saveILoqSessionIdToRedis
+      saveILoqSessionStatusToRedis: direct:saveILoqSessionStatusToRedis
+      removeCurrentILoqSessionRelatedKeys: direct:removeCurrentILoqSessionRelatedKeys
+      saveMappedKeys: direct:saveMappedKeys
+      savePreviousKeyInfos: direct:savePreviousKeyInfos
+      getMaxUpdated: direct:getMaxUpdated
+      createNewMaxUpdated: direct:createNewMaxUpdated
+      setMaxUpdated: direct:setMaxUpdated
+      deleteKey: direct:deleteKey
+      removeTempKeys: direct:removeTempKeys
+    efecte:
+      setEfecteAuthorization: direct:setEfecteAuthorization
+      sendEfecteRequest: direct:sendEfecteRequest
+      getEfecteEntity: direct:getEfecteEntity
+      convertToEfecteEntity: direct:convertToEfecteEntity
+      processEfecteRequest: direct:processEfecteRequest
+    iLoq:
+      configureILoqSession: direct:configureILoqSession
+      getILoqUri: direct:getILoqUri
+      createILoqSession: direct:createILoqSession
+      getILoqLockGroups: direct:getILoqLockGroups
+      setILoqLockGroup: direct:setILoqLockGroup
+      setILoqHeaders: direct:setILoqHeaders
+      killILoqSession: direct:killILoqSession
+      listILoqKeys: direct:listILoqKeys
+      getILoqKeySecurityAccesses: direct:getILoqKeySecurityAccesses
+      listILoqPersons: direct:listILoqPersons
+      getILoqKey: direct:getILoqKey
+      getILoqPerson: direct:getILoqPerson
+      getILoqPersonByExternalId: direct:getILoqPersonByExternalId
+      createILoqPerson: direct:createILoqPerson
+      processILoqKey: direct:processILoqKey
+      updateILoqKeySecurityAccesses: direct:updateILoqKeySecurityAccesses
+      updateMainZone: direct:updateMainZone
+      canOrderKey: direct:canOrderKey
+      orderKey: direct:orderKey
+  endpoints:
+    oldhost: http://oldhost
+
+"%development":
+  camel:
+    main:
+      routes-include-pattern: classpath:routes/*.yaml,classpath:dev-routes/*.yaml
+  app:
+    routes:
+      controller:
+        iLoq:
+          # quartz: timer://iloq-controller?repeatCount=1
+          # quartz: direct:iloq-controller
+          quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
+        efecte:
+          # quartz: timer://efecte-controller?repeatCount=1
+          # quartz: direct:efecte-controller
+          quartz: quartz://efecte-controller?cron=${EFECTE_POLLING_SCHEDULE}
+
+"%test":
+  camel:
+    main:
+      routes-include-pattern: classpath:routes/efecte-key-cards-handler.yaml,classpath:routes/efecte-quartz-controller.yaml,classpath:routes/efecte-trigger-controller.yaml,classpath:routes/iloq-quartz-controller.yaml,classpath:routes/leader-route-resolver.yaml
+  app:
+    configuration:
+      useExceptionHandling: false
+    routes:
+      controller:
+        efecte:
+          quartz: direct:efecteQuartzController
+          handler: mock:efecteKeyCardsHandler
+          cleanup: mock:efecteCleanupController
+        iLoq:
+          quartz: direct:iLoqController
+          enrichKeyWithSecurityAccesses: mock:enrichKeyWithSecurityAccesses
+        leaderRouteResolver: mock:leaderRouteResolver
+      exceptionHandler:
+        saveHeadersAndBody: mock:saveHeadersAndBody
+        restoreHeadersAndBody: mock:restoreHeadersAndBody
+      redis:
+        getILoqCredentials: mock:getILoqCredentials
+        saveILoqBaseUrlToRedis: mock:saveILoqBaseUrlToRedis
+        saveILoqSessionIdToRedis: mock:saveILoqSessionIdToRedis
+        saveILoqSessionStatusToRedis: mock:saveILoqSessionStatusToRedis
+        removeCurrentILoqSessionRelatedKeys: mock:removeCurrentILoqSessionRelatedKeys
+        saveMappedKeys: mock:saveMappedKeys
+        savePreviousKeyInfos: mock:savePreviousKeyInfos
+        getMaxUpdated: mock:getMaxUpdated
+        createNewMaxUpdated: mock:createNewMaxUpdated
+        setMaxUpdated: mock:setMaxUpdated
+        deleteKey: mock:deleteKey
+        removeTempKeys: mock:removeTempKeys
+      efecte:
+        setEfecteAuthorization: mock:setEfecteAuthorization
+        sendEfecteRequest: mock:sendEfecteRequest
+        getEfecteEntity: mock:getEfecteEntity
+        convertToEfecteEntity: mock:convertToEfecteEntity
+        processEfecteRequest: mock:processEfecteRequest
+      iLoq:
+        configureILoqSession: mock:configureILoqSession
+        getILoqUri: mock:getILoqUri
+        createILoqSession: mock:createILoqSession
+        getILoqLockGroups: mock:getILoqLockGroups
+        setILoqLockGroup: mock:setILoqLockGroup
+        setILoqHeaders: mock:setILoqHeaders
+        killILoqSession: mock:killILoqSession
+        listILoqKeys: mock:listILoqKeys
+        getILoqKeySecurityAccesses: mock:getILoqKeySecurityAccesses
+        listILoqPersons: mock:listILoqPersons
+        getILoqKey: mock:getILoqKey
+        getILoqPerson: mock:getILoqPerson
+        getILoqPersonByExternalId: mock:getILoqPersonByExternalId
+        createILoqPerson: mock:createILoqPerson
+        processILoqKey: mock:processILoqKey
+        updateILoqKeySecurityAccesses: mock:updateILoqKeySecurityAccesses
+        updateMainZone: mock:updateMainZone
+        canOrderKey: mock:canOrderKey
+        orderKey: mock:orderKey
+    endpoints:
+      oldhost: mock:oldhost
+
+"%production":
+  app:
+    routes:
+      controller:
+        iLoq:
+          quartz: quartz://iloq-controller?cron=${ILOQ_POLLING_SCHEDULE}
+        efecte:
+          quartz: quartz://efecte-controller?cron=${EFECTE_POLLING_SCHEDULE}
+
+"%customer-configuration":
+  camel:
+    main:
+      routes-include-pattern: ""
+  app:
+    routes:
+      controller:
+        efecte:
+          quartz: mock:efecteQuartzController
+        iLoq:
+          quartz: mock:iLoqController
+    endpoints:
+      oldhost: http://oldhost

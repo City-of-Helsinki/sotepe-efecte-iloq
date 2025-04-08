@@ -1,0 +1,213 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- route:
+    id: iLoqQuartzController
+    autoStartup: "{{AUTOSTARTUP_ILOQ_QUARTZ_CONTROLLER}}"
+    from:
+      uri: "{{app.routes.controller.iLoq.quartz}}"
+      steps:
+        - choice:
+            when:
+              - simple: ${bean:leaderResolver.isLeaderPod()}
+                steps:
+                  - to: "{{app.routes.controller.leaderRouteResolver}}"
+                  - log: "{{app.name}} :: iLoqQuartzController :: Start"
+                  - bean:
+                      ref: configProvider
+                      method: getConfiguredCustomerCodes
+                  - split:
+                      description: Handling one iLOQ customer code at a time
+                      simple: ${body}
+                      steps:
+                        - log: "{{app.name}} :: iLoqQuartzController :: Processing customer code ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (${body})"
+                        - to: direct:initializeILoqCredentials
+                        - to: "{{app.routes.iLoq.listILoqKeys}}"
+                        - log: "{{app.name}} :: iLoqQuartzController :: Found total of ${body.size} keys. Start processing keys with verified real estate"
+                        - bean:
+                            ref: iLoqKeyProcessor
+                            method: getILoqKeysWithVerifiedRealEstate
+                        - split:
+                            description: Handling one iLOQ key at a time
+                            simple: ${body}
+                            steps:
+                              - setProperty:
+                                  name: currentILoqKey
+                                  simple: ${body}
+                              - setProperty:
+                                  name: iLoqKeyId
+                                  simple: ${body.fnKeyId}
+                              - log: "{{app.name}} :: iLoqQuartzController :: Processing verified iLOQ key ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (${body.fnKeyId}) from real estate '${body.realEstateId}'"
+                              - choice:
+                                  when:
+                                    - simple: ${bean:iLoqKeyProcessor.isMissingAPerson}
+                                      steps:
+                                        - log: "{{app.name}} :: iLoqQuartzController :: The iLOQ key is missing a person and will therefore be skipped"
+                                        - stop:
+                                            description: The Integration will not handle iLOQ keys of which are missing the person connection. Adding them to a blocklist is not adviced (- iLOQ support).
+                              # TODO: tähän väliin versiopäivityksenä toiminto, jossa edellisestä ajosta puuttuvat iLOQ avaimet käsitellään "palautettuina", ja vastaavat avainkortit efectestä asetetaan tilaan "poistettu" (vai passivoitu, tarkista tämä viikkopalavereiden muistiinpanoista). Efecten avainkorttiin ei kuitenkaan haluta tehdä mitään muutoksia, jos sen tila on jo "passiivinen", tällöin riittää ainoastaan poistaa rediksestä vastaavat avaimet.
+                              # TODO: kun avain palautetaan iLOQ managerissa, tulee tätä kutsua:
+                              # - to: "{{app.routes.redis.deleteKey}}"
+                              - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
+                              - bean:
+                                  ref: efecteKeyProcessor
+                                  method: buildEfecteKey
+                              - choice:
+                                  when:
+                                    - simple: ${header.shouldCreateEfecteKey}
+                                      steps:
+                                        - log: "{{app.name}} :: iLoqQuartzController :: Creating a new Efecte key card"
+                                        - setProperty:
+                                            name: efecteOperation
+                                            constant: create
+                                        - setProperty:
+                                            name: efecteQuery
+                                            constant: folderCode=avaimet&createDataCards=true
+                                        - to: direct:handleEfecteRequest
+                                        - to: direct:fetchCreatedEfecteKeyCard
+                                        - to: "{{app.routes.redis.saveMappedKeys}}"
+                                        - setProperty:
+                                            name: iLoqPayload
+                                            simple: ${bean:iLoqKeyMapper.buildUpdatedILoqKey(${body}, ${header.currentILoqKey})}
+                                        - setProperty:
+                                            name: shouldUpdateILoqKey
+                                            simple: "true"
+                                    - simple: ${header.shouldUpdateEfecteKey}
+                                      steps:
+                                        - log: "{{app.name}} :: iLoqQuartzController :: Updating an Efecte key card ${header.efecteKeyEfecteId}"
+                                        - setProperty:
+                                            name: efecteOperation
+                                            constant: update
+                                        - setProperty:
+                                            name: efecteQuery
+                                            constant: folderCode=avaimet&updateDataCards=true
+                                        - to: direct:handleEfecteRequest
+                                  otherwise:
+                                    steps:
+                                      - log: "{{app.name}} :: iLoqQuartzController :: Key is up to date"
+                              - choice:
+                                  when:
+                                    - simple: ${header.shouldUpdateILoqKey}
+                                      steps:
+                                        - setProperty:
+                                            name: operation
+                                            constant: update
+                                        - setProperty:
+                                            name: method
+                                            constant: PUT
+                                        - setProperty:
+                                            name: from
+                                            simple: ${type:fi.hel.models.enumerations.EnumDirection.ILOQ}
+                                        - setProperty:
+                                            name: to
+                                            simple: ${type:fi.hel.models.enumerations.EnumDirection.EFECTE}
+                                        - to: "{{app.routes.iLoq.processILoqKey}}"
+                              - choice:
+                                  when:
+                                    - simple: ${header.newPreviousEfecteKey} != null
+                                      steps:
+                                        - to: "{{app.routes.redis.savePreviousKeyInfos}}"
+                        - to: direct:cleanResources
+                  - bean:
+                      ref: leaderResolver
+                      method: releaseLeaderRoute
+                  - log: "{{app.name}} :: iLoqQuartzController :: Leader route status released"
+                  - log: "{{app.name}} :: iLoqQuartzController :: End"
+            otherwise:
+              steps:
+                - log: "{{app.name}} :: iLoqQuartzController :: Skip handling the scheduled process (not the leader pod)"
+
+- route:
+    id: initializeILoqCredentials
+    from:
+      uri: direct:initializeILoqCredentials
+      steps:
+        - bean:
+            ref: redis
+            method: set('{{app.redis.prefix.iLoqCurrentCustomerCodeHasChanged}}', 'true')
+        - bean:
+            ref: configProvider
+            method: saveCurrentCredentialsToRedis(${body})
+
+- route:
+    id: direct:enrichKeyWithSecurityAccesses
+    from:
+      uri: direct:enrichKeyWithSecurityAccesses
+      steps:
+        - to: "{{app.routes.iLoq.getILoqKeySecurityAccesses}}"
+        - choice:
+            when:
+              - simple: ${body.isEmpty()}
+                steps:
+                  - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key does not contain any security accesses (key might have been passived through Efecte, infoText: '${exchangeProperty.currentILoqKey.infoText})'"
+                  - stop:
+                      description: iLOQ key does not contain any security accesses
+              - simple: ${bean:iLoqKeyProcessor.hasValidSecurityAccesses}
+                steps:
+                  - bean:
+                      ref: iLoqKeyProcessor
+                      method: buildEnrichedILoqKey
+            otherwise:
+              steps:
+                - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key contains non-supported security accesses, stop processing"
+                - stop:
+                    description: iLOQ key contains non-supported security accesses
+
+- route:
+    id: direct:handleEfecteRequest
+    from:
+      uri: direct:handleEfecteRequest
+      steps:
+        - setProperty:
+            name: efecteEntityType
+            constant: key
+        - setProperty:
+            name: entityId
+            simple: ${header.efecteKeyEntityId}
+        - setProperty:
+            name: efecteId
+            simple: ${header.efecteKeyEfecteId}
+        - setProperty:
+            name: iLoqId
+            simple: ${header.iLoqKeyId}
+        - setProperty:
+            name: efectePath
+            constant: /dataCardImport.ws
+        - to: "{{app.routes.efecte.processEfecteRequest}}"
+
+- route:
+    id: direct:fetchCreatedEfecteKeyCard
+    from:
+      uri: direct:fetchCreatedEfecteKeyCard
+      steps:
+        - setBody:
+            simple: ${null}
+        - setProperty:
+            name: efecteEntityType
+            constant: key
+        - setProperty:
+            name: efecteQuery
+            simple: SELECT entity FROM entity WHERE template.code = 'avain' AND $avain_external_id$ = '${header.iLoqKeyId}'
+        - to: "{{app.routes.efecte.getEfecteEntity}}"
+        - setBody:
+            simple: ${body[0]}
+        - setProperty:
+            name: efecteKeyEntityId
+            simple: ${body.id}
+        - setProperty:
+            name: efecteKeyEfecteId
+            simple: ${body.getAttributeValue(KEY_EFECTE_ID)}
+
+- route:
+    id: direct:cleanResources
+    from:
+      uri: direct:cleanResources
+      steps:
+        - bean:
+            ref: efecteKeyProcessor
+            method: resetCache
+        - choice:
+            when:
+              - simple: ${bean:redis.get('{{app.redis.prefix.iLoqCurrentSessionId}}')}
+                steps:
+                  - to: "{{app.routes.iLoq.killILoqSession}}"
+                  - to: "{{app.routes.redis.removeCurrentILoqSessionRelatedKeys}}"

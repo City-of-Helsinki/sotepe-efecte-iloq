@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/apache/camel/main/dsl/camel-yaml-dsl/camel-yaml-dsl/src/generated/resources/schema/camelYamlDsl.json
+
+- rest:
+    get:
+      - path: /readiness
+        id: get.readiness-probe
+        to: direct:readiness-probe
+      - path: /healthz
+        id: get.alive-probe
+        to: direct:aliveness-probe
+      - path: /webhook
+        id: get.webhook
+        to: direct:webhook-probe
+    post:
+      - path: /webhook
+        id: post.webhook
+        to: direct:efecteWebhookController
+
+- route:
+    id: aliveness-probe.route
+    from:
+      uri: direct:aliveness-probe
+      steps:
+        - setHeader:
+            name: CamelHttpResponseCode
+            constant: "200"
+        - setBody:
+            simple: "Alive"
+
+- route:
+    id: readiness-probe.route
+    from:
+      uri: direct:readiness-probe
+      steps:
+        - setHeader:
+            name: CamelHttpResponseCode
+            constant: "200"
+        - setBody:
+            simple: "Ready"
+
+- route:
+    id: webhook-probe.route
+    from:
+      uri: direct:webhook-probe
+      steps:
+        - setHeader:
+            name: CamelHttpResponseCode
+            constant: "200"
+        - setBody:
+            simple: "Webhook OK"
