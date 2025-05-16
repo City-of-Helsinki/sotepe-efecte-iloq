@@ -164,6 +164,14 @@ public class EfecteKeyProcessor {
         } else {
             // Key is previously mapped
             if (!Objects.equals(newILoqSecurityAccessIds, previousILoqKeySecurityAccesses)) {
+                if (efecteEntityIdentifierJson == null) {
+                    throw new Exception(
+                            "EfecteKeyProcessor.buildEfecteKey: The previously mapped key (" + iLoqKeyInfoText
+                                    + ") is missing the actual Redis mapping key '" + ri.getMappedKeyILoqPrefix()
+                                    + iLoqKeyId
+                                    + "'. Cannot continue processing.");
+                }
+
                 EfecteEntityIdentifier efecteEntityIdentifier = ri.getHelper()
                         .writeAsPojo(efecteEntityIdentifierJson, EfecteEntityIdentifier.class);
                 efecteKeyEntityId = efecteEntityIdentifier.getEntityId();
