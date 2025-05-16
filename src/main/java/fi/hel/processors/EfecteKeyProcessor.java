@@ -171,23 +171,34 @@ public class EfecteKeyProcessor {
 
                 efectePayload = ri.getEfecteKeyMapper().buildEfecteEntitySetUpdate(enrichedILoqKey, efecteKeyEfecteId);
                 shouldUpdateEfecteKey = true;
-                String previousEfecteKeyJson = ri.getRedis().get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId);
-                PreviousEfecteKey previousEfecteKey = ri.getHelper().writeAsPojo(previousEfecteKeyJson,
-                        PreviousEfecteKey.class);
                 newPreviousEfecteKey = new PreviousEfecteKey(
                         EnumEfecteKeyState.AKTIIVINEN.getName(),
                         ri.getEfecteKeyResolver()
-                                .getNewEfecteSecurityAccessEntityIds(enrichedILoqKey.getSecurityAccesses()),
-                        previousEfecteKey.getValidityDate());
+                                .getNewEfecteSecurityAccessEntityIds(enrichedILoqKey.getSecurityAccesses()));
+
+                String previousEfecteKeyJson = ri.getRedis().get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId);
+                PreviousEfecteKey previousEfecteKey = null;
+
+                if (previousEfecteKeyJson != null) {
+                    previousEfecteKey = ri.getHelper().writeAsPojo(previousEfecteKeyJson,
+                            PreviousEfecteKey.class);
+                    newPreviousEfecteKey.setValidityDate(previousEfecteKey.getValidityDate());
+                }
 
                 if (isMissing(iLoqKeyInfoText)) {
                     // The Efecte key has been previously created by the integration (iLOQ -> Efecte) and therefore the 'InfoText' field is not yet populated. 'InfoText' field on iLOQ key might also have been manually deleted.
                     shouldUpdateILoqKey = true;
-                    EfecteEntity efecteEntity = new EfecteEntityBuilder()
-                            .withKeyEfecteId(efecteKeyEfecteId)
-                            .withValidityDate(previousEfecteKey.getValidityDate())
-                            .build();
-                    iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(efecteEntity, iLoqKeyResponse);
+
+                    EfecteEntityBuilder efecteEntityBuilder = new EfecteEntityBuilder()
+                            .withKeyEfecteId(efecteKeyEfecteId);
+
+                    if (previousEfecteKeyJson != null) {
+                        efecteEntityBuilder.withValidityDate(previousEfecteKey.getValidityDate());
+
+                    }
+
+                    iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(efecteEntityBuilder.build(),
+                            iLoqKeyResponse);
                 }
             }
         }

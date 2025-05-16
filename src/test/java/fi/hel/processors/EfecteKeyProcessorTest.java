@@ -897,18 +897,17 @@ public class EfecteKeyProcessorTest {
         Exchange ex = testUtils.createExchange();
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
 
-        String expectedEfecteEntityIdentifierJson = """
-                {
-                    "entityId": "irrelevant",
-                    "efecteId": "irrelevant"
-                }
-                """;
+        String efecteKeyEfecteId = "irrelevant";
+        String expectedEfecteEntityIdentifierJson = "this is efecte entity identifier json";
+        String expectedPreviousEfecteKeyJson = "this is previous efecte key json";
 
         setDefaultResponses();
-        when(redis.get(anyString())).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId))
+                .thenReturn(expectedPreviousEfecteKeyJson);
         when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
         when(helper.writeAsPojo(any(), any()))
-                .thenReturn(new EfecteEntityIdentifier())
+                .thenReturn(new EfecteEntityIdentifier("entityId", efecteKeyEfecteId))
                 .thenReturn(new PreviousEfecteKey());
 
         verifyNoInteractions(helper);
@@ -916,6 +915,44 @@ public class EfecteKeyProcessorTest {
         efecteKeyProcessor.buildEfecteKey(ex);
 
         verify(helper).writeAsPojo(expectedEfecteEntityIdentifierJson, EfecteEntityIdentifier.class);
+        verify(helper).writeAsPojo(expectedPreviousEfecteKeyJson, PreviousEfecteKey.class);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS previously mapped - previous iLOQ security accesses are NONEQUAL")
+    void testShouldNotConvertThePreviousEfecteKeyJsonWhenItIsMissing() throws Exception {
+        String iLoqKeyId = "abc-123";
+        String expectedEfecteId = "KEY_001";
+
+        String securityAccessId1 = "1";
+        String securityAccessId2 = "2";
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
+        enrichedILoqKey.setInfoText(expectedEfecteId);
+        enrichedILoqKey.setSecurityAccesses(Set.of(
+                new ILoqSecurityAccess(securityAccessId1),
+                new ILoqSecurityAccess(securityAccessId2)));
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        String efecteKeyEfecteId = "irrelevant";
+        String expectedEfecteEntityIdentifierJson = "this is efecte entity identifier json";
+        String expectedPreviousEfecteKeyJson = null;
+
+        setDefaultResponses();
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId))
+                .thenReturn(expectedPreviousEfecteKeyJson);
+        when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
+        when(helper.writeAsPojo(any(), any()))
+                .thenReturn(new EfecteEntityIdentifier("entityId", efecteKeyEfecteId));
+
+        verifyNoInteractions(helper);
+
+        efecteKeyProcessor.buildEfecteKey(ex);
+
+        verify(helper).writeAsPojo(expectedEfecteEntityIdentifierJson, EfecteEntityIdentifier.class);
+        verify(helper, times(0)).writeAsPojo(expectedPreviousEfecteKeyJson, PreviousEfecteKey.class);
     }
 
     @Test
