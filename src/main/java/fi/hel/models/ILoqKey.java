@@ -42,6 +42,8 @@ public class ILoqKey {
     private String stamp;
     @JsonProperty("TagKey")
     private String tagKey;
+    @JsonProperty("State")
+    private Integer state;
 
     public ILoqKey() {
     }
@@ -151,6 +153,14 @@ public class ILoqKey {
         this.tagKey = tagKey;
     }
 
+    public Integer getState() {
+        return this.state;
+    }
+
+    public void setState(Integer state) {
+        this.state = state;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -161,14 +171,18 @@ public class ILoqKey {
             return false;
         }
 
-        ILoqKey ILoqKey = (ILoqKey) o;
+        ILoqKey iLoqKey = (ILoqKey) o;
 
-        return Objects.equals(description, ILoqKey.getDescription()) &&
-                Objects.equals(personId, ILoqKey.getPersonId()) &&
-                Objects.equals(realEstateId, ILoqKey.getRealEstateId()) &&
-                Objects.equals(fnKeyId, ILoqKey.getFnKeyId()) &&
-                Objects.equals(infoText, ILoqKey.getInfoText()) &&
-                Objects.equals(expireDate, ILoqKey.getExpireDate());
+        return Objects.equals(description, iLoqKey.getDescription()) &&
+                Objects.equals(personId, iLoqKey.getPersonId()) &&
+                Objects.equals(realEstateId, iLoqKey.getRealEstateId()) &&
+                Objects.equals(fnKeyId, iLoqKey.getFnKeyId()) &&
+                Objects.equals(infoText, iLoqKey.getInfoText()) &&
+                Objects.equals(expireDate, iLoqKey.getExpireDate()) &&
+                Objects.equals(romId, iLoqKey.getRomId()) &&
+                Objects.equals(stamp, iLoqKey.getStamp()) &&
+                Objects.equals(tagKey, iLoqKey.getTagKey()) &&
+                Objects.equals(state, iLoqKey.getState());
     }
 
     @Override

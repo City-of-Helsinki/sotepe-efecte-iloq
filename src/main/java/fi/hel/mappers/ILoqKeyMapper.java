@@ -104,6 +104,7 @@ public class ILoqKeyMapper {
         updatedILoqKey.setRomId(iLoqKeyResponse.getRomId());
         updatedILoqKey.setStamp(iLoqKeyResponse.getStamp());
         updatedILoqKey.setTagKey(iLoqKeyResponse.getTagKey());
+        updatedILoqKey.setState(iLoqKeyResponse.getState());
 
         ILoqKeyImport iLoqKeyImport = new ILoqKeyImport();
         iLoqKeyImport.setKey(updatedILoqKey);

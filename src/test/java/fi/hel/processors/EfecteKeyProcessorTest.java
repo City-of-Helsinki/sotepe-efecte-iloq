@@ -927,7 +927,6 @@ public class EfecteKeyProcessorTest {
         String securityAccessId1 = "1";
         String securityAccessId2 = "2";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
-        enrichedILoqKey.setInfoText(expectedEfecteId);
         enrichedILoqKey.setSecurityAccesses(Set.of(
                 new ILoqSecurityAccess(securityAccessId1),
                 new ILoqSecurityAccess(securityAccessId2)));
@@ -941,8 +940,9 @@ public class EfecteKeyProcessorTest {
 
         setDefaultResponses();
         when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn("efecte entity identifier json");
         when(helper.writeAsPojo(any(), any()))
-                .thenReturn(new EfecteEntityIdentifier())
+                .thenReturn(new EfecteEntityIdentifier("entityId", expectedEfecteId))
                 .thenReturn(previousEfecteKey);
 
         verifyNoInteractions(efecteKeyMapper);
