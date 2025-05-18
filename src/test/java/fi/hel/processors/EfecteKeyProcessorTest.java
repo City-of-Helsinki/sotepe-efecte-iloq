@@ -1,6 +1,7 @@
 package fi.hel.processors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
@@ -882,6 +883,44 @@ public class EfecteKeyProcessorTest {
 
     @Test
     @DisplayName("buildEfecteKey - key IS previously mapped - previous iLOQ security accesses are NONEQUAL")
+    void testShouldThrowAnExceptionWhenTheMappedEntityIdentifierKeyIsMissing() throws Exception {
+        String iLoqKeyId = "abc-123";
+        String efecteId = "KEY_001";
+
+        String securityAccessId1 = "1";
+        String securityAccessId2 = "2";
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
+        enrichedILoqKey.setInfoText(efecteId);
+        enrichedILoqKey.setSecurityAccesses(Set.of(
+                new ILoqSecurityAccess(securityAccessId1),
+                new ILoqSecurityAccess(securityAccessId2)));
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        String efecteKeyEfecteId = "irrelevant";
+        String expectedPreviousEfecteKeyJson = "this is previous efecte key json";
+
+        setDefaultResponses();
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn(null);
+        when(redis.get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId))
+                .thenReturn(expectedPreviousEfecteKeyJson);
+        when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
+        when(helper.writeAsPojo(any(), any()))
+                .thenReturn(new EfecteEntityIdentifier("entityId", efecteKeyEfecteId))
+                .thenReturn(new PreviousEfecteKey());
+
+        String expectedExceptionMessage = "EfecteKeyProcessor.buildEfecteKey: The previously mapped key ("
+                + efecteId
+                + ") is missing the actual Redis mapping key '" + ri.getMappedKeyILoqPrefix()
+                + iLoqKeyId
+                + "'. Cannot continue processing.";
+
+        assertThatThrownBy(() -> efecteKeyProcessor.buildEfecteKey(ex)).hasMessage(expectedExceptionMessage);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS previously mapped - previous iLOQ security accesses are NONEQUAL")
     void testShouldConvertTheEfecteEntityIdentifier() throws Exception {
         String iLoqKeyId = "abc-123";
         String expectedEfecteId = "KEY_001";
@@ -897,18 +936,17 @@ public class EfecteKeyProcessorTest {
         Exchange ex = testUtils.createExchange();
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
 
-        String expectedEfecteEntityIdentifierJson = """
-                {
-                    "entityId": "irrelevant",
-                    "efecteId": "irrelevant"
-                }
-                """;
+        String efecteKeyEfecteId = "irrelevant";
+        String expectedEfecteEntityIdentifierJson = "this is efecte entity identifier json";
+        String expectedPreviousEfecteKeyJson = "this is previous efecte key json";
 
         setDefaultResponses();
-        when(redis.get(anyString())).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId))
+                .thenReturn(expectedPreviousEfecteKeyJson);
         when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
         when(helper.writeAsPojo(any(), any()))
-                .thenReturn(new EfecteEntityIdentifier())
+                .thenReturn(new EfecteEntityIdentifier("entityId", efecteKeyEfecteId))
                 .thenReturn(new PreviousEfecteKey());
 
         verifyNoInteractions(helper);
@@ -916,11 +954,12 @@ public class EfecteKeyProcessorTest {
         efecteKeyProcessor.buildEfecteKey(ex);
 
         verify(helper).writeAsPojo(expectedEfecteEntityIdentifierJson, EfecteEntityIdentifier.class);
+        verify(helper).writeAsPojo(expectedPreviousEfecteKeyJson, PreviousEfecteKey.class);
     }
 
     @Test
     @DisplayName("buildEfecteKey - key IS previously mapped - previous iLOQ security accesses are NONEQUAL")
-    void testShouldBuildAnUpdatedEfecteKeyWhenILoqSecurityAccessesHasChanged() throws Exception {
+    void testShouldNotConvertThePreviousEfecteKeyJsonWhenItIsMissing() throws Exception {
         String iLoqKeyId = "abc-123";
         String expectedEfecteId = "KEY_001";
 
@@ -934,6 +973,42 @@ public class EfecteKeyProcessorTest {
 
         Exchange ex = testUtils.createExchange();
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        String efecteKeyEfecteId = "irrelevant";
+        String expectedEfecteEntityIdentifierJson = "this is efecte entity identifier json";
+        String expectedPreviousEfecteKeyJson = null;
+
+        setDefaultResponses();
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getPreviousKeyEfectePrefix() + efecteKeyEfecteId))
+                .thenReturn(expectedPreviousEfecteKeyJson);
+        when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
+        when(helper.writeAsPojo(any(), any()))
+                .thenReturn(new EfecteEntityIdentifier("entityId", efecteKeyEfecteId));
+
+        verifyNoInteractions(helper);
+
+        efecteKeyProcessor.buildEfecteKey(ex);
+
+        verify(helper).writeAsPojo(expectedEfecteEntityIdentifierJson, EfecteEntityIdentifier.class);
+        verify(helper, times(0)).writeAsPojo(expectedPreviousEfecteKeyJson, PreviousEfecteKey.class);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS previously mapped - previous iLOQ security accesses are NONEQUAL")
+    void testShouldBuildAnUpdatedEfecteKeyWhenILoqSecurityAccessesHasChanged() throws Exception {
+        String iLoqKeyId = "abc-123";
+        String expectedEfecteId = "KEY_001";
+
+        String securityAccessId1 = "1";
+        String securityAccessId2 = "2";
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
+        enrichedILoqKey.setSecurityAccesses(Set.of(
+                new ILoqSecurityAccess(securityAccessId1),
+                new ILoqSecurityAccess(securityAccessId2)));
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
         PreviousEfecteKey previousEfecteKey = new PreviousEfecteKey(
                 EnumEfecteKeyState.AKTIIVINEN.getName(),
                 Set.of("old efecte security access entity id"),
@@ -941,8 +1016,9 @@ public class EfecteKeyProcessorTest {
 
         setDefaultResponses();
         when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
+        when(redis.get(ri.getMappedKeyILoqPrefix() + iLoqKeyId)).thenReturn("efecte entity identifier json");
         when(helper.writeAsPojo(any(), any()))
-                .thenReturn(new EfecteEntityIdentifier())
+                .thenReturn(new EfecteEntityIdentifier("entityId", expectedEfecteId))
                 .thenReturn(previousEfecteKey);
 
         verifyNoInteractions(efecteKeyMapper);
@@ -969,6 +1045,7 @@ public class EfecteKeyProcessorTest {
         Exchange ex = testUtils.createExchange();
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
 
+        when(redis.get(anyString())).thenReturn("irrelevant but not null");
         when(redis.getSet(anyString())).thenReturn(Set.of(securityAccessId1));
         when(efecteKeyMapper.buildEfecteEntitySetUpdate(enrichedILoqKey, efecteId))
                 .thenReturn(new EfecteEntitySetImport());

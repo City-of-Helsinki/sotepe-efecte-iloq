@@ -38,6 +38,7 @@ import fi.hel.processors.ResourceInjector;
 import fi.hel.resolvers.ILoqPersonResolver;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.sentry.util.Objects;
 import jakarta.inject.Inject;
 
 @QuarkusTest
@@ -475,6 +476,10 @@ public class ILoqKeyMapperTest {
                 auditMessage);
     }
 
+    /////////////////////
+    // iLOQ KEY UPDATE //
+    /////////////////////
+
     @Test
     @DisplayName("buildUpdatedILoqKey - Efecte -> iLOQ")
     void testShouldFetchTheCurrentILoqKey() throws Exception {
@@ -551,6 +556,7 @@ public class ILoqKeyMapperTest {
         String romId = "foo";
         String stamp = "bar";
         String tagkey = "baz";
+        Integer state = 1;
         ILoqKeyResponse iLoqKeyResponse = new ILoqKeyResponse(iLoqKeyId);
         iLoqKeyResponse.setDescription(description);
         iLoqKeyResponse.setExpireDate(null);
@@ -560,6 +566,7 @@ public class ILoqKeyMapperTest {
         iLoqKeyResponse.setRomId(romId);
         iLoqKeyResponse.setStamp(stamp);
         iLoqKeyResponse.setTagKey(tagkey);
+        iLoqKeyResponse.setState(state);
 
         ILoqKey expectedILoqKey = new ILoqKey(iLoqKeyId);
         expectedILoqKey.setDescription(description);
@@ -570,6 +577,7 @@ public class ILoqKeyMapperTest {
         expectedILoqKey.setRomId(romId);
         expectedILoqKey.setStamp(stamp);
         expectedILoqKey.setTagKey(tagkey);
+        expectedILoqKey.setState(state);
 
         mocked.getGetILoqKey().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqKeyResponse));
 
@@ -600,6 +608,7 @@ public class ILoqKeyMapperTest {
         String romId = "foo";
         String stamp = "bar";
         String tagkey = "baz";
+        Integer state = 1;
         ILoqKeyResponse iLoqKeyResponse = new ILoqKeyResponse(iLoqKeyId);
         iLoqKeyResponse.setDescription(description);
         iLoqKeyResponse.setExpireDate(null);
@@ -609,6 +618,7 @@ public class ILoqKeyMapperTest {
         iLoqKeyResponse.setRomId(romId);
         iLoqKeyResponse.setStamp(stamp);
         iLoqKeyResponse.setTagKey(tagkey);
+        iLoqKeyResponse.setState(state);
 
         ILoqKey expectedILoqKey = new ILoqKey(iLoqKeyId);
         expectedILoqKey.setDescription(description);
@@ -619,6 +629,7 @@ public class ILoqKeyMapperTest {
         expectedILoqKey.setRomId(romId);
         expectedILoqKey.setStamp(stamp);
         expectedILoqKey.setTagKey(tagkey);
+        expectedILoqKey.setState(state);
 
         ILoqKeyImport result = iLoqKeyMapper.buildUpdatedILoqKey(efecteEntity, iLoqKeyResponse);
 
@@ -670,4 +681,8 @@ public class ILoqKeyMapperTest {
         assertThat(result).containsExactlyInAnyOrder(iLoqId1, iLoqId2, iLoqId3);
     }
 
+    @Test
+    void testaus() {
+        Objects.equals(null, null);
+    }
 }
