@@ -139,6 +139,7 @@ public class EfecteKeyProcessor {
                     equalEfecteKey, efecteKeys);
 
             if (foundMatchingKey == null) {
+                System.out.println("DEBUG: EfecteKeyProcessor.buildEfecteKey - no matching key found, building new");
                 efectePayload = ri.getEfecteKeyMapper().buildNewEfecteEntitySetImport(enrichedILoqKey);
                 shouldCreateEfecteKey = true;
                 newPreviousEfecteKey = new PreviousEfecteKey(
@@ -148,23 +149,37 @@ public class EfecteKeyProcessor {
                         efectePayload.getEntity().getAttributeByType(EnumEfecteAttribute.KEY_VALIDITY_DATE)
                                 .getValues().get(0));
             } else {
-                saveMappedKeys(iLoqKeyId, foundMatchingKey);
+                String matchingEfecteKeyState = foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_STATE);
+                System.out.println("DEBUG: EfecteKeyProcessor.buildEfecteKey - a matching key was found, state: '"
+                        + matchingEfecteKeyState + "', updating iLOQ key");
+
                 shouldUpdateILoqKey = true;
-                efecteKeyEntityId = foundMatchingKey.getId();
-                efecteKeyEfecteId = foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID);
-                iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse);
-                efectePayload = ri.getEfecteKeyMapper().buildEfecteEntitySetUpdate(iLoqKeyId,
-                        foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID));
-                newPreviousEfecteKey = new PreviousEfecteKey(
-                        EnumEfecteKeyState.AKTIIVINEN.getName(),
-                        ri.getEfecteKeyResolver()
-                                .getNewEfecteSecurityAccessEntityIds(enrichedILoqKey.getSecurityAccesses()),
-                        foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_VALIDITY_DATE));
+
+                if (matchingEfecteKeyState.equals(EnumEfecteKeyState.PASSIIVINEN.getName())) {
+                    iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse, true);
+                } else {
+                    shouldUpdateEfecteKey = true;
+                    saveMappedKeys(iLoqKeyId, foundMatchingKey);
+                    efecteKeyEntityId = foundMatchingKey.getId();
+                    efecteKeyEfecteId = foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID);
+                    iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse);
+                    efectePayload = ri.getEfecteKeyMapper().buildEfecteEntitySetUpdate(iLoqKeyId,
+                            foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID));
+                    newPreviousEfecteKey = new PreviousEfecteKey(
+                            EnumEfecteKeyState.AKTIIVINEN.getName(),
+                            ri.getEfecteKeyResolver()
+                                    .getNewEfecteSecurityAccessEntityIds(enrichedILoqKey.getSecurityAccesses()),
+                            foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_VALIDITY_DATE));
+                }
             }
         } else {
             // Key is previously mapped
             if (!Objects.equals(newILoqSecurityAccessIds, previousILoqKeySecurityAccesses)) {
                 if (efecteEntityIdentifierJson == null) {
+                    if (iLoqKeyInfoText.contains("Passiivinen")) {
+                        throw new Exception(
+                                "EfecteKeyProcessor.buildEfecteKey: The matching Efecte key has state 'Passiivinen'. This iLOQ key should not be present in this context and should be either returned or it's security accesses emptied.");
+                    }
                     throw new Exception(
                             "EfecteKeyProcessor.buildEfecteKey: The previously mapped key (" + iLoqKeyInfoText
                                     + ") is missing the actual Redis mapping key '" + ri.getMappedKeyILoqPrefix()

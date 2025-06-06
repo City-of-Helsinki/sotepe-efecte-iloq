@@ -80,7 +80,7 @@ public class ILoqKeyMapper {
         ILoqKeyResponse iLoqKeyResponse = getILoqKey(
                 efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EXTERNAL_ID));
 
-        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse);
+        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse, false);
     }
 
     ////////////////////
@@ -89,14 +89,26 @@ public class ILoqKeyMapper {
 
     public ILoqKeyImport buildUpdatedILoqKey(EfecteEntity efecteEntity, ILoqKeyResponse iLoqKeyResponse)
             throws Exception {
-        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse);
+        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse, false);
     }
 
-    private ILoqKeyImport mapILoqKeyResponse(EfecteEntity efecteEntity, ILoqKeyResponse iLoqKeyResponse)
+    public ILoqKeyImport buildUpdatedILoqKey(EfecteEntity efecteEntity, ILoqKeyResponse iLoqKeyResponse,
+            boolean isPassive)
+            throws Exception {
+        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse, isPassive);
+    }
+
+    private ILoqKeyImport mapILoqKeyResponse(EfecteEntity efecteEntity, ILoqKeyResponse iLoqKeyResponse,
+            boolean isPassive)
             throws Exception {
         ILoqKey updatedILoqKey = new ILoqKey(iLoqKeyResponse.getFnKeyId());
         updatedILoqKey.setDescription(iLoqKeyResponse.getDescription());
-        updatedILoqKey.setInfoText(efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID));
+
+        updatedILoqKey.setInfoText(
+                isPassive
+                        ? efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID) + " - Passiivinen"
+                        : efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID));
+
         updatedILoqKey.setPersonId(iLoqKeyResponse.getPersonId());
         updatedILoqKey.setRealEstateId(iLoqKeyResponse.getRealEstateId());
         updatedILoqKey.setExpireDate(

@@ -775,7 +775,7 @@ public class EfecteKeyProcessorTest {
 
     @Test
     @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found")
-    void testShouldSetThePropertyValues_UpdateMatchedKey() throws Exception {
+    void testShouldSetThePropertyValues_UpdateMatchedKey_Active() throws Exception {
         String iLoqKeyId = "abc-123";
         String expectedILoqSecurityAccessId1 = "1";
         String expectedILoqSecurityAccessId2 = "2";
@@ -831,7 +831,7 @@ public class EfecteKeyProcessorTest {
         String efecteKeyEfecteId = ex.getProperty("efecteKeyEfecteId", String.class);
         EfecteEntitySetImport efectePayload = ex.getProperty("efectePayload", EfecteEntitySetImport.class);
 
-        assertThat(shouldUpdateEfecteKey).isFalse();
+        assertThat(shouldUpdateEfecteKey).isTrue();
         assertThat(shouldCreateEfecteKey).isFalse();
         assertThat(shouldUpdateILoqKey).isTrue();
         assertThat(newILoqSecurityAccessIds).containsExactlyInAnyOrder(expectedILoqSecurityAccessId1,
@@ -841,6 +841,77 @@ public class EfecteKeyProcessorTest {
         assertThat(efecteKeyEntityId).isEqualTo(expectedEntityId);
         assertThat(efecteKeyEfecteId).isEqualTo(expectedEfecteId);
         assertThat(efectePayload).isEqualTo(expectedEfectePayload);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found")
+    void testShouldSetThePropertyValues_UpdateMatchedKey_Passive() throws Exception {
+        String iLoqKeyId = "abc-123";
+        ILoqKeyResponse expectedILoqKeyResponse = new ILoqKeyResponse(iLoqKeyId);
+        String expectedILoqSecurityAccessId1 = "1";
+        String expectedILoqSecurityAccessId2 = "2";
+        Set<ILoqSecurityAccess> iLoqSecurityAccesses = Set.of(
+                new ILoqSecurityAccess(expectedILoqSecurityAccessId1),
+                new ILoqSecurityAccess(expectedILoqSecurityAccessId2));
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
+        enrichedILoqKey.setRealEstateId("irrelevant, but not null");
+        enrichedILoqKey.setSecurityAccesses(iLoqSecurityAccesses);
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+        ex.setProperty("currentILoqKey", expectedILoqKeyResponse);
+
+        String expectedEfecteSecurityAccessId1 = "501";
+        String expectedEfecteSecurityAccessId2 = "502";
+        Set<String> efecteSecurityAccessEntityIds = Set.of(expectedEfecteSecurityAccessId1,
+                expectedEfecteSecurityAccessId2);
+        String validityDate = "06.08.2024 00:00";
+        String expectedEntityId = "12345";
+        String expectedEfecteId = "KEY_00123";
+        EfecteEntity matchingEfecteKey = new EfecteEntityBuilder()
+                .withId(expectedEntityId)
+                .withKeyEfecteId(expectedEfecteId)
+                .withValidityDate(validityDate)
+                .withState(EnumEfecteKeyState.PASSIIVINEN)
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+        EfecteEntitySetImport expectedEfectePayload = new EfecteEntitySetImport(new EfecteEntityImport());
+        ILoqKeyImport expectedILoqKeyImport = new ILoqKeyImport(new ILoqKey(iLoqKeyId));
+
+        when(redis.get(any())).thenReturn(null);
+        when(efecteKeyResolver.findMatchingEfecteKey(any(), any()))
+                .thenReturn(matchingEfecteKey);
+        when(efecteKeyResolver.getNewEfecteSecurityAccessEntityIds(iLoqSecurityAccesses))
+                .thenReturn(efecteSecurityAccessEntityIds);
+        when(iLoqKeyMapper.buildUpdatedILoqKey(matchingEfecteKey, expectedILoqKeyResponse, true))
+                .thenReturn(expectedILoqKeyImport);
+        when(efecteKeyMapper.buildEfecteEntitySetUpdate(anyString(), anyString()))
+                .thenReturn(expectedEfectePayload);
+
+        efecteKeyProcessor.buildEfecteKey(ex);
+
+        boolean shouldUpdateEfecteKey = ex.getProperty("shouldUpdateEfecteKey", boolean.class);
+        boolean shouldCreateEfecteKey = ex.getProperty("shouldCreateEfecteKey", boolean.class);
+        boolean shouldUpdateILoqKey = ex.getProperty("shouldUpdateILoqKey", boolean.class);
+        Set<String> newILoqSecurityAccessIds = ex.getProperty("newILoqSecurityAccessIds", Set.class);
+        PreviousEfecteKey newPreviousEfecteKey = ex.getProperty("newPreviousEfecteKey",
+                PreviousEfecteKey.class);
+        ILoqKeyImport iLoqPayload = ex.getProperty("iLoqPayload", ILoqKeyImport.class);
+        String efecteKeyEntityId = ex.getProperty("efecteKeyEntityId", String.class);
+        String efecteKeyEfecteId = ex.getProperty("efecteKeyEfecteId", String.class);
+        EfecteEntitySetImport efectePayload = ex.getProperty("efectePayload", EfecteEntitySetImport.class);
+
+        verify(iLoqKeyMapper).buildUpdatedILoqKey(matchingEfecteKey, expectedILoqKeyResponse, true);
+        assertThat(shouldUpdateEfecteKey).isFalse();
+        assertThat(shouldCreateEfecteKey).isFalse();
+        assertThat(shouldUpdateILoqKey).isTrue();
+        assertThat(newILoqSecurityAccessIds).containsExactlyInAnyOrder(expectedILoqSecurityAccessId1,
+                expectedILoqSecurityAccessId2);
+        assertThat(newPreviousEfecteKey).isNull();
+        assertThat(iLoqPayload).isEqualTo(expectedILoqKeyImport);
+        assertThat(efecteKeyEntityId).isNull();
+        assertThat(efecteKeyEfecteId).isNull();
+        assertThat(efectePayload).isNull();
     }
 
     //////////////////////////////

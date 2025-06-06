@@ -46,6 +46,8 @@ public class EfecteKeyResolver {
             // Person has been mapped or searching Efecte key holders resulted in one match
             entityBuilder.withKeyHolderReference(efectePersonIdentifier);
         } else {
+            // efectePersonIdentifier = "firstsName lastName", meaning no "Key Holder" entity was found
+            // therefore we want to build the equal Efecte key with an outsider to also check that possibility
             entityBuilder.withIsOutsider(true);
             if (isEfecteEntityIdentifierJson(efectePersonIdentifier)) {
                 // Person has been mapped, but is an outsider

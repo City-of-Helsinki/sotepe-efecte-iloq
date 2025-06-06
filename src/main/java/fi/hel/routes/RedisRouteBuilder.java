@@ -77,7 +77,7 @@ public class RedisRouteBuilder extends RouteBuilder {
 
         from("direct:saveMappedKeys")
             .routeId("direct:saveMappedKeys")
-            .log("{{app.name}} :: saveMappedKeys :: Saving mapped key ids for Efecte and iLOQ")
+            .log("{{app.name}} :: saveMappedKeys :: Saving mapped key ids for Efecte (${exchangeProperty[efecteKeyEfecteId]}) and iLOQ (${exchangeProperty[iLoqKeyId]})")
             .process(exchange -> {
                 String entityId = exchange.getProperty("efecteKeyEntityId", String.class);
                 String efecteId = exchange.getProperty("efecteKeyEfecteId", String.class);
