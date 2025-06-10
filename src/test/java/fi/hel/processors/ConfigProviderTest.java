@@ -343,7 +343,7 @@ public class ConfigProviderTest {
 
     @Test
     @DisplayName("getILoqSecurityAccessIdByEfecteSecurityAccessEntityId")
-    void testShouldThrowAnExceptionWhenAMatchingILoqSecurityAccessIsNotFoundForAnEfecteSecurityAccess()
+    void testShouldThrowAnExceptionWhenAMatchingILoqSecurityAccessIsNotFoundForAnEfecteSecurityAccess_Id()
             throws Exception {
         String invalidEfecteSecurityAccess = "invalid Efecte security access";
         String expectedExceptionMessage = "ConfigProvider: No iLOQ security access found for an Efecte security access id '"
@@ -351,6 +351,30 @@ public class ConfigProviderTest {
 
         assertThatThrownBy(
                 () -> configProvider.getILoqSecurityAccessIdByEfecteSecurityAccessEntityId(
+                        invalidEfecteSecurityAccess))
+                .hasMessage(expectedExceptionMessage);
+    }
+
+    @Test
+    @DisplayName("getILoqSecurityAccessNameByEfecteSecurityAccessEntityId")
+    void testShouldReturnTheMatchingILoqSecurityAccessNameForAnEfecteSecurityAccessEntityId() throws Exception {
+        String result = configProvider
+                .getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(
+                        testEfecteSecurityAccessEntityId2);
+
+        assertThat(result).isEqualTo(testILoqSecurityAccessName2);
+    }
+
+    @Test
+    @DisplayName("getILoqSecurityAccessNameByEfecteSecurityAccessEntityId")
+    void testShouldThrowAnExceptionWhenAMatchingILoqSecurityAccessIsNotFoundForAnEfecteSecurityAccess_Name()
+            throws Exception {
+        String invalidEfecteSecurityAccess = "invalid Efecte security access";
+        String expectedExceptionMessage = "ConfigProvider: No iLOQ security access found for an Efecte security access id '"
+                + invalidEfecteSecurityAccess + "'";
+
+        assertThatThrownBy(
+                () -> configProvider.getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(
                         invalidEfecteSecurityAccess))
                 .hasMessage(expectedExceptionMessage);
     }

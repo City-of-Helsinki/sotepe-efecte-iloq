@@ -109,15 +109,31 @@ public class ILoqKeyMapperTest {
     @Test
     @DisplayName("buildNewILoqKey - Key.Description")
     void testShouldMapTheDescription() throws Exception {
-        String streetAddressName = "Malminkatu 3, 00100, Helsinki";
+        String efecteSecurityAccessId1 = "1";
+        String efecteSecurityAccessId2 = "2";
+        String efecteSecurityAccessId3 = "3";
+        String iLoqSecurityAccessName1 = "securityAccessName1";
+        String iLoqSecurityAccessName2 = "securityAccessName2";
+        String iLoqSecurityAccessName3 = "securityAccessName3";
+        String expectedDescription = "securityAccessName1,securityAccessName2,securityAc"; // 50 characters
         EfecteEntity efecteEntity = new EfecteEntityBuilder()
-                .withStreetAddress("123", streetAddressName)
+                .withSecurityAccesses(
+                        new EfecteReference(efecteSecurityAccessId1, "name1"),
+                        new EfecteReference(efecteSecurityAccessId2, "name2"),
+                        new EfecteReference(efecteSecurityAccessId3, "name3"))
                 .withDefaults(EnumEfecteTemplate.KEY)
                 .build();
 
+        when(configProvider.getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(efecteSecurityAccessId1))
+                .thenReturn(iLoqSecurityAccessName1);
+        when(configProvider.getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(efecteSecurityAccessId2))
+                .thenReturn(iLoqSecurityAccessName2);
+        when(configProvider.getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(efecteSecurityAccessId3))
+                .thenReturn(iLoqSecurityAccessName3);
+
         ILoqKeyImport iLoqKeyImport = iLoqKeyMapper.buildNewILoqKey(efecteEntity);
 
-        assertThat(iLoqKeyImport.getKey().getDescription()).isEqualTo(streetAddressName);
+        assertThat(iLoqKeyImport.getKey().getDescription()).isEqualTo(expectedDescription);
     }
 
     @Test

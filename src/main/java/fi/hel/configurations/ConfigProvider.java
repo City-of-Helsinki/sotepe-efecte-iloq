@@ -181,6 +181,25 @@ public class ConfigProvider {
                         + "'");
     }
 
+    public String getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(String efecteSecurityAccessEntityId)
+            throws Exception {
+        CustomerConfiguration customerConfiguration = getCustomerConfiguration();
+
+        for (CustomerZone customerZone : customerConfiguration.getZones()) {
+            for (CustomerSecurityAccess customerSecurityAccess : customerZone.getSecurityAccesses()) {
+                if (customerSecurityAccess.getEfecte().getEntityId().equals(efecteSecurityAccessEntityId)) {
+                    return customerSecurityAccess.getILoq().getName();
+                }
+            }
+
+        }
+
+        throw new Exception(
+                "ConfigProvider: No iLOQ security access found for an Efecte security access id '"
+                        + efecteSecurityAccessEntityId
+                        + "'");
+    }
+
     public String getILoqZoneIdByILoqSecurityAccessId(String iLoqSecurityAccessId) throws Exception {
         CustomerConfiguration customerConfiguration = getCustomerConfiguration();
 

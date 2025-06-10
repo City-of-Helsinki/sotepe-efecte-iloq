@@ -30,6 +30,10 @@ public class ILoqKeyMapper {
     @Inject
     ResourceInjector ri;
 
+    ////////////////////
+    // Efecte -> iLOQ //
+    ////////////////////
+
     public Set<String> buildUpdatedILoqSecurityAccesses(Set<String> efecteSecurityAccessEntityIds)
             throws Exception {
         Set<String> iLoqSecurityAccessIds = new HashSet<>();
@@ -48,7 +52,7 @@ public class ILoqKeyMapper {
         ILoqKey iLoqKey = new ILoqKey();
         setDefaultFields(iLoqKey);
         iLoqKey.setFnKeyId(ri.getHelper().createGUID());
-        iLoqKey.setDescription(streetAddressReference.getName());
+        iLoqKey.setDescription(buildDescription(efecteEntity));
         iLoqKey.setInfoText(efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID));
         iLoqKey.setExpireDate(convertToISO8601(efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_VALIDITY_DATE)));
         iLoqKey.setRealEstateId(
@@ -70,10 +74,6 @@ public class ILoqKeyMapper {
 
         return iLoqKeyImport;
     }
-
-    ////////////////////
-    // Efecte -> iLOQ //
-    ////////////////////
 
     public ILoqKeyImport buildUpdatedILoqKey(EfecteEntity efecteEntity) throws Exception {
         // We need to retrieve the current iLOQ key first to preserve values that are not being updated
@@ -232,5 +232,35 @@ public class ILoqKeyMapper {
         LocalDateTime localDateTime = LocalDateTime.parse(inputDateTime, inputFormatter);
 
         return localDateTime.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
+    }
+
+    private String buildDescription(EfecteEntity efecteEntity) throws Exception {
+        List<EfecteReference> securityAccessReferences = efecteEntity
+                .getAttributeReferences(EnumEfecteAttribute.KEY_SECURITY_ACCESS);
+        List<String> iLoqSecurityAccessNames = new ArrayList<>();
+
+        for (EfecteReference securityAccessReference : securityAccessReferences) {
+            String iLoqSecurityAccessName = ri.getConfigProvider()
+                    .getILoqSecurityAccessNameByEfecteSecurityAccessEntityId(securityAccessReference.getId());
+
+            iLoqSecurityAccessNames.add(iLoqSecurityAccessName);
+        }
+
+        return combineWithCommas(iLoqSecurityAccessNames);
+    }
+
+    public static String combineWithCommas(List<String> stringList) {
+        if (stringList == null || stringList.isEmpty()) {
+            return "";
+        }
+
+        String combined = String.join(",", stringList);
+
+        if (combined.length() > 50) {
+            // iLOQ description is 50 characters at max
+            return combined.substring(0, 50);
+        }
+
+        return combined;
     }
 }
