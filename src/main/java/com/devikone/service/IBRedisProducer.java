@@ -59,9 +59,9 @@ public class IBRedisProducer {
                 8, // maxTotal - 8 connections is plenty for non-master pod
                 4, // maxIdle - Keep 4 idle connections max
                 1, // minIdle - Keep 1 idle connections min
-                true, // testOnBorrow - Test when borrowing is important
-                false, // testOnReturn - Not needed and adds overhead
-                false, // testWhileIdle - DISABLE to eliminate validation errors
+                false, // testOnBorrow - DISABLE validation
+                false, // testOnReturn - DISABLE validation
+                false, // testWhileIdle - DISABLE validation
                 Duration.ofSeconds(60), // minEvictableIdleTime - Evict after 60 seconds idle (before Redis 90s timeout)
                 Duration.ofMinutes(5), // timeBetweenEvictionRuns - Don't run frequently since testWhileIdle is false
                 3, // numTestsPerEvictionRun
