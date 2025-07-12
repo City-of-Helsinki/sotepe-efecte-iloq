@@ -103,6 +103,14 @@ public class ILoqKeyMapper {
             throws Exception {
         ILoqKey updatedILoqKey = new ILoqKey(iLoqKeyResponse.getFnKeyId());
         updatedILoqKey.setDescription(iLoqKeyResponse.getDescription());
+        String expireDate = null;
+
+        try {
+            String efecteValidityDate = efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_VALIDITY_DATE);
+            expireDate = convertToISO8601(efecteValidityDate);
+        } catch (Exception e) {
+            // No validity date available. This can occur for example if the previousEfecteKey is missing at Redis. In such cases we do not set the expire date info for the iLOQ key.
+        }
 
         updatedILoqKey.setInfoText(
                 isPassive
@@ -111,8 +119,7 @@ public class ILoqKeyMapper {
 
         updatedILoqKey.setPersonId(iLoqKeyResponse.getPersonId());
         updatedILoqKey.setRealEstateId(iLoqKeyResponse.getRealEstateId());
-        updatedILoqKey.setExpireDate(
-                convertToISO8601(efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_VALIDITY_DATE)));
+        updatedILoqKey.setExpireDate(expireDate);
         updatedILoqKey.setRomId(iLoqKeyResponse.getRomId());
         updatedILoqKey.setStamp(iLoqKeyResponse.getStamp());
         updatedILoqKey.setTagKey(iLoqKeyResponse.getTagKey());

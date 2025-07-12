@@ -217,7 +217,6 @@ public class EfecteKeyProcessor {
 
                     if (previousEfecteKeyJson != null) {
                         efecteEntityBuilder.withValidityDate(previousEfecteKey.getValidityDate());
-
                     }
 
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(efecteEntityBuilder.build(),

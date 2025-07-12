@@ -655,6 +655,51 @@ public class ILoqKeyMapperTest {
     }
 
     @Test
+    @DisplayName("buildUpdatedILoqKey - iLOQ -> Efecte")
+    void testShouldReturnAnILoqKeyImportWithoutAnExpireDateWhenThePreviousEfecteKeyIsNotAvailable() throws Exception {
+        String iLoqKeyId = "abc-123";
+        String infoText = "KEY_00123";
+        EfecteEntity efecteEntity = new EfecteEntityBuilder()
+                .withKeyEfecteId(infoText)
+                .build();
+
+        String description = "foo";
+        String personId = "xyz-123";
+        String realEstateId = "obv-345";
+        String romId = "foo";
+        String stamp = "bar";
+        String tagkey = "baz";
+        Integer state = 1;
+        ILoqKeyResponse iLoqKeyResponse = new ILoqKeyResponse(iLoqKeyId);
+        iLoqKeyResponse.setDescription(description);
+        iLoqKeyResponse.setExpireDate(null);
+        iLoqKeyResponse.setInfoText(null);
+        iLoqKeyResponse.setPersonId(personId);
+        iLoqKeyResponse.setRealEstateId(realEstateId);
+        iLoqKeyResponse.setRomId(romId);
+        iLoqKeyResponse.setStamp(stamp);
+        iLoqKeyResponse.setTagKey(tagkey);
+        iLoqKeyResponse.setState(state);
+
+        ILoqKey expectedILoqKey = new ILoqKey(iLoqKeyId);
+        expectedILoqKey.setDescription(description);
+        expectedILoqKey.setExpireDate(null);
+        expectedILoqKey.setInfoText(infoText);
+        expectedILoqKey.setPersonId(personId);
+        expectedILoqKey.setRealEstateId(realEstateId);
+        expectedILoqKey.setRomId(romId);
+        expectedILoqKey.setStamp(stamp);
+        expectedILoqKey.setTagKey(tagkey);
+        expectedILoqKey.setState(state);
+
+        ILoqKeyImport result = iLoqKeyMapper.buildUpdatedILoqKey(efecteEntity, iLoqKeyResponse);
+
+        assertThat(result.getKey()).isEqualTo(expectedILoqKey);
+        assertThat(result.getSecurityAccessIds()).isNull();
+        assertThat(result.getZoneIds()).isNull();
+    }
+
+    @Test
     @DisplayName("buildUpdatedILoqSecurityAccesses")
     void testShouldResolveTheILoqSecurityAccessIdForEachEfecteSecurityAccessEntityId() throws Exception {
         String id1 = "1";
