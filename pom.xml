@@ -32,7 +32,7 @@
     <camel.operon.version>0.9.18-RELEASE</camel.operon.version>
     <ib.redis.version>0.6.3-RELEASE</ib.redis.version>
     <log4j.version>2.22.1</log4j.version>
-    <assertj.version>3.25.3</assertj.version>
+    <assertj.version>3.27.4</assertj.version>
     <rest-assured.version>5.5.1</rest-assured.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <maven.exec-plugin.version>3.2.0</maven.exec-plugin.version>
