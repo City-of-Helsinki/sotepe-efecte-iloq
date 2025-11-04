@@ -58,7 +58,8 @@ public class ExceptionHandler extends RouteConfigurationBuilder {
             .onException(AuditException.class)
                 .handled(true)
                 .to("sentry-log:{{app.name}} :: AUDIT EXCEPTION OCCURRED :: ${exception.message}?loggingLevel=ERROR")
-                .bean("redis", "del({{app.redis.prefix.auditExceptionInProgress}})")
+                // AuditRecords are key value pairs stored for the UI
+                .bean("auditExceptionProcessor", "setAuditRecord")
                 .stop()
         ;
 

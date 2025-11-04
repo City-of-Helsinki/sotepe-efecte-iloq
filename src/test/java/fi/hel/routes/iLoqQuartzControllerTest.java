@@ -278,7 +278,15 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
 
         when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
         String expectedILoqKeyId = "abc-123";
+        String expectedILoqPersonId = "xyz-456";
+        String expectedRealEstateId = "foo-789";
         ILoqKeyResponse expectedKeyResponse = new ILoqKeyResponse(expectedILoqKeyId);
+        expectedKeyResponse.setRealEstateId(expectedRealEstateId);
+        expectedKeyResponse.setPersonId(expectedILoqPersonId);
+
+        String expectedRealEstateName = "100 Malmin perhekeskus";
+
+        when(configProvider.getRealEstateName(expectedRealEstateId)).thenReturn(expectedRealEstateName);
 
         setDefaultResponse();
         doAnswer(i -> {
@@ -290,10 +298,75 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
         mocked.getEnrichKeyWithSecurityAccesses().expectedMessageCount(1);
         mocked.getEnrichKeyWithSecurityAccesses().expectedPropertyReceived("currentILoqKey", expectedKeyResponse);
         mocked.getEnrichKeyWithSecurityAccesses().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+        mocked.getEnrichKeyWithSecurityAccesses().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        mocked.getEnrichKeyWithSecurityAccesses().expectedPropertyReceived("iLoqRealEstateName",
+                expectedRealEstateName);
+        verifyNoInteractions(configProvider);
 
         template.send(iLoqControllerEndpoint, ex);
 
+        verify(configProvider).getRealEstateName(expectedRealEstateId);
         mocked.getEnrichKeyWithSecurityAccesses().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
+    void testShouldEnrichKeyWithPersonInformationWhenTheKeyPersonIsNotPreviouslyMapped() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+        String expectedILoqPersonId = "abc-123";
+        ILoqKeyResponse keyResponse = new ILoqKeyResponse();
+        keyResponse.setPersonId(expectedILoqPersonId);
+
+        setDefaultResponse();
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+            exchange.getIn().setBody(List.of(keyResponse));
+            return null;
+        }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
+
+        String expectedPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        when(redis.get(expectedPrefix)).thenReturn(null);
+
+        mocked.getGetILoqPerson().expectedMessageCount(1);
+        mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        verifyNoInteractions(redis);
+        verifyNoInteractions(iLoqKeyProcessor);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        verify(redis).get(expectedPrefix);
+        verify(iLoqKeyProcessor).enrichKeyWithPerson(any(Exchange.class));
+        mocked.getGetILoqPerson().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
+    void testShouldNotEnrichKeyWithPersonInformationWhenTheKeyPersonIsAlreadyMapped() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+        String expectedILoqPersonId = "abc-123";
+        ILoqKeyResponse keyResponse = new ILoqKeyResponse();
+        keyResponse.setPersonId(expectedILoqPersonId);
+
+        setDefaultResponse();
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+            exchange.getIn().setBody(List.of(keyResponse));
+            return null;
+        }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
+
+        String prefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        when(redis.get(prefix)).thenReturn("efecte entity json");
+
+        mocked.getGetILoqPerson().expectedMessageCount(0);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        mocked.getGetILoqPerson().assertIsSatisfied();
+        verify(iLoqKeyProcessor, times(0)).enrichKeyWithPerson(any(Exchange.class));
     }
 
     @Test
@@ -861,13 +934,13 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
                 throwException.set(false);
             }
             return null;
-        }).when(iLoqKeyProcessor).buildEnrichedILoqKey(ex);
+        }).when(iLoqKeyProcessor).enrichKeyWithSecurityAccesses(ex);
 
         verifyNoInteractions(iLoqKeyProcessor);
 
         template.send(enrichKeyWithSecurityAccessesEndpoint, ex);
 
-        verify(iLoqKeyProcessor).buildEnrichedILoqKey(ex);
+        verify(iLoqKeyProcessor).enrichKeyWithSecurityAccesses(ex);
 
         if (throwException.get()) {
             throw new Exception(

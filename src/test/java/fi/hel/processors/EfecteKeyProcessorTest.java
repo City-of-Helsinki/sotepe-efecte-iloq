@@ -35,6 +35,7 @@ import fi.hel.models.EnrichedILoqKey;
 import fi.hel.models.ILoqKey;
 import fi.hel.models.ILoqKeyImport;
 import fi.hel.models.ILoqKeyResponse;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.PreviousEfecteKey;
 import fi.hel.models.builders.EfecteEntityBuilder;
@@ -643,8 +644,8 @@ public class EfecteKeyProcessorTest {
     }
 
     @Test
-    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found")
-    void testShouldSaveTheMappedKeysWhenAMatchIsFound() throws Exception {
+    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found - key holder")
+    void testShouldSaveTheMappedKeysWhenAMatchIsFound_KeyHolder() throws Exception {
         String expectedILoqKeyId = "abc-123";
 
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(expectedILoqKeyId);
@@ -682,6 +683,69 @@ public class EfecteKeyProcessorTest {
         verify(helper).writeAsJson(expectedEfecteEntityIdentifier);
         verify(redis).set(expectedEfectePrefix, expectedILoqKeyId);
         verify(redis).set(expectedILoqPrefix, expectedEfecteIdentifierJson);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found - outsider")
+    void testShouldSaveTheMappedKeysWhenAMatchIsFound_Outsider() throws Exception {
+        String expectedILoqKeyId = "abc-123";
+        String expectedILoqPersonId = "xyz-456";
+        String outsiderName = "Matti Meikäläinen";
+        String outsiderEmail = "matti.meikalainen@hel.fi";
+        String expectedOutsiderIdentifier = "matti.meikalainen@hel.fi#MAME";
+
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(expectedILoqKeyId);
+        enrichedILoqKey.setRealEstateId("irrelevant, but not null");
+        enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
+        enrichedILoqKey.setPerson(new ILoqPerson(expectedILoqPersonId));
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        when(redis.get(anyString())).thenReturn(null);
+        String entityId = "12345";
+        String efecteId = "KEY-001";
+        EfecteEntity matchinEfecteKey = new EfecteEntityBuilder()
+                .withId(entityId)
+                .withKeyEfecteId(efecteId)
+                .withIsOutsider(true)
+                .withOutsiderName("Matti Meikäläinen")
+                .withOutsiderEmail("matti.meikalainen@hel.fi")
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+        when(efecteKeyResolver.findMatchingEfecteKey(any(), any())).thenReturn(matchinEfecteKey);
+        setDefaultResponses();
+
+        EfecteEntityIdentifier efecteEntityKeyIdentifier = new EfecteEntityIdentifier(
+                entityId, efecteId);
+        EfecteEntityIdentifier efecteEntityPersonIdentifier = new EfecteEntityIdentifier();
+        efecteEntityPersonIdentifier.setOutsiderName(outsiderName);
+        ;
+        efecteEntityPersonIdentifier.setOutsiderEmail(outsiderEmail);
+        String expectedEfecteKeyIdentifierJson = "this is efecte entity key identifier json";
+        String expectedEfectePersonIdentifierJson = "{\"outsiderName\":\"Matti Meikäläinen\",\"outsiderEmail\":\"matti.meikalainen@hel.fi\"}";
+
+        String expectedKeyEfectePrefix = ri.getMappedKeyEfectePrefix() + efecteId;
+        String expectedKeyILoqPrefix = ri.getMappedKeyILoqPrefix() + expectedILoqKeyId;
+        String expectedOutsiderEfectePrefix = ri.getMappedPersonEfectePrefix() + expectedOutsiderIdentifier;
+        String expectedOutsiderILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+
+        when(helper.writeAsJson(any(EfecteEntityIdentifier.class)))
+                .thenReturn(expectedEfecteKeyIdentifierJson)
+                .thenReturn(expectedEfectePersonIdentifierJson);
+        when(helper.createIdentifier(outsiderEmail, outsiderName)).thenReturn(expectedOutsiderIdentifier);
+
+        verifyNoInteractions(redis);
+        verifyNoInteractions(helper);
+
+        efecteKeyProcessor.buildEfecteKey(ex);
+
+        verify(helper).writeAsJson(efecteEntityKeyIdentifier);
+        verify(helper).createIdentifier(outsiderEmail, outsiderName);
+        verify(redis).set(expectedKeyEfectePrefix, expectedILoqKeyId);
+        verify(redis).set(expectedKeyILoqPrefix, expectedEfecteKeyIdentifierJson);
+        verify(redis).set(expectedOutsiderEfectePrefix, expectedILoqPersonId);
+        verify(redis).set(expectedOutsiderILoqPrefix, expectedEfectePersonIdentifierJson);
     }
 
     @Test

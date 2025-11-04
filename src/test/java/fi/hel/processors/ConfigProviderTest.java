@@ -463,4 +463,15 @@ public class ConfigProviderTest {
         assertThatThrownBy(() -> configProvider.getILoqMainZoneId(invalidEfecteAddressEntityId))
                 .hasMessage(expectedExceptionMessage);
     }
+
+    @Test
+    @DisplayName("getRealEstateName")
+    void shouldReturnTheRealEstateNameForTheGivenRealEstateId() throws Exception {
+        String realEstateId = testILoqRealEstateId;
+        String expectedName = testILoqRealEstateName;
+
+        String result = configProvider.getRealEstateName(realEstateId);
+
+        assertThat(result).isEqualTo(expectedName);
+    }
 }

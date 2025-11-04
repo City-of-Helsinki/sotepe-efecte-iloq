@@ -24,10 +24,18 @@ public enum EnumEfecteAttribute {
     SECURITY_ACCESS_STREET_ADDRESS("3016", "3016", "kulkualue_katuosoite"),
 
     // AVAIMEN HALTIJA
+    PERSON_ENTITY_ID("3537", "3537", "person_entityid"),
     PERSON_EFECTE_ID("1350", "1350", "efecte_id"),
     PERSON_FIRSTNAME("1336", "1336", "first_name"),
     PERSON_LASTNAME("1337", "1337", "last_name"),
-    PERSON_STATUS("1782", "1782", "status");
+    PERSON_FULL_NAME("1338", "1338", "full_name"),
+    PERSON_MOBILE("1340", "1340", "mobile"),
+    PERSON_PHONE("1343", "1343", "phone"),
+    PERSON_EMAIL("1341", "1341", "email"),
+    PERSON_OFFICE("1770", "1770", "office"),
+    PERSON_DEPARTMENT("1769", "1769", "department"),
+    PERSON_STATUS("1782", "1782", "status"),
+    PERSON_TITLE("1339", "1339", "title");
 
     private String idProd;
     private String idDev;

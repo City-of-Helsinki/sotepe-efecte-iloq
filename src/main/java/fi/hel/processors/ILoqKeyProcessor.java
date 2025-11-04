@@ -14,6 +14,7 @@ import fi.hel.models.EfecteEntitySet;
 import fi.hel.models.EnrichedILoqKey;
 import fi.hel.models.ILoqKeyImport;
 import fi.hel.models.ILoqKeyResponse;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.PreviousEfecteKey;
 import fi.hel.models.builders.EfecteEntityBuilder;
@@ -210,19 +211,28 @@ public class ILoqKeyProcessor {
         return true;
     }
 
-    public void buildEnrichedILoqKey(Exchange ex) throws Exception {
+    public void enrichKeyWithSecurityAccesses(Exchange ex) throws Exception {
         Set<ILoqSecurityAccess> securityAccesses = ex.getIn().getBody(Set.class);
         ILoqKeyResponse iLoqKeyResponse = ex.getProperty("currentILoqKey", ILoqKeyResponse.class);
+        String realEstateName = ex.getProperty("iLoqRealEstateName", String.class);
 
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
         enrichedILoqKey.setFnKeyId(iLoqKeyResponse.getFnKeyId());
-        enrichedILoqKey.setPersonId(iLoqKeyResponse.getPersonId());
+        enrichedILoqKey.setDescription(iLoqKeyResponse.getDescription());
         enrichedILoqKey.setRealEstateId(iLoqKeyResponse.getRealEstateId());
+        enrichedILoqKey.setRealEstateName(realEstateName);
         enrichedILoqKey.setInfoText(iLoqKeyResponse.getInfoText());
         enrichedILoqKey.setState(iLoqKeyResponse.getState());
         enrichedILoqKey.setSecurityAccesses(securityAccesses);
 
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+    }
+
+    public void enrichKeyWithPerson(Exchange ex) throws Exception {
+        EnrichedILoqKey enrichedILoqKey = ex.getProperty("enrichedILoqKey", EnrichedILoqKey.class);
+        ILoqPerson iLoqPerson = ex.getIn().getBody(ILoqPerson.class);
+
+        enrichedILoqKey.setPerson(iLoqPerson);
     }
 
     public boolean isMissingAPerson(Exchange ex) {

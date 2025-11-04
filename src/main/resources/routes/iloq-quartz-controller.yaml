@@ -36,7 +36,13 @@
                               - setProperty:
                                   name: iLoqKeyId
                                   simple: ${body.fnKeyId}
-                              - log: "{{app.name}} :: iLoqQuartzController :: Processing verified iLOQ key ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (${body.fnKeyId}) from real estate '${body.realEstateId}'"
+                              - setProperty:
+                                  name: iLoqPersonId
+                                  simple: ${body.personId}
+                              - setProperty:
+                                  name: iLoqRealEstateName
+                                  simple: ${bean:configProvider.getRealEstateName(${body.realEstateId})}
+                              - log: "{{app.name}} :: iLoqQuartzController :: Processing verified iLOQ key ${header.CamelSplitIndex}++ / ${header.CamelSplitSize} (${body.fnKeyId}) from real estate '${body.realEstateId}' (${exchangeProperty.iLoqRealEstateName})"
                               - choice:
                                   when:
                                     - simple: ${bean:iLoqKeyProcessor.isMissingAPerson}
@@ -48,6 +54,16 @@
                               # TODO: kun avain palautetaan iLOQ managerissa, tulee tätä kutsua:
                               # - to: "{{app.routes.redis.deleteKey}}"
                               - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
+                              - choice:
+                                  when:
+                                    - description: We populate the iLOQ key with the person information when previous person mapping is missing
+                                      simple: ${bean:redis.get({{app.redis.prefix.mapped.person.iLoq}}${exchangeProperty.iLoqPersonId})} == null
+                                      steps:
+                                        - log: "{{app.name}} :: iLoqQuartzController :: Populating key with person information"
+                                        - to: "{{app.routes.iLoq.getILoqPerson}}"
+                                        - bean:
+                                            ref: iLoqKeyProcessor
+                                            method: enrichKeyWithPerson
                               - bean:
                                   ref: efecteKeyProcessor
                                   method: buildEfecteKey
@@ -112,6 +128,9 @@
                       method: releaseLeaderRoute
                   - log: "{{app.name}} :: iLoqQuartzController :: Leader route status released"
                   - log: "{{app.name}} :: iLoqQuartzController :: End"
+                  - bean:
+                      ref: redis
+                      method: set('{{app.redis.prefix.previousSyncEndedAt}}', '${date-with-timezone:now:Europe/Helsinki:yyyy:MM:dd HH:mm:ss}')
             otherwise:
               steps:
                 - log: "{{app.name}} :: iLoqQuartzController :: Skip handling the scheduled process (not the leader pod)"
@@ -145,7 +164,7 @@
                 steps:
                   - bean:
                       ref: iLoqKeyProcessor
-                      method: buildEnrichedILoqKey
+                      method: enrichKeyWithSecurityAccesses
             otherwise:
               steps:
                 - log: "{{app.name}} :: iLoqQuartzController :: iLOQ key contains non-supported security accesses, stop processing"

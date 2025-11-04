@@ -22,6 +22,7 @@ import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.EfecteEntityImport;
 import fi.hel.models.EfecteEntitySetImport;
 import fi.hel.models.EnrichedILoqKey;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.enumerations.EnumDirection;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
@@ -56,7 +57,7 @@ public class EfecteKeyMapperTest {
     void testShouldGetTheKeyHolderEfecteIdentifierFromRedis() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(helper.writeAsPojo(any(), any()))
@@ -77,7 +78,7 @@ public class EfecteKeyMapperTest {
         String iLoqPersonId = "abc-123";
         String iLoqKeyId = "xyz-456";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(iLoqKeyId);
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
 
         String expectedAuditMessage = "Unable to create a new key card in Efecte. No matching key holder was found for the specified iLOQ person (%s)."
                 .formatted(iLoqPersonId);
@@ -105,7 +106,7 @@ public class EfecteKeyMapperTest {
         String iLoqPersonId = "abc-123";
         String expectedILoqRealEstateId = "xyz-456";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setRealEstateId(expectedILoqRealEstateId);
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
@@ -125,7 +126,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheResolvedEfecteStreetAddressToTheEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         String expectedStreedAddressEfecteId = "LOC_00123";
@@ -155,7 +156,7 @@ public class EfecteKeyMapperTest {
         String iLoqSecurityAccessId1 = "xyz-123";
         String iLoqSecurityAccessId2 = "zyx-321";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(
                 new ILoqSecurityAccess(iLoqSecurityAccessId1),
                 new ILoqSecurityAccess(iLoqSecurityAccessId2)));
@@ -177,7 +178,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheResolvedEfecteSecurityAccessesToTheEntitySet_BuildNewEfecteEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(
                 new ILoqSecurityAccess("irrelevant1"),
                 new ILoqSecurityAccess("irrelevant2")));
@@ -210,7 +211,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheEfecteKeyHolderToTheEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         String expectedEfecteId = "PER_00123";
@@ -244,7 +245,7 @@ public class EfecteKeyMapperTest {
         String iLoqPersonId = "abc-123";
         String expectedILoqKeyId = "xyz-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(expectedILoqKeyId);
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant");
@@ -265,7 +266,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheStateAttribute_BuildNewEfecteEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant");
@@ -286,7 +287,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheTypeAttribute_BuildNewEfecteEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant");
@@ -307,7 +308,7 @@ public class EfecteKeyMapperTest {
     void testShouldSetTheValidityDateAttribute_BuildNewEfecteEntitySet() throws Exception {
         String iLoqPersonId = "abc-123";
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId(iLoqPersonId);
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant");
@@ -333,7 +334,7 @@ public class EfecteKeyMapperTest {
     @DisplayName("buildNewEfecteEntitySet")
     void testShouldSetTheKeyTemplateCode() throws Exception {
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey();
-        enrichedILoqKey.setPersonId("irrelevant");
+        enrichedILoqKey.setPerson(new ILoqPerson("irrelevant"));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant here");

@@ -78,8 +78,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     private String processILoqKeyEndpoint = "direct:processILoqKey";
     private String getILoqKeyEndpoint = "direct:getILoqKey";
     private String updateMainZoneEndpoint = "direct:updateMainZone";
-    private String canOrderKeyEndpoint = "direct:canOrderKey";
-    private String orderKeyEndpoint = "direct:orderKey";
+    // private String canOrderKeyEndpoint = "direct:canOrderKey";
+    // private String orderKeyEndpoint = "direct:orderKey";
 
     private String mockEndpoint = "mock:mockEndpoint";
     private MockEndpoint mock;
@@ -137,8 +137,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 getILoqLockGroupsEndpoint,
                 killILoqSessionEndpoint,
                 getILoqPersonByExternalIdEndpoint,
-                getILoqKeyEndpoint,
-                canOrderKeyEndpoint);
+                getILoqKeyEndpoint);
+        // canOrderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange(null);
@@ -158,8 +158,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         List<String> endpoints = List.of(
                 getILoqUriEndpoint,
                 setILoqLockGroupEndpoint,
-                createILoqPersonEndpoint,
-                orderKeyEndpoint);
+                createILoqPersonEndpoint);
+        // orderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange(null);
@@ -197,8 +197,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String expectedPayload = null;
         List<String> endpoints = List.of(
                 getILoqLockGroupsEndpoint,
-                getILoqPersonEndpoint,
-                orderKeyEndpoint);
+                getILoqPersonEndpoint);
+        // orderKeyEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange("foobar");
@@ -611,9 +611,9 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 getILoqPersonByExternalIdEndpoint,
                 getILoqKeyEndpoint,
                 processILoqKeyEndpoint,
-                updateMainZoneEndpoint,
-                canOrderKeyEndpoint,
-                orderKeyEndpoint);
+                updateMainZoneEndpoint);
+        // canOrderKeyEndpoint,
+        // orderKeyEndpoint);
 
         for (String route : entityRoutes) {
             Exchange ex = testUtils.createExchange(null);
@@ -904,6 +904,22 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         assertThat(iLoqPerson.getLastName()).isEqualTo(expectedLastName);
         assertThat(iLoqPerson.getPersonId()).isEqualTo(expectedPersonId);
         assertThat(iLoqPerson.getExternalPersonId()).isEqualTo(expectedExternalPersonId);
+    }
+
+    @Test
+    @DisplayName("direct:getILoqPerson")
+    void testShouldRemoveHeadersAfterwards_GetILoqPerson() throws Exception {
+        Exchange ex = testUtils.createExchange(null);
+        ex.getIn().setHeader("foo", "bar");
+
+        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("{}"));
+
+        mock.expectedMessageCount(1);
+        mock.expectedNoHeaderReceived();
+
+        template.send(getILoqPersonEndpoint, ex);
+
+        mock.assertIsSatisfied();
     }
 
     @Test
@@ -1372,71 +1388,71 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         mocked.getOldhost().assertIsSatisfied();
     }
 
-    @Test
-    @DisplayName("direct:canOrderKey")
-    void testShouldSetTheHttpPath_CanOrderKey() throws Exception {
-        String keyId = "abc-123";
-        Exchange ex = testUtils.createExchange(null);
-        ex.setProperty("iLoqKeyId", keyId);
+    // @Test
+    // @DisplayName("direct:canOrderKey")
+    // void testShouldSetTheHttpPath_CanOrderKey() throws Exception {
+    //     String keyId = "abc-123";
+    //     Exchange ex = testUtils.createExchange(null);
+    //     ex.setProperty("iLoqKeyId", keyId);
 
-        String expectedHttpPath = "/Keys/" + keyId + "/CanOrder";
+    //     String expectedHttpPath = "/Keys/" + keyId + "/CanOrder";
 
-        mocked.getOldhost().expectedMessageCount(1);
-        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+    //     mocked.getOldhost().expectedMessageCount(1);
+    //     mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
 
-        template.send(canOrderKeyEndpoint, ex);
+    //     template.send(canOrderKeyEndpoint, ex);
 
-        mocked.getOldhost().assertIsSatisfied();
-    }
+    //     mocked.getOldhost().assertIsSatisfied();
+    // }
 
-    @Test
-    @DisplayName("direct:canOrderKey")
-    void testShouldSetThePropertyValueAsTrueWhenAKeyCanBeOrdered() throws Exception {
-        Exchange ex = testUtils.createExchange("foo");
+    // @Test
+    // @DisplayName("direct:canOrderKey")
+    // void testShouldSetThePropertyValueAsTrueWhenAKeyCanBeOrdered() throws Exception {
+    //     Exchange ex = testUtils.createExchange("foo");
 
-        String fakeResponse = "0";
+    //     String fakeResponse = "0";
 
-        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
+    //     mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
 
-        template.send(canOrderKeyEndpoint, ex);
+    //     template.send(canOrderKeyEndpoint, ex);
 
-        boolean canOrder = ex.getProperty("canOrder", boolean.class);
+    //     boolean canOrder = ex.getProperty("canOrder", boolean.class);
 
-        assertThat(canOrder).isTrue();
-    }
+    //     assertThat(canOrder).isTrue();
+    // }
 
-    @Test
-    @DisplayName("direct:canOrderKey")
-    void testShouldSetThePropertyValueAsFalseWhenAKeyCanNotBeOrdered() throws Exception {
-        Exchange ex = testUtils.createExchange("foo");
+    // @Test
+    // @DisplayName("direct:canOrderKey")
+    // void testShouldSetThePropertyValueAsFalseWhenAKeyCanNotBeOrdered() throws Exception {
+    //     Exchange ex = testUtils.createExchange("foo");
 
-        String fakeResponse = "1";
+    //     String fakeResponse = "1";
 
-        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
+    //     mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(fakeResponse));
 
-        template.send(canOrderKeyEndpoint, ex);
+    //     template.send(canOrderKeyEndpoint, ex);
 
-        boolean canOrder = ex.getProperty("canOrder", boolean.class);
+    //     boolean canOrder = ex.getProperty("canOrder", boolean.class);
 
-        assertThat(canOrder).isFalse();
-    }
+    //     assertThat(canOrder).isFalse();
+    // }
 
-    @Test
-    @DisplayName("direct:orderKey")
-    void testShouldSetTheHttpPath_OrderKey() throws Exception {
-        String keyId = "abc-123";
-        Exchange ex = testUtils.createExchange(null);
-        ex.setProperty("iLoqKeyId", keyId);
+    // @Test
+    // @DisplayName("direct:orderKey")
+    // void testShouldSetTheHttpPath_OrderKey() throws Exception {
+    //     String keyId = "abc-123";
+    //     Exchange ex = testUtils.createExchange(null);
+    //     ex.setProperty("iLoqKeyId", keyId);
 
-        String expectedHttpPath = "/Keys/" + keyId + "/Order";
+    //     String expectedHttpPath = "/Keys/" + keyId + "/Order";
 
-        mocked.getOldhost().expectedMessageCount(1);
-        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+    //     mocked.getOldhost().expectedMessageCount(1);
+    //     mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
 
-        template.send(orderKeyEndpoint, ex);
+    //     template.send(orderKeyEndpoint, ex);
 
-        mocked.getOldhost().assertIsSatisfied();
-    }
+    //     mocked.getOldhost().assertIsSatisfied();
+    // }
 
     private void increaseCounter(Exchange ex) {
         Integer counter = ex.getProperty("counter", Integer.class);

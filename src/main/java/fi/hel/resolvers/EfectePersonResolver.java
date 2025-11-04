@@ -25,20 +25,27 @@ public class EfectePersonResolver {
     // iLOQ -> Efecte //
     ////////////////////
 
-    public String resolveEfectePersonIdentifier(String iLoqPersonId) throws Exception {
+    public String resolveEfectePersonIdentifier(ILoqPerson iLoqPerson) throws Exception {
+        String iLoqPersonId = iLoqPerson.getPersonId();
+        String firstName = iLoqPerson.getFirstName();
+        String lastName = iLoqPerson.getLastName();
+
         String efectePersonIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + iLoqPersonId);
         String efectePersonIdentifierValue = null;
 
         if (efectePersonIdentifierJson == null) {
-            ILoqPerson iLoqPerson = fetchILoqPerson(iLoqPersonId);
-            String firstName = getNormalizedString(iLoqPerson.getFirstName());
-            String lastName = getNormalizedString(iLoqPerson.getLastName());
+            firstName = getNormalizedString(iLoqPerson.getFirstName());
+            lastName = getNormalizedString(iLoqPerson.getLastName());
 
             List<EfecteEntity> efectePersons = getEfectePerson(firstName, lastName);
 
             if (efectePersons.isEmpty()) {
                 return firstName + " " + lastName;
             } else if (efectePersons.size() > 1) {
+                // When multiple Efecte persons match, store them in auditRecord to allow the user to select the correct match in the UI
+                String prefix = ri.getAuditRecordPersonPrefix() + iLoqPersonId;
+                ri.getRedis().set(prefix, efectePersons.toString());
+
                 String auditMessage = "Multiple matching key holders found for iLOQ person '" + firstName + " "
                         + lastName
                         + "' at Efecte";
@@ -62,23 +69,6 @@ public class EfectePersonResolver {
         }
 
         return efectePersonIdentifierValue;
-    }
-
-    private ILoqPerson fetchILoqPerson(String personId) throws Exception {
-        Exchange ex = new ExchangeBuilder(ri.getContext())
-                .withProperty("iLoqPersonId", personId)
-                .build();
-
-        ILoqPerson iLoqPerson = ri.getTemplate().send(ri.getGetILoqPersonEndpointUri(), ex)
-                .getIn().getBody(ILoqPerson.class);
-
-        if (ex.getProperty(Exchange.EXCEPTION_CAUGHT) != null) {
-            throw new Exception(
-                    "EfecteKeyHolderResolver.resolveEfecteKeyHolderEntityId: Fetching the iLOQ person failed: "
-                            + ex.getException().getMessage());
-        }
-
-        return iLoqPerson;
     }
 
     private List<EfecteEntity> getEfectePerson(String firstName, String lastName) throws Exception {

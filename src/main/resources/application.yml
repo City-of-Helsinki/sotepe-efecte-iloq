@@ -29,6 +29,7 @@ app:
       auditExceptionInProgress: ${app.name}:auditExceptionInProgress
       leaderPodKey: "${app.name}:leader-pod-key:"
       leaderRouteKey: "${app.name}:leader-route-key:"
+      previousSyncEndedAt: ${app.name}:previousSyncEndedAt
       previousKey:
         efecte: "${app.name}:previousKey:efecte:"
         iLoq: "${app.name}:previousKey:iLoq:"
@@ -44,6 +45,10 @@ app:
           person: "${app.name}:temp:efecte:person:"
         deleted:
           key: "${app.name}:temp:deleted:key:"
+      auditRecord:
+        iLoq:
+          key: "${app.name}:auditRecord:key:"
+          person: "${app.name}:auditRecord:person:"
   routes:
     controller:
       efecte:

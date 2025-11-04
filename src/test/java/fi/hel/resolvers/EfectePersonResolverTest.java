@@ -64,6 +64,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfectePersonIdentifier")
     void testShouldGetTheMatchingEfecteKeyHolderEntityIdentifierFromRedis() throws Exception {
         String iLoqPersonId = "123";
+        ILoqPerson iLoqPerson = new ILoqPerson(iLoqPersonId);
 
         String expectedPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
         when(redis.get(expectedPrefix)).thenReturn("irrelevant");
@@ -71,7 +72,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
 
         verifyNoInteractions(redis);
 
-        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         verify(redis).get(expectedPrefix);
     }
@@ -80,6 +81,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfectePersonIdentifier")
     void testShouldReturnTheEfecteKeyHolderEntityIdFoundFromRedis() throws Exception {
         String iLoqPersonId = "123";
+        ILoqPerson iLoqPerson = new ILoqPerson(iLoqPersonId);
         String expectedKeyHolderEntityId = "12345";
 
         String response = """
@@ -94,7 +96,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         when(redis.get(anyString())).thenReturn(response);
         when(helper.writeAsPojo(any(), any())).thenReturn(efecteEntityIdentifier);
 
-        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         assertThat(result).isEqualTo(expectedKeyHolderEntityId);
         verify(helper).writeAsPojo(response, EfecteEntityIdentifier.class);
@@ -104,6 +106,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfectePersonIdentifier")
     void testShouldReturnTheMatchingEfecteIdentifierJsonFromRedisForOutsiders() throws Exception {
         String iLoqPersonId = "123";
+        ILoqPerson iLoqPerson = new ILoqPerson(iLoqPersonId);
         String outsiderName = "John Smith";
         String outsiderEmail = "john.smith@outsider.com";
 
@@ -121,51 +124,10 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         when(redis.get(anyString())).thenReturn(expectedEfectePersonIdentifierValue);
         when(helper.writeAsPojo(any(), any())).thenReturn(efecteEntityIdentifier);
 
-        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         assertThat(result).isEqualTo(expectedEfectePersonIdentifierValue);
         verify(helper).writeAsPojo(expectedEfectePersonIdentifierValue, EfecteEntityIdentifier.class);
-    }
-
-    @Test
-    @DisplayName("resolveEfectePersonIdentifier")
-    void testShouldFetchTheILoqPersonWhenTheMatchingEfecteKeyHolderEntityIdentifierIsNotFoundAtRedis()
-            throws Exception {
-        String expectedPersonId = "123";
-
-        when(redis.get(anyString())).thenReturn(null);
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(
-                exchange -> exchange.getIn()
-                        .setBody(new ILoqPerson("irrelevant", "irrelevant", "irrelevant")));
-        mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
-
-        mocked.getGetILoqPerson().expectedMessageCount(1);
-        mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedPersonId);
-
-        efecteKeyHolderResolver.resolveEfectePersonIdentifier(expectedPersonId);
-
-        mocked.getGetILoqPerson().assertIsSatisfied();
-    }
-
-    @Test
-    @DisplayName("resolveEfectePersonIdentifier")
-    void testShouldThrowAnExceptionWhenAnILoqPersonIsNotFound() throws Exception {
-        String iLoqPersonId = "123";
-        EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(iLoqPersonId);
-        iLoqKey.setSecurityAccesses(Set.of());
-        String exceptionMessage = "Oh no! an exception!";
-        String expectedExceptionMessage = "EfecteKeyHolderResolver.resolveEfecteKeyHolderEntityId: Fetching the iLOQ person failed: "
-                + exceptionMessage;
-
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> {
-            Exception exception = new Exception(exceptionMessage);
-            exchange.setException(exception);
-            exchange.setProperty(Exchange.EXCEPTION_CAUGHT, exception);
-        });
-
-        assertThatThrownBy(() -> efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId))
-                .hasMessage(expectedExceptionMessage);
     }
 
     @Test
@@ -186,7 +148,6 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
                     AND $last_name$ = '%s'
                 """.formatted(urlEncodedFirstName, urlEncodedLastName).replaceAll("\\s+", " ").trim();
 
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
         when(helper.urlEncode(firstName)).thenReturn(urlEncodedFirstName);
         when(helper.urlEncode(lastName)).thenReturn(urlEncodedLastName);
@@ -197,7 +158,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
 
         verifyNoInteractions(helper);
 
-        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         verify(helper).urlEncode(firstName);
         verify(helper).urlEncode(lastName);
@@ -226,7 +187,6 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
                 .formatted(urlEncodedFirstName, urlEncodedLastName)
                 .trim().replaceAll("\\s+", " ");
 
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
         when(helper.urlEncode(expectedFirstName)).thenReturn(urlEncodedFirstName);
         when(helper.urlEncode(expectedLastName)).thenReturn(urlEncodedLastName);
@@ -236,7 +196,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
 
         verifyNoInteractions(helper);
 
-        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         verify(helper).urlEncode(expectedFirstName);
         verify(helper).urlEncode(expectedLastName);
@@ -247,23 +207,20 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfectePersonIdentifier")
     void testShouldThrowAnExceptionWhenFetchingTheEfectePersonFails() throws Exception {
         String iLoqPersonId = "123";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", iLoqPersonId);
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(iLoqPersonId);
+        iLoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         iLoqKey.setSecurityAccesses(Set.of());
         String exceptionMessage = "Oh no! an exception!";
         String expectedExceptionMessage = "EfecteKeyHolderResolver.resolveEfecteKeyHolderEntityId: Fetching the Efecte person failed: "
                 + exceptionMessage;
-
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(
-                exchange -> exchange.getIn()
-                        .setBody(new ILoqPerson("irrelevant", "irrelevant", iLoqPersonId)));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> {
             Exception exception = new Exception(exceptionMessage);
             exchange.setException(exception);
             exchange.setProperty(Exchange.EXCEPTION_CAUGHT, exception);
         });
 
-        assertThatThrownBy(() -> efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId))
+        assertThatThrownBy(() -> efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .hasMessage(expectedExceptionMessage);
     }
 
@@ -273,7 +230,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
             throws Exception {
         String iLoqPersonId = "123";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(iLoqPersonId);
+        iLoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         iLoqKey.setSecurityAccesses(Set.of());
 
         String firstName = "John";
@@ -281,13 +238,45 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         String expectedResult = firstName + " " + lastName;
         ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, iLoqPersonId);
 
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(
                 exchange -> exchange.getIn().setBody(List.of()));
 
-        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         assertThat(result).isEqualTo(expectedResult);
+    }
+
+    @Test
+    @DisplayName("resolveEfectePersonIdentifier")
+    void testShouldSaveTheAuditRecordForTheILoqPersonWhenMultiplePersonsAreFoundAtEfecte() throws Exception {
+        String iLoqPersonId = "123";
+        EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
+        String firstName = "John";
+        String lastName = "Doe";
+        ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, iLoqPersonId);
+        iLoqKey.setPerson(iLoqPerson);
+        iLoqKey.setSecurityAccesses(Set.of());
+
+        EfecteEntity efecteEntity1 = new EfecteEntityBuilder()
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withPersonEfecteId("1")
+                .build();
+        EfecteEntity efecteEntity2 = new EfecteEntityBuilder()
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withPersonEfecteId("2")
+                .build();
+        List<EfecteEntity> efecteEntities = List.of(efecteEntity1, efecteEntity2);
+        String expectedValue = efecteEntities.toString();
+
+        mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(efecteEntities));
+
+        String expectedPrefix = ri.getAuditRecordPersonPrefix() + iLoqPersonId;
+
+        verifyNoInteractions(redis);
+
+        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
+
+        verify(redis).set(expectedPrefix, expectedValue);
     }
 
     @Test
@@ -295,14 +284,12 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     void testShouldThrowAnAuditExceptionWhenMultiplePersonsAreFoundAtEfecte() throws Exception {
         String expectedILoqPersonId = "123";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(expectedILoqPersonId);
-        iLoqKey.setSecurityAccesses(Set.of());
-
         String firstName = "John";
         String lastName = "Doe";
         ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
+        iLoqKey.setPerson(iLoqPerson);
+        iLoqKey.setSecurityAccesses(Set.of());
 
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(iLoqPerson));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(
                 exchange -> exchange.getIn().setBody(List.of(
                         new EfecteEntity("1"), new EfecteEntity("2"))));
@@ -318,7 +305,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
 
         verifyNoInteractions(auditExceptionProcessor);
 
-        assertThatThrownBy(() -> efecteKeyHolderResolver.resolveEfectePersonIdentifier(expectedILoqPersonId));
+        assertThatThrownBy(() -> efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson));
 
         verify(auditExceptionProcessor).throwAuditException(
                 EnumDirection.ILOQ,
@@ -333,6 +320,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfecteKeyHolderEntityId")
     void testShouldReturnTheResolvedEfecteKeyHolderEntityId() throws Exception {
         String iLoqPersonId = "123";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", iLoqPersonId);
 
         String expectedKeyHolderEntityId = "12345";
         EfecteEntity efecteKeyHolderEntity = new EfecteEntityBuilder()
@@ -340,12 +328,10 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
                 .withDefaults(EnumEfecteTemplate.PERSON)
                 .build();
 
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(
-                exchange -> exchange.getIn().setBody(new ILoqPerson("John", "Doe", iLoqPersonId)));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(
                 exchange -> exchange.getIn().setBody(List.of(efecteKeyHolderEntity)));
 
-        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPersonId);
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         assertThat(result).isEqualTo(expectedKeyHolderEntityId);
     }
@@ -354,6 +340,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveEfectePersonIdentifier")
     void testShouldSaveTheMappedKeysForTheResolvedPerson() throws Exception {
         String expectedPersonId = "abc-123";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", expectedPersonId);
         String keyHolderEntityId = "123456";
         String keyHolderEfecteId = "PER-0001";
         EfecteEntity keyHolderEfecteEntity = new EfecteEntityBuilder()
@@ -365,9 +352,6 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(
                 keyHolderEntityId, keyHolderEfecteId);
         String expectedEfecteEntityIdentifierJson = "efecte entity identifier json";
-        mocked.getGetILoqPerson().whenAnyExchangeReceived(
-                exchange -> exchange.getIn()
-                        .setBody(new ILoqPerson("irrelevant", "irrelevant", expectedPersonId)));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(
                 exchange -> exchange.getIn().setBody(List.of(keyHolderEfecteEntity)));
         when(helper.writeAsJson(efecteEntityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
@@ -378,7 +362,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         verifyNoInteractions(redis);
         verifyNoInteractions(helper);
 
-        efecteKeyHolderResolver.resolveEfectePersonIdentifier(expectedPersonId);
+        efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
         verify(redis).set(expectedEfectePrefix, expectedPersonId);
         verify(redis).set(expectedILoqPrefix, expectedEfecteEntityIdentifierJson);

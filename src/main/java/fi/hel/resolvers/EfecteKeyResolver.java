@@ -12,6 +12,7 @@ import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.EfecteReference;
 import fi.hel.models.EnrichedILoqKey;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.builders.EfecteEntityBuilder;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
@@ -33,8 +34,9 @@ public class EfecteKeyResolver {
             EnrichedILoqKey iLoqKey,
             String efecteAddress)
             throws Exception {
-        String iLoqPersonId = iLoqKey.getPersonId();
-        String efectePersonIdentifier = ri.getEfectePersonResolver().resolveEfectePersonIdentifier(iLoqPersonId);
+        ILoqPerson iLoqPerson = iLoqKey.getPerson();
+        String efectePersonIdentifier = ri.getEfectePersonResolver()
+                .resolveEfectePersonIdentifier(iLoqPerson);
 
         Set<String> efecteSecurityAccessEntityIds = getNewEfecteSecurityAccessEntityIds(iLoqKey.getSecurityAccesses());
         List<EfecteReference> efecteSecurityAccessReferences = createEfecteSecurityAccessReferences(
@@ -46,7 +48,7 @@ public class EfecteKeyResolver {
             // Person has been mapped or searching Efecte key holders resulted in one match
             entityBuilder.withKeyHolderReference(efectePersonIdentifier);
         } else {
-            // efectePersonIdentifier = "firstsName lastName", meaning no "Key Holder" entity was found
+            // efectePersonIdentifier = "firstsName lastName" or an EfecteEntityIdentifier json, meaning no "Key Holder" entity was found
             // therefore we want to build the equal Efecte key with an outsider to also check that possibility
             entityBuilder.withIsOutsider(true);
             if (isEfecteEntityIdentifierJson(efectePersonIdentifier)) {

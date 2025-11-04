@@ -95,6 +95,10 @@ public class ResourceInjector {
     String leaderPodKeyPrefix;
     @ConfigProperty(name = "app.redis.prefix.leaderRouteKey")
     String leaderRouteKeyPrefix;
+    @ConfigProperty(name = "app.redis.prefix.auditRecord.iLoq.key")
+    String auditRecordKeyPrefix;
+    @ConfigProperty(name = "app.redis.prefix.auditRecord.iLoq.person")
+    String auditRecordPersonPrefix;
 
     // Routes Redis:
     @ConfigProperty(name = "app.routes.redis.saveILoqBaseUrlToRedis")
@@ -350,6 +354,14 @@ public class ResourceInjector {
 
     public String getLeaderRouteKeyPrefix() {
         return this.leaderRouteKeyPrefix;
+    }
+
+    public String getAuditRecordKeyPrefix() {
+        return this.auditRecordKeyPrefix;
+    }
+
+    public String getAuditRecordPersonPrefix() {
+        return this.auditRecordPersonPrefix;
     }
 
 }

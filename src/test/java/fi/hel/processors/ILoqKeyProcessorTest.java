@@ -29,6 +29,7 @@ import fi.hel.models.EnrichedILoqKey;
 import fi.hel.models.ILoqKey;
 import fi.hel.models.ILoqKeyImport;
 import fi.hel.models.ILoqKeyResponse;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.PreviousEfecteKey;
 import fi.hel.models.builders.EfecteEntityBuilder;
@@ -631,6 +632,7 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         String expectedKeyId = "keyId";
         String expectedPersonId = "personId";
         String expectedRealEstateId = "realEstateId";
+        String expectedRealEstateName = "Malmin perhekeskus";
         String expectedInfoText = "efecteId";
         Integer expectedState = 1;
         ILoqKeyResponse iLoqKeyResponse = new ILoqKeyResponse(expectedKeyId);
@@ -641,8 +643,9 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
 
         Exchange ex = testUtils.createExchange(securityAccesses);
         ex.setProperty("currentILoqKey", iLoqKeyResponse);
+        ex.setProperty("iLoqRealEstateName", expectedRealEstateName);
 
-        iLoqKeyProcessor.buildEnrichedILoqKey(ex);
+        iLoqKeyProcessor.enrichKeyWithSecurityAccesses(ex);
 
         Object result = ex.getProperty("enrichedILoqKey");
 
@@ -651,12 +654,12 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         EnrichedILoqKey enrichedKey = (EnrichedILoqKey) result;
 
         assertThat(enrichedKey.getFnKeyId()).isEqualTo(expectedKeyId);
-        assertThat(enrichedKey.getPersonId()).isEqualTo(expectedPersonId);
         assertThat(enrichedKey.getRealEstateId()).isEqualTo(expectedRealEstateId);
         assertThat(enrichedKey.getInfoText()).isEqualTo(expectedInfoText);
         assertThat(enrichedKey.getState()).isEqualTo(expectedState);
         assertThat(enrichedKey.getSecurityAccesses()).containsExactlyInAnyOrder(
                 iLoqSecurityAccess1, iLoqSecurityAccess2);
+        assertThat(enrichedKey.getRealEstateName()).isEqualTo(expectedRealEstateName);
     }
 
     @Test
@@ -800,6 +803,28 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         boolean result = iLoqKeyProcessor.hasValidSecurityAccesses(ex);
 
         assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("enrichKeyWithPerson")
+    void testShouldPopulateTheEnrichedKeyWithILoqPersonInformationAndRealEstateName() throws Exception {
+        String expectedFirstName = "Matti";
+        String expectedLastName = "Meikäläinen";
+        String expectedILoqPersonId = "abc-123";
+
+        ILoqPerson iLoqPerson = new ILoqPerson(expectedFirstName, expectedLastName, expectedILoqPersonId);
+        EnrichedILoqKey enrichedKey = new EnrichedILoqKey();
+
+        Exchange ex = testUtils.createExchange(iLoqPerson);
+        ex.setProperty("enrichedILoqKey", enrichedKey);
+
+        iLoqKeyProcessor.enrichKeyWithPerson(ex);
+
+        EnrichedILoqKey result = ex.getProperty("enrichedILoqKey", EnrichedILoqKey.class);
+
+        assertThat(result.getPerson().getFirstName()).isEqualTo(expectedFirstName);
+        assertThat(result.getPerson().getLastName()).isEqualTo(expectedLastName);
+        assertThat(result.getPerson().getPersonId()).isEqualTo(expectedILoqPersonId);
     }
 
 }

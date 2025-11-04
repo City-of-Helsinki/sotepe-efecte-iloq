@@ -1,14 +1,18 @@
 package fi.hel.processors;
 
+import org.apache.camel.Exchange;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import fi.hel.exceptions.AuditException;
 import fi.hel.models.AuditExceptionRecord;
+import fi.hel.models.EnrichedILoqKey;
 import fi.hel.models.enumerations.EnumDirection;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 @ApplicationScoped
+@Named("auditExceptionProcessor")
 public class AuditExceptionProcessor {
 
     @Inject
@@ -16,25 +20,19 @@ public class AuditExceptionProcessor {
     @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
     long auditExceptionExpirationTime;
 
-    public String setAuditException(
-            EnumDirection from,
-            EnumDirection to,
-            String entityId,
-            String efecteId,
-            String iLoqId,
-            String message) throws Exception {
-        AuditExceptionRecord auditExceptionRecord = new AuditExceptionRecord(
-                from, to, entityId, efecteId, iLoqId, message);
-        String auditExceptionJson = auditExceptionRecord.toJson();
-        String suffix = efecteId != null ? efecteId : iLoqId;
-        String prefix = ri.getAuditExceptionPrefix() + auditExceptionRecord.getTimestamp() + ":" + suffix;
+    private AuditExceptionRecord auditExceptionRecord;
 
-        if (!ri.getRedis().exists(ri.getAuditExceptionInProgressPrefix())) {
-            ri.getRedis().setex(prefix, auditExceptionJson, auditExceptionExpirationTime);
-            ri.getRedis().set(ri.getAuditExceptionInProgressPrefix(), "true");
-        }
+    public void setAuditRecord(Exchange ex) throws Exception {
+        EnrichedILoqKey enrichedILoqKey = ex.getProperty("enrichedILoqKey", EnrichedILoqKey.class);
+        String realEstateId = enrichedILoqKey.getRealEstateId();
+        String iLoqKeyId = enrichedILoqKey.getFnKeyId();
 
-        return auditExceptionJson;
+        this.auditExceptionRecord.setILoqKey(enrichedILoqKey);
+        System.out.println("mitä on: " + this.auditExceptionRecord.toJson());
+        String prefix = ri.getAuditRecordKeyPrefix() + realEstateId + ":" + iLoqKeyId;
+        ri.getRedis().set(prefix, this.auditExceptionRecord.toJson());
+
+        this.auditExceptionRecord = null;
     }
 
     public void throwAuditException(
@@ -44,9 +42,9 @@ public class AuditExceptionProcessor {
             String efecteId,
             String iLoqId,
             String message) throws Exception {
-        String auditExceptionJson = setAuditException(from, to, entityId, efecteId, iLoqId, message);
+        this.auditExceptionRecord = new AuditExceptionRecord(from, to, entityId, efecteId, iLoqId, message);
 
-        throw new AuditException(auditExceptionJson);
+        throw new AuditException(this.auditExceptionRecord.toJson());
     }
 
 }

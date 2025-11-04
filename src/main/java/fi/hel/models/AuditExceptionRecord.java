@@ -23,6 +23,7 @@ public class AuditExceptionRecord {
     @JsonProperty("iLoqId")
     private String iLoqId;
     private String message;
+    private EnrichedILoqKey iLoqKey;
 
     public AuditExceptionRecord() {
         this.id = UUID.randomUUID().toString();
@@ -125,4 +126,13 @@ public class AuditExceptionRecord {
 
         return formattedDateTime;
     }
+
+    public EnrichedILoqKey getILoqKey() {
+        return this.iLoqKey;
+    }
+
+    public void setILoqKey(EnrichedILoqKey iLoqKey) {
+        this.iLoqKey = iLoqKey;
+    }
+
 }

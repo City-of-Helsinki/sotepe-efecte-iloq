@@ -279,6 +279,25 @@ public class EfecteRouteBuilderTest extends CamelQuarkusTestSupport {
                 .isEqualTo(expectedValue);
     }
 
+    // @Test
+    // @DisplayName("direct:convertToEfecteEntity")
+    // void testConvertEfecteEntityToJson() throws Exception {
+    //     String xmlBody = """
+    //                 PASTE EFECTE ENTITY XML HERE
+    //                 """;
+
+    //     Exchange ex = testUtils.createExchange(xmlBody);
+
+    //     template.send(convertToEfecteEntityEndpoint, ex);
+
+    //     Object response = ex.getIn().getBody();
+
+    //     List<Object> list = (List<Object>) response;
+
+    //     EfecteEntity efecteEntity = (EfecteEntity) list.get(0);
+    //     System.out.println(efecteEntity.toJson());
+    // }
+
     @Test
     @DisplayName("direct:sendEfecteRequest")
     void testShouldSetTheEfecteAuthorization() throws Exception {

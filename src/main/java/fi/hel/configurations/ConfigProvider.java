@@ -281,6 +281,19 @@ public class ConfigProvider {
                         + "'");
     }
 
+    public String getRealEstateName(String realEstateId) throws Exception {
+        CustomerConfiguration customerConfiguration = getCustomerConfiguration();
+
+        for (CustomerRealEstate realEstate : customerConfiguration.getRealEstates()) {
+            if (realEstate.getILoq().getId().equals(realEstateId)) {
+                return realEstate.getILoq().getName();
+            }
+        }
+
+        throw new Exception(
+                "ConfigProvider.getRealEstateName: No real estate name found for id '" + realEstateId + "'");
+    }
+
     private CustomerConfiguration getCustomerConfigurationByEfecteAddress(String efecteAddressEntityId)
             throws Exception {
         for (CustomerConfiguration customerConfiguration : this.customerConfigurations) {

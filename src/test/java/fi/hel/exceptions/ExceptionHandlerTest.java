@@ -23,6 +23,7 @@ import com.devikone.test_utils.TestUtils;
 import com.devikone.transports.Redis;
 
 import fi.hel.configurations.ConfigProvider;
+import fi.hel.processors.AuditExceptionProcessor;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -39,6 +40,8 @@ public class ExceptionHandlerTest extends CamelQuarkusTestSupport {
     TestUtils testUtils;
     @InjectMock
     Redis redis;
+    @InjectMock
+    AuditExceptionProcessor auditExceptionProcessor;
     @InjectMock
     ConfigProvider configProvider;
     @ConfigProperty(name = "app.redis.prefix.auditExceptionInProgress")
@@ -135,17 +138,17 @@ public class ExceptionHandlerTest extends CamelQuarkusTestSupport {
     }
 
     @Test
-    void testShouldRemoveTheAuditExceptionInProcessKeyWhenAnAuditExceptionIsReceived() throws Exception {
+    void testShouldCreateAnAuditRecordWhenAnAuditExceptionIsReceived() throws Exception {
         Exchange ex = testUtils.createExchange(null);
         throwingMock.whenAnyExchangeReceived((exchange) -> {
             throw new AuditException("irrelevant");
         });
 
-        verifyNoInteractions(redis);
+        verifyNoInteractions(auditExceptionProcessor);
 
         template.send(testRoute, ex);
 
-        verify(redis).del(auditExceptionInProgressPrefix);
+        verify(auditExceptionProcessor).setAuditRecord(ex);
     }
 
     @Test

@@ -102,11 +102,11 @@ public class Helper {
         String identifier = createWithTwoLetters(emailPart, name);
 
         if (identifier.length() > MAX_LENGTH) {
-            identifier = createWithOneLetters(emailPart, name);
+            identifier = createWithOneLetter(emailPart, name);
 
             if (identifier.length() > MAX_LENGTH) {
                 String username = emailPart.split("@")[0];
-                identifier = createWithOneLetters(username, name);
+                identifier = createWithOneLetter(username, name);
             }
         }
 
@@ -124,7 +124,7 @@ public class Helper {
         return emailPart + "#" + namePrefix.toString().toUpperCase();
     }
 
-    private String createWithOneLetters(String emailPart, String name) {
+    private String createWithOneLetter(String emailPart, String name) {
         String[] nameParts = name.trim().split("\\s+");
         StringBuilder namePrefix = new StringBuilder();
         for (String part : nameParts) {

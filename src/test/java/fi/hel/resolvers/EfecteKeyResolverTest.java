@@ -25,6 +25,7 @@ import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.EfecteReference;
 import fi.hel.models.EnrichedILoqKey;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.builders.EfecteEntityBuilder;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
@@ -69,34 +70,34 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     @Test
     @DisplayName("buildEqualEfecteKey")
     void testShouldResolveTheEfecteKeyHolderEntityId() throws Exception {
-        String expectedILoqPersonId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(expectedILoqPersonId);
+        ILoqPerson expectedILoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(expectedILoqPerson);
         iLoqKey.setSecurityAccesses(Set.of());
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(anyString()))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(expectedILoqPerson))
                 .thenReturn("irrelevant");
 
         verifyNoInteractions(efecteKeyHolderResolver);
 
         efecteKeyResolver.buildEqualEfecteKey(iLoqKey, efecteAddress);
 
-        verify(efecteKeyHolderResolver).resolveEfectePersonIdentifier(expectedILoqPersonId);
+        verify(efecteKeyHolderResolver).resolveEfectePersonIdentifier(expectedILoqPerson);
     }
 
     @Test
     @DisplayName("buildEqualEfecteKey")
     void testShouldSetTheResolvedEfecteKeyHolderEntityIdToTheResponseEntity() throws Exception {
-        String personId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of());
 
         String expectedEfectePersonEntityId = "123456";
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(personId))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn(expectedEfectePersonEntityId);
 
         EfecteEntity efecteEntity = efecteKeyResolver.buildEqualEfecteKey(iLoqKey, efecteAddress);
@@ -110,12 +111,12 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     @Test
     @DisplayName("buildEqualEfecteKey")
     void testShouldSetTheResolvedEfecteOutsiderToTheResponseEntity() throws Exception {
-        String personId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         String expectedOutsiderName = "John Smith";
         String expectedOutsiderEmail = "john.smith@outsider.com";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of());
 
         String efectePersonIdentifierValue = """
@@ -130,7 +131,7 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
         EfecteEntityIdentifier efecteEntityIdentifier = testUtils.writeAsPojo(efectePersonIdentifierValue,
                 EfecteEntityIdentifier.class);
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(personId))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn(efectePersonIdentifierValue);
         when(helper.writeAsPojo(efectePersonIdentifierValue, EfecteEntityIdentifier.class))
                 .thenReturn(efecteEntityIdentifier);
@@ -152,15 +153,15 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     @Test
     @DisplayName("buildEqualEfecteKey")
     void testShouldSetTheResolvedEfecteOutsiderNameToTheResponseEntity() throws Exception {
-        String personId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of());
 
         String expectedPersonIdentifierValue = "John Doe";
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(personId))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn(expectedPersonIdentifierValue);
 
         EfecteEntity efecteEntity = efecteKeyResolver.buildEqualEfecteKey(iLoqKey, efecteAddress);
@@ -179,15 +180,15 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     void testShouldGetTheMatchingEfecteSecurityAccessIdsFromCustomerConfiguration() throws Exception {
         String expectedILoqSecurityAccessId1 = "abc-123";
         String expectedILoqSecurityAccessId2 = "xyz-456";
-        String personId = "irrelevant";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of(
                 new ILoqSecurityAccess(expectedILoqSecurityAccessId1),
                 new ILoqSecurityAccess(expectedILoqSecurityAccessId2)));
         String expectedEfecteAddress = "Testikatu 1, 00100, Helsinki";
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(anyString()))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn("irrelevant");
         when(redis.get(anyString())).thenReturn("something but not null person id");
 
@@ -207,10 +208,10 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
             throws Exception {
         String iLoqSecurityAccessId1 = "abc-123";
         String iLoqSecurityAccessId2 = "xyz-456";
-        String personId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of(
                 new ILoqSecurityAccess(iLoqSecurityAccessId1),
                 new ILoqSecurityAccess(iLoqSecurityAccessId2)));
@@ -218,7 +219,7 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
         String expectedEfecteSecurityAccessEntityId1 = "efecte_sa_entity_id_1";
         String expectedEfecteSecurityAccessEntityId2 = "efecte_sa_entity_id_2";
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(anyString()))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn("irrelevant");
         when(redis.get(anyString())).thenReturn("something but not null person id");
         when(configProvider.getEfecteSecurityAccessEntityIdByILoqSecurityAccessId(any()))
@@ -241,13 +242,13 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("buildEqualEfecteKey")
     void testShouldNotSetTheEfecteSecurityAccessReferenceWhenILoqKeyHasNoSecurityAccessesSet()
             throws Exception {
-        String personId = "irrelevant";
         String efecteAddress = "Testikatu 1, 00100, Helsinki";
         EnrichedILoqKey iLoqKey = new EnrichedILoqKey();
-        iLoqKey.setPersonId(personId);
+        ILoqPerson iLoqPerson = new ILoqPerson();
+        iLoqKey.setPerson(iLoqPerson);
         iLoqKey.setSecurityAccesses(Set.of());
 
-        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(anyString()))
+        when(efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson))
                 .thenReturn("irrelevant");
         when(redis.get(anyString())).thenReturn("something but not null person id");
 

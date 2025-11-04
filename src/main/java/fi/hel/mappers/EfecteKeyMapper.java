@@ -12,6 +12,7 @@ import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.EfecteEntityImport;
 import fi.hel.models.EfecteEntitySetImport;
 import fi.hel.models.EnrichedILoqKey;
+import fi.hel.models.ILoqPerson;
 import fi.hel.models.ILoqSecurityAccess;
 import fi.hel.models.enumerations.EnumDirection;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
@@ -28,7 +29,8 @@ public class EfecteKeyMapper {
     ResourceInjector ri;
 
     public EfecteEntitySetImport buildNewEfecteEntitySetImport(EnrichedILoqKey enrichedILoqKey) throws Exception {
-        String iLoqPersonId = enrichedILoqKey.getPersonId();
+        ILoqPerson iLoqPerson = enrichedILoqKey.getPerson();
+        String iLoqPersonId = iLoqPerson.getPersonId();
         String keyHolderEntityIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + iLoqPersonId);
 
         if (keyHolderEntityIdentifierJson == null) {

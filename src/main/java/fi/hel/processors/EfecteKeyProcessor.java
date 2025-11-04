@@ -139,7 +139,8 @@ public class EfecteKeyProcessor {
                     equalEfecteKey, efecteKeys);
 
             if (foundMatchingKey == null) {
-                System.out.println("DEBUG: EfecteKeyProcessor.buildEfecteKey - no matching key found, building new");
+                System.out.println(
+                        "DEBUG: EfecteKeyProcessor.buildEfecteKey - no matching key found, trying to create a new Efecte key");
                 efectePayload = ri.getEfecteKeyMapper().buildNewEfecteEntitySetImport(enrichedILoqKey);
                 shouldCreateEfecteKey = true;
                 newPreviousEfecteKey = new PreviousEfecteKey(
@@ -159,7 +160,7 @@ public class EfecteKeyProcessor {
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse, true);
                 } else {
                     shouldUpdateEfecteKey = true;
-                    saveMappedKeys(iLoqKeyId, foundMatchingKey);
+                    saveMappedKeys(enrichedILoqKey, foundMatchingKey);
                     efecteKeyEntityId = foundMatchingKey.getId();
                     efecteKeyEfecteId = foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID);
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse);
@@ -289,16 +290,46 @@ public class EfecteKeyProcessor {
                 .collect(Collectors.toSet());
     }
 
-    private void saveMappedKeys(String iLoqKeyId, EfecteEntity efecteKey) throws Exception {
+    private void saveMappedKeys(EnrichedILoqKey enrichedILoqKey, EfecteEntity efecteKey) throws Exception {
+        String iLoqKeyId = enrichedILoqKey.getFnKeyId();
+
+        // Saving mapped keys for the actual key
         String entityId = efecteKey.getId();
         String efecteId = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID);
-        EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(entityId, efecteId);
-        String efecteEntityIdentifierJson = ri.getHelper().writeAsJson(efecteEntityIdentifier);
+        EfecteEntityIdentifier efecteEntityKeyIdentifier = new EfecteEntityIdentifier(entityId, efecteId);
+        String efecteEntityIdentifierJson = ri.getHelper().writeAsJson(efecteEntityKeyIdentifier);
 
-        String efectePrefix = ri.getMappedKeyEfectePrefix() + efecteId;
-        String iLoqPrefix = ri.getMappedKeyILoqPrefix() + iLoqKeyId;
+        String efecteKeyPrefix = ri.getMappedKeyEfectePrefix() + efecteId;
+        String iLoqKeyPrefix = ri.getMappedKeyILoqPrefix() + iLoqKeyId;
 
-        ri.getRedis().set(efectePrefix, iLoqKeyId);
-        ri.getRedis().set(iLoqPrefix, efecteEntityIdentifierJson);
+        ri.getRedis().set(efecteKeyPrefix, iLoqKeyId);
+        ri.getRedis().set(iLoqKeyPrefix, efecteEntityIdentifierJson);
+
+        // If the key has an outsider as owner, we need to save the mapped keys for the person as well
+        if (keyIsForOutsider(efecteKey)) {
+            String iLoqPersonId = enrichedILoqKey.getPerson().getPersonId();
+            String outsiderName = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
+            String outsiderEmail = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL);
+
+            EfecteEntityIdentifier efecteEntityPersonIdentifier = new EfecteEntityIdentifier();
+            efecteEntityPersonIdentifier.setOutsiderName(outsiderName);
+            efecteEntityPersonIdentifier.setOutsiderEmail(outsiderEmail);
+            String uniqueIdentifier = ri.getHelper().createIdentifier(outsiderEmail, outsiderName);
+
+            String efectePersonPrefix = ri.getMappedPersonEfectePrefix() + uniqueIdentifier;
+            String iLoqPersonPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
+            String efecteEntityPersonIdentifierJson = ri.getHelper().writeAsJson(efecteEntityPersonIdentifier);
+
+            ri.getRedis().set(efectePersonPrefix, iLoqPersonId);
+            ri.getRedis().set(iLoqPersonPrefix, efecteEntityPersonIdentifierJson);
+        }
+    }
+
+    private boolean keyIsForOutsider(EfecteEntity efecteEntity) throws Exception {
+        if (efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_IS_OUTSIDER).equals("Kyllä")) {
+            return true;
+        }
+
+        return false;
     }
 }
