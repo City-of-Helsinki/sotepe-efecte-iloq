@@ -27,15 +27,13 @@ public class EfectePersonResolver {
 
     public String resolveEfectePersonIdentifier(ILoqPerson iLoqPerson) throws Exception {
         String iLoqPersonId = iLoqPerson.getPersonId();
-        String firstName = iLoqPerson.getFirstName();
-        String lastName = iLoqPerson.getLastName();
 
         String efectePersonIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + iLoqPersonId);
         String efectePersonIdentifierValue = null;
 
         if (efectePersonIdentifierJson == null) {
-            firstName = getNormalizedString(iLoqPerson.getFirstName());
-            lastName = getNormalizedString(iLoqPerson.getLastName());
+            String firstName = getNormalizedString(iLoqPerson.getFirstName());
+            String lastName = getNormalizedString(iLoqPerson.getLastName());
 
             List<EfecteEntity> efectePersons = getEfectePerson(firstName, lastName);
 

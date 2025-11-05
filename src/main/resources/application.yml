@@ -47,8 +47,8 @@ app:
           key: "${app.name}:temp:deleted:key:"
       auditRecord:
         iLoq:
-          key: "${app.name}:auditRecord:key:"
-          person: "${app.name}:auditRecord:person:"
+          key: "${app.name}:auditRecord:iLoq:key:"
+          person: "${app.name}:auditRecord:iLoq:person:"
   routes:
     controller:
       efecte:

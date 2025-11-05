@@ -60,6 +60,7 @@ public class EfecteKeyMapperTest {
         enrichedILoqKey.setPerson(new ILoqPerson(iLoqPersonId));
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
+        when(redis.get(anyString())).thenReturn("irrelevant but not null");
         when(helper.writeAsPojo(any(), any()))
                 .thenReturn(new EfecteEntityIdentifier("irrelevant", "irrelevant"));
 

@@ -41,6 +41,15 @@ public class EfecteKeyMapper {
                     auditMessage);
         }
 
+        // TODO: This will need to be discussed with the product owner - should we allow creating Efecte keys for outsiders?
+        if (isOutsider(keyHolderEntityIdentifierJson)) {
+            String auditMessage = "The iLOQ person (%s) is an outsider, and we currently don't create Efecte keys for outsiders."
+                    .formatted(iLoqPersonId);
+            ri.getAuditExceptionProcessor().throwAuditException(
+                    EnumDirection.ILOQ, EnumDirection.EFECTE, null, null, enrichedILoqKey.getFnKeyId(),
+                    auditMessage);
+        }
+
         List<EfecteAttributeImport> attributeImports = new ArrayList<>();
 
         attributeImports.add(createStreetAddressAttribute(enrichedILoqKey.getRealEstateId()));
@@ -141,4 +150,9 @@ public class EfecteKeyMapper {
         LocalDate date = LocalDate.now(ZoneId.of("Europe/Helsinki"));
         return date.plusDays(daysToAdd).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " 00:00";
     }
+
+    private boolean isOutsider(String keyHolderEntityIdentifierJson) {
+        return keyHolderEntityIdentifierJson.contains("outsiderName");
+    }
+
 }
