@@ -28,7 +28,6 @@ public class AuditExceptionProcessor {
         String iLoqKeyId = enrichedILoqKey.getFnKeyId();
 
         this.auditExceptionRecord.setILoqKey(enrichedILoqKey);
-        System.out.println("mitä on: " + this.auditExceptionRecord.toJson());
         String prefix = ri.getAuditRecordKeyPrefix() + realEstateId + ":" + iLoqKeyId;
         ri.getRedis().set(prefix, this.auditExceptionRecord.toJson());
 
