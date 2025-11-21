@@ -31,7 +31,13 @@ public class IBRedisProducer {
             if (Boolean.parseBoolean(env.get("REDIS_USE_SENTINEL"))) {
                 // SENTINEL MODE - only configure sentinel parameters
                 redis.setUseSentinel(true);
-                redis.setSentinelPassword(env.get("REDIS_PASSWORD"));
+
+                // Password needs to be set to both: redis and sentinel, eventhough it can be the same password
+                // Password for Sentinel nodes themselves
+                redis.setSentinelPassword(env.get("REDIS_SENTINEL_PASSWORD"));
+                // Password for Redis master/replica data nodes
+                redis.setRedisPassword(env.get("REDIS_PASSWORD"));
+
                 redis.setSentinelMaster(env.get("REDIS_SENTINEL_MASTER"));
                 String sentinelHost = env.get("REDIS_SENTINEL_HOST");
                 String sentinelPort = env.get("REDIS_SENTINEL_PORT");
