@@ -2,6 +2,7 @@ package fi.hel.processors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -110,6 +111,28 @@ public class AuditExceptionProcessorTest {
         Set<ILoqSecurityAccess> resulSecurityAccesses = auditExceptionRecord.getILoqKey().getSecurityAccesses();
 
         assertThat(resulSecurityAccesses).contains(iLoqSecurityAccess1, iLoqSecurityAccess2);
+    }
+
+    @Test
+    @DisplayName("setAuditRecord")
+    void testShouldNotSaveAnAuditRecordWhenEnrichedILoqKeyIsMissing() throws Exception {
+        EnumDirection from = EnumDirection.ILOQ;
+        EnumDirection to = EnumDirection.EFECTE;
+        String entityId = "12345";
+        String efecteId = "KEY-000123";
+        String iLoqId = "abc-123";
+        String message = "foobar";
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", null);
+
+        try {
+            auditExceptionProcessor.throwAuditException(from, to, entityId, efecteId, iLoqId, message);
+        } catch (Exception e) {
+            auditExceptionProcessor.setAuditRecord(ex);
+        }
+
+        verifyNoInteractions(redis);
     }
 
     // @Test

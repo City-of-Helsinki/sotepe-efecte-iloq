@@ -24,6 +24,13 @@ public class AuditExceptionProcessor {
 
     public void setAuditRecord(Exchange ex) throws Exception {
         EnrichedILoqKey enrichedILoqKey = ex.getProperty("enrichedILoqKey", EnrichedILoqKey.class);
+
+        if (enrichedILoqKey == null) {
+            System.out.println(
+                    "Warning: Setting AuditRecord failed due to missing EnrichedILoqKey. Currently AuditRecords are only supported for the iLOQ -> Efecte controller");
+            return;
+        }
+
         String realEstateId = enrichedILoqKey.getRealEstateId();
         String iLoqKeyId = enrichedILoqKey.getFnKeyId();
 
