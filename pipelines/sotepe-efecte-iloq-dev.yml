@@ -10,7 +10,7 @@ trigger:
     - '*release-please*'
     - '*.md'
     - '.github/'
-    - 'pipelines/sotepe-efecte-iloq-release.yml'
+    - 'pipelines/sotepe-efecte-iloq-production.yml'
     - 'pipelines/sotepe-efecte-iloq-review.yml'
     - '*compose*'
 
