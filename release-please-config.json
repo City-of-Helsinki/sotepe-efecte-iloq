@@ -3,7 +3,7 @@
   "sequential-calls": true,
   "packages": {
     ".": {
-      "release-type": "java",
+      "release-type": "maven",
       "package-name": "sotepe-efecte-iloq",
       "changelog-sections": [
         {"type": "feat", "section": "Features"},
