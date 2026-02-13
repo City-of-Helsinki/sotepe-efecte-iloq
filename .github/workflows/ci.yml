@@ -2,11 +2,10 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - README.md
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   junit-test:
@@ -19,6 +18,7 @@ jobs:
 
       # Plain variables
       APP_ENV: test
+      QUARKUS_PROFILE: test
 
       AUDIT_EXCEPTION_EXPIRATION_SECONDS: '1'
       AUTOSTARTUP_EFECTE_QUARTZ_CONTROLLER: 'true'
