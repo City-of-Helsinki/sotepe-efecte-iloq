@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - README.md
+
+jobs:
+  junit-test:
+    name: Run JUnit tests
+    runs-on: ubuntu-latest
+
+    env:
+      # Secret (configure in repo settings: Settings -> Secrets and variables -> Actions)
+      CI_GITLAB_DEPLOY_TOKEN: ${{ secrets.CI_GITLAB_DEPLOY_TOKEN }}
+
+      # Plain variables
+      APP_ENV: test
+
+      AUDIT_EXCEPTION_EXPIRATION_SECONDS: '1'
+      AUTOSTARTUP_EFECTE_QUARTZ_CONTROLLER: 'true'
+      AUTOSTARTUP_EFECTE_TRIGGER_CONTROLLER: 'true'
+      AUTOSTARTUP_ILOQ_QUARTZ_CONTROLLER: 'true'
+      BROKER_URL: tcp://amq-hdls-svc:61616
+
+      DELAY_MS_BETWEEN_RESOLVING_LEADER_ROUTE: '10'
+      DELETED_KEY_EXPIRATION_SECONDS: '1'
+
+      EFECTE_BASE_URL: foo
+      EFECTE_INITIAL_MAX_UPDATED: '19.12.2024 17:00'
+      EFECTE_PASSWORD: foo
+      EFECTE_USERNAME: foo
+
+      ILOQ_GET_URL_ADDRESS: foo
+      ILOQ_USERNAME: foo
+
+      LEADER_POD_KEY_EXPIRATION_MILLISECONDS: '500'
+      LEADER_ROUTE_KEY_EXPIRATION_MILLISECONDS: '100'
+      MAX_LEADER_ROUTE_RESOLVING_RETRY_COUNT: '2'
+
+      MAXIMUM_REDELIVERIES: '1'
+      MAXIMUM_REDELIVERY_DELAY: '1'
+
+      WEBHOOK_API_TOKEN: '1'
+      WEBHOOK_REQUEST_KEY_EXPIRATION_SECONDS: '1'
+
+      CUSTOMER_CONFIGURATION: >-
+        [{"customerCode":"customer-code-1","customerCodePassword":"customer-password-1","realEstates":[{"efecte":{"name":"Testikatu 1, 00510, Helsinki","entityId":"testikatu-1-entity-id","efecteId":"testikatu-1-efecte-id"},"iLoq":{"name":"Testikatu 1","id":"testikatu-1-id"},"agreedMainZoneId":"testivyohyke_1"}],"zones":[{"name":"Testikadun vyöhyke","id":"testivyohyke_1","securityAccesses":[{"efecte":{"name":"Ulko-ovi","entityId":"ulko-ovi-entity-id","efecteId":"ulko-ovi-efecte-id"},"iLoq":{"name":"Firman etuovi","id":"firman-etuovi-id"}},{"efecte":{"name":"Toimisto","entityId":"toimisto-entity-id","efecteId":"toimisto-efecte-id"},"iLoq":{"name":"Työntekijöiden toimisto","id":"tyontekijoiden-toimisto-id"}}]}]},{"customerCode":"customer-code-2","customerCodePassword":"irrelevant","realEstates":[{"efecte":{"name":"irrelevant","entityId":"testikatu-2-entity-id","efecteId":"irrelevant"},"iLoq":{"name":"irrelevant","id":"irrelevant"},"agreedMainZoneId":"irrelevant"}],"zones":[{"name":"irrelevant","id":"irrelevant","securityAccesses":[{"efecte":{"name":"irrelevant","entityId":"varaston-ovi-entity-id","efecteId":"irrelevant"},"iLoq":{"name":"irrelevant","id":"irrelevant"}},{"efecte":{"name":"irrelevant","entityId":"irrelevant","efecteId":"irrelevant"},"iLoq":{"name":"irrelevant","id":"irrelevant"}}]}]}]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run Maven tests
+        run: mvn -s ci_settings.xml test
