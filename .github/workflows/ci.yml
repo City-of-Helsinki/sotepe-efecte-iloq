@@ -19,6 +19,7 @@ jobs:
 
       # Plain variables
       APP_ENV: test
+      QUARKUS_PROFILE: test
 
       AUDIT_EXCEPTION_EXPIRATION_SECONDS: '1'
       AUTOSTARTUP_EFECTE_QUARTZ_CONTROLLER: 'true'
