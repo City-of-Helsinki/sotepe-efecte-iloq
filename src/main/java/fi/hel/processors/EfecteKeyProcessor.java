@@ -160,7 +160,7 @@ public class EfecteKeyProcessor {
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse, true);
                 } else {
                     shouldUpdateEfecteKey = true;
-                    saveMappedKeys(enrichedILoqKey, foundMatchingKey);
+                    saveMappedKeys(enrichedILoqKey, foundMatchingKey, iLoqKeyResponse);
                     efecteKeyEntityId = foundMatchingKey.getId();
                     efecteKeyEfecteId = foundMatchingKey.getAttributeValue(EnumEfecteAttribute.KEY_EFECTE_ID);
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse);
@@ -290,7 +290,8 @@ public class EfecteKeyProcessor {
                 .collect(Collectors.toSet());
     }
 
-    private void saveMappedKeys(EnrichedILoqKey enrichedILoqKey, EfecteEntity efecteKey) throws Exception {
+    private void saveMappedKeys(EnrichedILoqKey enrichedILoqKey, EfecteEntity efecteKey,
+            ILoqKeyResponse iLoqKeyResponse) throws Exception {
         String iLoqKeyId = enrichedILoqKey.getFnKeyId();
 
         // Saving mapped keys for the actual key
@@ -307,7 +308,7 @@ public class EfecteKeyProcessor {
 
         // If the key has an outsider as owner, we need to save the mapped keys for the person as well
         if (keyIsForOutsider(efecteKey)) {
-            String iLoqPersonId = enrichedILoqKey.getPerson().getPersonId();
+            String iLoqPersonId = iLoqKeyResponse.getPersonId();
             String outsiderName = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
             String outsiderEmail = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL);
 
