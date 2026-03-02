@@ -694,12 +694,15 @@ public class EfecteKeyProcessorTest {
         String outsiderEmail = "matti.meikalainen@hel.fi";
         String expectedOutsiderIdentifier = "matti.meikalainen@hel.fi#MAME";
 
+        ILoqKeyResponse currentILoqKey = new ILoqKeyResponse();
+        currentILoqKey.setPersonId(expectedILoqPersonId);
+
         EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey(expectedILoqKeyId);
         enrichedILoqKey.setRealEstateId("irrelevant, but not null");
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
-        enrichedILoqKey.setPerson(new ILoqPerson(expectedILoqPersonId));
 
         Exchange ex = testUtils.createExchange();
+        ex.setProperty("currentILoqKey", currentILoqKey);
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
 
         when(redis.get(anyString())).thenReturn(null);
