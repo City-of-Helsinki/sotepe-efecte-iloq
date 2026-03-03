@@ -36,7 +36,7 @@
     <rest-assured.version>5.5.1</rest-assured.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <maven.exec-plugin.version>3.2.0</maven.exec-plugin.version>
-    <quarkus-logging-sentry.version>2.1.9</quarkus-logging-sentry.version>
+    <quarkus-logging-sentry.version>2.3.0</quarkus-logging-sentry.version>
     <json-schema-validator.version>1.5.6</json-schema-validator.version>
   </properties>
 
