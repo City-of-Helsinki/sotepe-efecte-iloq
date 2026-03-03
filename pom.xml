@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <name>Efecte iLOQ synchronization integration</name>
   <description>Efecten avainkorttien synkronointi iLOQ:in avaintietueiden kanssa</description>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
 
   <properties>
     <category>Starter</category>
