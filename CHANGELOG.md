@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.1...sotepe-efecte-iloq-v1.0.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* Update dependencies ([#87](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/87)) ([0394fe7](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/0394fe7ba3a4db625715941793021629c3076073))
+
 ## [1.0.1](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.0...sotepe-efecte-iloq-v1.0.1) (2026-03-03)
 
 
