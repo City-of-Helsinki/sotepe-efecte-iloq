@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>fi.hel</groupId>
   <artifactId>efecte-iloq-synchronization-integration</artifactId>
   <packaging>jar</packaging>
   <name>Efecte iLOQ synchronization integration</name>
   <description>Efecten avainkorttien synkronointi iLOQ:in avaintietueiden kanssa</description>
-  <version>1.0.1</version>
+  <version>0.1.0-SNAPSHOT</version>
 
   <properties>
     <category>Starter</category>
     <compiler-plugin.version>3.14.0</compiler-plugin.version>
-    <maven.jar-plugin.version>3.3.0</maven.jar-plugin.version>
-    <maven.clean-plugin.version>3.3.2</maven.clean-plugin.version>
-    <maven.site-plugin.version>4.0.0-M13</maven.site-plugin.version>
+    <maven.jar-plugin.version>3.4.2</maven.jar-plugin.version>
+    <maven.clean-plugin.version>3.5.4</maven.clean-plugin.version>
+    <maven.site-plugin.version>4.0.0-M16</maven.site-plugin.version>
     <maven.resources-plugin.version>3.3.1</maven.resources-plugin.version>
-    <maven.deploy-plugin.version>3.1.1</maven.deploy-plugin.version>
-    <maven.install-plugin.version>3.1.1</maven.install-plugin.version>
+    <maven.deploy-plugin.version>3.1.4</maven.deploy-plugin.version>
+    <maven.install-plugin.version>3.1.4</maven.install-plugin.version>
     <maven.surefire-plugin.version>3.2.5</maven.surefire-plugin.version>
     <maven.failsafe-plugin.version>3.2.5</maven.failsafe-plugin.version>
     <failsafe.useModulePath>false</failsafe.useModulePath>
@@ -34,6 +36,8 @@
     <rest-assured.version>5.5.1</rest-assured.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <maven.exec-plugin.version>3.2.0</maven.exec-plugin.version>
+    <quarkus-logging-sentry.version>2.1.9</quarkus-logging-sentry.version>
+    <json-schema-validator.version>1.5.6</json-schema-validator.version>
   </properties>
 
   <dependencyManagement>
@@ -169,7 +173,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>1.0.72</version>
+      <version>${json-schema-validator.version}</version>
     </dependency>
 
     <!-- sentry -->
@@ -177,7 +181,7 @@
     <dependency>
       <groupId>io.quarkiverse.loggingsentry</groupId>
       <artifactId>quarkus-logging-sentry</artifactId>
-      <version>2.0.7</version>
+      <version>${quarkus-logging-sentry.version}</version>
     </dependency>
 
     <!-- testing -->
