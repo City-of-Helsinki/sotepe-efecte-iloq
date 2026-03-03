@@ -12,7 +12,7 @@
 
   <properties>
     <category>Starter</category>
-    <compiler-plugin.version>3.14.0</compiler-plugin.version>
+    <compiler-plugin.version>3.15.0</compiler-plugin.version>
     <maven.jar-plugin.version>3.4.2</maven.jar-plugin.version>
     <maven.clean-plugin.version>3.5.4</maven.clean-plugin.version>
     <maven.site-plugin.version>4.0.0-M16</maven.site-plugin.version>
