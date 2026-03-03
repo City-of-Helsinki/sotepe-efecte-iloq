@@ -10,14 +10,14 @@
 
   <properties>
     <category>Starter</category>
-    <compiler-plugin.version>3.14.0</compiler-plugin.version>
-    <maven.jar-plugin.version>3.4.2</maven.jar-plugin.version>
+    <compiler-plugin.version>3.15.0</compiler-plugin.version>
+    <maven.jar-plugin.version>3.5.0</maven.jar-plugin.version>
     <maven.clean-plugin.version>3.5.4</maven.clean-plugin.version>
-    <maven.site-plugin.version>4.0.0-M16</maven.site-plugin.version>
-    <maven.resources-plugin.version>3.3.1</maven.resources-plugin.version>
+    <maven.site-plugin.version>3.21.0</maven.site-plugin.version>
+    <maven.resources-plugin.version>3.4.0</maven.resources-plugin.version>
     <maven.deploy-plugin.version>3.1.4</maven.deploy-plugin.version>
     <maven.install-plugin.version>3.1.4</maven.install-plugin.version>
-    <maven.surefire-plugin.version>3.2.5</maven.surefire-plugin.version>
+    <maven.surefire-plugin.version>3.5.5</maven.surefire-plugin.version>
     <maven.failsafe-plugin.version>3.2.5</maven.failsafe-plugin.version>
     <failsafe.useModulePath>false</failsafe.useModulePath>
     <maven.compiler.release>17</maven.compiler.release>
@@ -29,12 +29,11 @@
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <camel.operon.version>0.9.18-RELEASE</camel.operon.version>
     <ib.redis.version>0.6.3-RELEASE</ib.redis.version>
-    <log4j.version>2.22.1</log4j.version>
     <assertj.version>3.27.7</assertj.version>
-    <rest-assured.version>5.5.1</rest-assured.version>
-    <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+    <rest-assured.version>6.0.0</rest-assured.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
     <maven.exec-plugin.version>3.2.0</maven.exec-plugin.version>
-    <quarkus-logging-sentry.version>2.1.9</quarkus-logging-sentry.version>
+    <quarkus-logging-sentry.version>2.3.0</quarkus-logging-sentry.version>
     <json-schema-validator.version>1.5.6</json-schema-validator.version>
   </properties>
 
