@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.5...sotepe-efecte-iloq-v1.0.6) (2026-03-18)
+
+
+### Bug Fixes
+
+* Update iLOQ person ExternalPersonId when a matching Efecte person is found by name ([ddcdfad](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/ddcdfadc3c9688b965c5212b952b0f817b985868))
+
 ## [1.0.5](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.4...sotepe-efecte-iloq-v1.0.5) (2026-03-18)
 
 
