@@ -225,6 +225,9 @@ public class ILoqKeyProcessor {
         enrichedILoqKey.setState(iLoqKeyResponse.getState());
         enrichedILoqKey.setSecurityAccesses(securityAccesses);
 
+        // this will be overridden in enrichKeyWithPerson if the mapping is missing
+        enrichedILoqKey.setPerson(new ILoqPerson(iLoqKeyResponse.getPersonId()));
+
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
     }
 

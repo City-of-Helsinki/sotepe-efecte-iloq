@@ -660,6 +660,7 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         assertThat(enrichedKey.getSecurityAccesses()).containsExactlyInAnyOrder(
                 iLoqSecurityAccess1, iLoqSecurityAccess2);
         assertThat(enrichedKey.getRealEstateName()).isEqualTo(expectedRealEstateName);
+        assertThat(enrichedKey.getPerson().getPersonId()).isEqualTo(expectedPersonId);
     }
 
     @Test
