@@ -94,6 +94,7 @@ app:
       getILoqPerson: direct:getILoqPerson
       getILoqPersonByExternalId: direct:getILoqPersonByExternalId
       createILoqPerson: direct:createILoqPerson
+      updateILoqPerson: direct:updateILoqPerson
       processILoqKey: direct:processILoqKey
       updateILoqKeySecurityAccesses: direct:updateILoqKeySecurityAccesses
       updateMainZone: direct:updateMainZone
@@ -172,6 +173,7 @@ app:
         getILoqPerson: mock:getILoqPerson
         getILoqPersonByExternalId: mock:getILoqPersonByExternalId
         createILoqPerson: mock:createILoqPerson
+        updateILoqPerson: mock:updateILoqPerson
         processILoqKey: mock:processILoqKey
         updateILoqKeySecurityAccesses: mock:updateILoqKeySecurityAccesses
         updateMainZone: mock:updateMainZone

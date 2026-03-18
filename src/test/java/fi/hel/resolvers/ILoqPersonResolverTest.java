@@ -309,6 +309,119 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
     }
 
     @Test
+    @DisplayName("resolveILoqPersonId - person id is not found at Redis")
+    void testShouldUpdateTheILoqPersonExternalIdWhenMatchedByName_KeyHolder() throws Exception {
+        String keyHolderEntityId = "12345";
+
+        when(redis.get(anyString())).thenReturn(null);
+
+        String firstName = "John Robert";
+        String lastName = "Smith";
+        EfecteEntity efectePerson = new EfecteEntityBuilder()
+                .withId(keyHolderEntityId)
+                .withFirstName(firstName)
+                .withLastName(lastName)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .build();
+
+        String expectedILoqPersonId = "2";
+        ILoqPerson iLoqPerson1 = new ILoqPerson("foo", "bar", "1");
+        ILoqPerson iLoqPerson2 = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
+        ILoqPerson iLoqPerson3 = new ILoqPerson("Jane", "Doe", "3");
+
+        ILoqPerson existingILoqPerson = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
+
+        setDefaultResponses();
+
+        mocked.getGetEfecteEntity()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(efectePerson)));
+        mocked.getListILoqPersons().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(
+                iLoqPerson1, iLoqPerson2, iLoqPerson3)));
+        mocked.getGetILoqPerson()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(existingILoqPerson));
+
+        mocked.getGetILoqPerson().expectedMessageCount(1);
+        mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        mocked.getUpdateILoqPerson().expectedMessageCount(1);
+        mocked.getUpdateILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        mocked.getUpdateILoqPerson().expectedPropertyReceived("updatedILoqPerson", existingILoqPerson);
+
+        iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
+
+        assertThat(existingILoqPerson.getExternalPersonId()).isEqualTo(keyHolderEntityId);
+        MockEndpoint.assertIsSatisfied(
+                mocked.getGetILoqPerson(),
+                mocked.getUpdateILoqPerson());
+    }
+
+    @Test
+    @DisplayName("resolveILoqPersonIdForOutsider - person id is not found at Redis")
+    void testShouldUpdateTheILoqPersonExternalIdWhenMatchedByName_Outsider() throws Exception {
+        String firstName = "John Robert";
+        String lastName = "Smith";
+        String outsiderName = firstName + " " + lastName;
+        String outsiderEmail = "john.smith@outsider.com";
+        String uniqueIdentifier = "this is a unique identifier value of email and name";
+
+        String expectedILoqPersonId = "2";
+        ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
+
+        ILoqPerson existingILoqPerson = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
+
+        setDefaultResponses();
+
+        when(helper.createIdentifier(any(), any())).thenReturn(uniqueIdentifier);
+        mocked.getListILoqPersons().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(
+                List.of(iLoqPerson)));
+        mocked.getGetILoqPerson()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(existingILoqPerson));
+
+        mocked.getGetILoqPerson().expectedMessageCount(1);
+        mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        mocked.getUpdateILoqPerson().expectedMessageCount(1);
+        mocked.getUpdateILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
+        mocked.getUpdateILoqPerson().expectedPropertyReceived("updatedILoqPerson", existingILoqPerson);
+
+        iLoqPersonResolver.resolveILoqPersonIdForOutsider(outsiderEmail, outsiderName);
+
+        assertThat(existingILoqPerson.getExternalPersonId()).isEqualTo(uniqueIdentifier);
+        MockEndpoint.assertIsSatisfied(
+                mocked.getGetILoqPerson(),
+                mocked.getUpdateILoqPerson());
+    }
+
+    @Test
+    @DisplayName("resolveILoqPersonId - person id is not found at Redis")
+    void testShouldNotUpdateTheILoqPersonExternalIdWhenNoMatchIsFound() throws Exception {
+        String keyHolderEntityId = "12345";
+
+        when(redis.get(anyString())).thenReturn(null);
+
+        String firstName = "John Robert";
+        String lastName = "Smith";
+        EfecteEntity efectePerson = new EfecteEntityBuilder()
+                .withId(keyHolderEntityId)
+                .withFirstName(firstName)
+                .withLastName(lastName)
+                .build();
+
+        setDefaultResponses();
+
+        mocked.getGetEfecteEntity()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(efectePerson)));
+        mocked.getListILoqPersons().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
+
+        mocked.getGetILoqPerson().expectedMessageCount(0);
+        mocked.getUpdateILoqPerson().expectedMessageCount(0);
+
+        iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
+
+        MockEndpoint.assertIsSatisfied(
+                mocked.getGetILoqPerson(),
+                mocked.getUpdateILoqPerson());
+    }
+
+    @Test
     @DisplayName("resolveILoqPersonId/resolveILoqPersonIdForOutsider - person id is not found at Redis")
     void testShouldNormalizeTheNamesBeforeMatching() throws Exception {
         String keyHolderEntityId = "12345";
@@ -664,6 +777,8 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(
                 List.of(new EfecteEntityBuilder().withDefaults(EnumEfecteTemplate.PERSON).build())));
         mocked.getListILoqPersons().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
+        mocked.getGetILoqPerson()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(new ILoqPerson()));
     }
 
 }
