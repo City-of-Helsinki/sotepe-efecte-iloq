@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.4](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.3...sotepe-efecte-iloq-v1.0.4) (2026-03-18)
+
+
+### Bug Fixes
+
+* Missing person id in enriched iloq key ([1d96245](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/1d96245914cc1bd77db74230c61af494433a7deb))
+* Release-please ignore snapshot ([cf32d56](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/cf32d561789cd097b557690e0cf2d048f776705c))
+
 ## [1.0.3](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.2...sotepe-efecte-iloq-v1.0.3) (2026-03-03)
 
 
