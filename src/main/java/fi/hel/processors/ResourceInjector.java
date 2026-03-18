@@ -139,6 +139,8 @@ public class ResourceInjector {
     String processILoqKeyEndpointUri;
     @ConfigProperty(name = "app.routes.iLoq.createILoqPerson")
     String createILoqPersonEndpointUri;
+    @ConfigProperty(name = "app.routes.iLoq.updateILoqPerson")
+    String updateILoqPersonEndpointUri;
 
     // Endpoints:
     @ConfigProperty(name = "app.endpoints.oldhost")
@@ -258,6 +260,10 @@ public class ResourceInjector {
 
     public String getCreateILoqPersonEndpointUri() {
         return this.createILoqPersonEndpointUri;
+    }
+
+    public String getUpdateILoqPersonEndpointUri() {
+        return this.updateILoqPersonEndpointUri;
     }
 
     public String getOldhostEndpoint() {

@@ -244,6 +244,20 @@ public class ILoqRouteBuilder extends RouteBuilder {
             .setBody(jsonpath("$.PersonIds.[0]"))
         ;
 
+        from("direct:updateILoqPerson")
+            .routeId("direct:updateILoqPerson")
+            .to("{{app.routes.iLoq.configureILoqSession}}")
+            .setBody(simple("${header.updatedILoqPerson}"))
+            .log("{{app.name}} :: updateILoqPerson :: Updating iLOQ person's ExternalPersonId '${header.iLoqPersonId}'")
+            .marshal().json()
+            .setHeaders(
+                Exchange.HTTP_METHOD, constant("PUT"),
+                Exchange.HTTP_PATH, simple("/Persons/${header.iLoqPersonId}")
+            )
+            .to("{{app.endpoints.oldhost}}")
+            .log("{{app.name}} :: updateILoqPerson :: Updating iLOQ person succeeded")
+        ;
+
         from("direct:processILoqKey")
             .routeId("direct:processILoqKey")
             .to("{{app.routes.iLoq.configureILoqSession}}")

@@ -71,6 +71,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     private String listILoqPersonsEndpoint = "direct:listILoqPersons";
     private String getILoqPersonEndpoint = "direct:getILoqPerson";
     private String createILoqPersonEndpoint = "direct:createILoqPerson";
+    private String updateILoqPersonEndpoint = "direct:updateILoqPerson";
     private String listILoqKeysEndpoint = "direct:listILoqKeys";
     private String getILoqKeySecurityAccessesEndpoint = "direct:getILoqKeySecurityAccesses";
     private String updateILoqKeySecurityAccessesEndpoint = "direct:updateILoqKeySecurityAccesses";
@@ -107,6 +108,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 listILoqPersonsEndpoint,
                 getILoqPersonEndpoint,
                 createILoqPersonEndpoint,
+                updateILoqPersonEndpoint,
                 listILoqKeysEndpoint,
                 getILoqKeySecurityAccessesEndpoint,
                 killILoqSessionEndpoint,
@@ -177,7 +179,8 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     @DisplayName("any iLOQ route")
     void testShouldSetTheHttpMethodAsPUT() throws Exception {
         List<String> endpoints = List.of(
-                updateMainZoneEndpoint);
+                updateMainZoneEndpoint,
+                updateILoqPersonEndpoint);
 
         for (String endpointUri : endpoints) {
             Exchange ex = testUtils.createExchange(null);
@@ -606,6 +609,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
                 listILoqPersonsEndpoint,
                 getILoqPersonEndpoint,
                 createILoqPersonEndpoint,
+                updateILoqPersonEndpoint,
                 killILoqSessionEndpoint,
                 updateILoqKeySecurityAccessesEndpoint,
                 getILoqPersonByExternalIdEndpoint,
@@ -962,6 +966,42 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String response = ex.getIn().getBody(String.class);
 
         assertThat(response).isEqualTo(expectedPersonId);
+    }
+
+    @Test
+    @DisplayName("direct:updateILoqPerson")
+    void testShouldSetTheBodyFromThePropertyValue_UpdateILoqPerson() throws Exception {
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Smith", "personId");
+        iLoqPerson.setExternalPersonId("12345");
+
+        String expectedPayload = testUtils.writeAsJson(iLoqPerson);
+
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("updatedILoqPerson", iLoqPerson);
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedBodiesReceived(expectedPayload);
+
+        template.send(updateILoqPersonEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("direct:updateILoqPerson")
+    void testShouldSetTheHttpPath_UpdateILoqPerson() throws Exception {
+        String personId = "abc-123";
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("iLoqPersonId", personId);
+
+        String expectedHttpPath = "/Persons/" + personId;
+
+        mocked.getOldhost().expectedMessageCount(1);
+        mocked.getOldhost().expectedHeaderReceived(Exchange.HTTP_PATH, expectedHttpPath);
+
+        template.send(updateILoqPersonEndpoint, ex);
+
+        mocked.getOldhost().assertIsSatisfied();
     }
 
     @Test

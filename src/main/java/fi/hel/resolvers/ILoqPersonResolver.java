@@ -12,6 +12,7 @@ import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.ILoqPerson;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
 import fi.hel.processors.ResourceInjector;
+import org.apache.camel.Exchange;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -53,6 +54,8 @@ public class ILoqPersonResolver {
         iLoqPersonId = findMatchingPersonId(iLoqPersons, firstName, lastName);
 
         if (iLoqPersonId != null) {
+            updateILoqPersonExternalId(iLoqPersonId, keyHolderEntityId);
+
             String personEfecteId = efectePerson.getAttributeValue(EnumEfecteAttribute.PERSON_EFECTE_ID);
             EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(
                     keyHolderEntityId, personEfecteId);
@@ -85,6 +88,8 @@ public class ILoqPersonResolver {
         iLoqPersonId = findMatchingPersonId(iLoqPersons, nameMap.get("firstName"), nameMap.get("lastName"));
 
         if (iLoqPersonId != null) {
+            updateILoqPersonExternalId(iLoqPersonId, uniqueIdentifier);
+
             EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier();
             efecteEntityIdentifier.setOutsiderName(outsiderName);
             efecteEntityIdentifier.setOutsiderEmail(outsiderEmail);
@@ -100,6 +105,30 @@ public class ILoqPersonResolver {
 
     public void resetCache() {
         this.iLoqPersons = null;
+    }
+
+    private void updateILoqPersonExternalId(String iLoqPersonId, String externalId) throws Exception {
+        Exchange getEx = new ExchangeBuilder(ri.getContext())
+                .withProperty("iLoqPersonId", iLoqPersonId)
+                .build();
+
+        ILoqPerson iLoqPerson = ri.getTemplate().send(ri.getGetILoqPersonEndpointUri(), getEx)
+                .getIn().getBody(ILoqPerson.class);
+
+        iLoqPerson.setExternalPersonId(externalId);
+
+        Exchange updateEx = new ExchangeBuilder(ri.getContext())
+                .withProperty("iLoqPersonId", iLoqPersonId)
+                .withProperty("updatedILoqPerson", iLoqPerson)
+                .build();
+
+        ri.getTemplate().send(ri.getUpdateILoqPersonEndpointUri(), updateEx);
+
+        if (updateEx.getProperty(Exchange.EXCEPTION_CAUGHT) != null) {
+            throw new Exception(
+                    "ILoqPersonResolver: Updating iLOQ person ExternalPersonId failed: "
+                            + updateEx.getException().getMessage());
+        }
     }
 
     private String getMappedId(String externalId) throws Exception {

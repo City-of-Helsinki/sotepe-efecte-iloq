@@ -73,6 +73,8 @@ public class MockEndpointInjector {
     MockEndpoint killILoqSession;
     @EndpointInject("{{app.routes.iLoq.createILoqPerson}}")
     MockEndpoint createILoqPerson;
+    @EndpointInject("{{app.routes.iLoq.updateILoqPerson}}")
+    MockEndpoint updateILoqPerson;
     @EndpointInject("{{app.routes.iLoq.processILoqKey}}")
     MockEndpoint processILoqKey;
     @EndpointInject("{{app.routes.iLoq.listILoqKeys}}")
@@ -218,6 +220,10 @@ public class MockEndpointInjector {
 
     public MockEndpoint getCreateILoqPerson() {
         return this.createILoqPerson;
+    }
+
+    public MockEndpoint getUpdateILoqPerson() {
+        return this.updateILoqPerson;
     }
 
     public MockEndpoint getProcessILoqKey() {
