@@ -42,11 +42,13 @@ public class ILoqPersonProcessor {
         iLoqPersonImport.setZoneIds(zoneIds);
         String iLoqPersonId = forwardNewPersonToILoq(iLoqPersonImport);
 
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+
         if (hasKeyHolder(efecteKey)) {
             EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(
                     efecteKeyHolderEntityId, efecteKeyHolderEfecteId);
-            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + efecteKeyHolderEntityId, iLoqPersonId);
-            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + iLoqPersonId,
+            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + cc + ":" + efecteKeyHolderEntityId, iLoqPersonId);
+            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId,
                     ri.getHelper().writeAsJson(efecteEntityIdentifier));
         } else {
             String outsiderName = efecteKey.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
@@ -56,9 +58,9 @@ public class ILoqPersonProcessor {
             efecteEntityIdentifier.setOutsiderEmail(outsiderEmail);
 
             ri.getRedis().set(
-                    ri.getMappedPersonEfectePrefix() + ri.getHelper().createIdentifier(outsiderEmail, outsiderName),
+                    ri.getMappedPersonEfectePrefix() + cc + ":" + ri.getHelper().createIdentifier(outsiderEmail, outsiderName),
                     iLoqPersonId);
-            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + iLoqPersonId,
+            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId,
                     ri.getHelper().writeAsJson(efecteEntityIdentifier));
         }
 

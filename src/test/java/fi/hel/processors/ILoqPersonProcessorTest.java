@@ -44,6 +44,8 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
     @InjectMock
     Redis redis;
 
+    static final String TEST_CC = "test-customer-code";
+
     @Override
     protected void doPreSetup() throws Exception {
         super.doPostSetup();
@@ -156,9 +158,10 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(expectedILoqPersonId));
         when(helper.writeAsJson(entityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + personEntityId;
-        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + personEntityId;
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
 
         verifyNoInteractions(helper);
         verifyNoInteractions(redis);
@@ -245,9 +248,10 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(expectedILoqPersonId));
         when(helper.writeAsJson(entityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
         when(helper.createIdentifier(outsiderEmail, outsiderName)).thenReturn(efectePersonIdentifier);
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + efectePersonIdentifier;
-        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + efectePersonIdentifier;
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
 
         verifyNoInteractions(helper);
         verifyNoInteractions(redis);

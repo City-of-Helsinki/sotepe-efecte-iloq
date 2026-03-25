@@ -28,7 +28,8 @@ public class EfectePersonResolver {
     public String resolveEfectePersonIdentifier(ILoqPerson iLoqPerson) throws Exception {
         String iLoqPersonId = iLoqPerson.getPersonId();
 
-        String efectePersonIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + iLoqPersonId);
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+        String efectePersonIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId);
         String efectePersonIdentifierValue = null;
 
         if (efectePersonIdentifierJson == null) {
@@ -54,7 +55,7 @@ public class EfectePersonResolver {
 
             EfecteEntity efecteKeyHolder = efectePersons.get(0);
             efectePersonIdentifierValue = efecteKeyHolder.getId();
-            saveMappedKeys(iLoqPersonId, efecteKeyHolder);
+            saveMappedKeys(cc, iLoqPersonId, efecteKeyHolder);
         } else {
             EfecteEntityIdentifier efecteEntityIdentifier = ri.getHelper().writeAsPojo(efectePersonIdentifierJson,
                     EfecteEntityIdentifier.class);
@@ -99,14 +100,14 @@ public class EfectePersonResolver {
         return (List<EfecteEntity>) ex.getIn().getBody(List.class);
     }
 
-    private void saveMappedKeys(String iLoqPersonId, EfecteEntity efecteKeyHolder) throws Exception {
+    private void saveMappedKeys(String cc, String iLoqPersonId, EfecteEntity efecteKeyHolder) throws Exception {
         String entityId = efecteKeyHolder.getId();
         String efecteId = efecteKeyHolder.getAttributeValue(EnumEfecteAttribute.PERSON_EFECTE_ID);
         EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(entityId, efecteId);
         String efecteEntityIdentifierJson = ri.getHelper().writeAsJson(efecteEntityIdentifier);
 
-        String efectePrefix = ri.getMappedPersonEfectePrefix() + entityId;
-        String iLoqPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
+        String efectePrefix = ri.getMappedPersonEfectePrefix() + cc + ":" + entityId;
+        String iLoqPrefix = ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId;
 
         ri.getRedis().set(efectePrefix, iLoqPersonId);
         ri.getRedis().set(iLoqPrefix, efecteEntityIdentifierJson);

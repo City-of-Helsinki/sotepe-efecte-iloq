@@ -54,6 +54,8 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     @InjectMock
     Helper helper;
 
+    static final String TEST_CC = "test-customer-code";
+
     @Override
     protected void doPreSetup() throws Exception {
         super.doPostSetup();
@@ -66,7 +68,8 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         String iLoqPersonId = "123";
         ILoqPerson iLoqPerson = new ILoqPerson(iLoqPersonId);
 
-        String expectedPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String expectedPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + iLoqPersonId;
         when(redis.get(expectedPrefix)).thenReturn("irrelevant");
         when(helper.writeAsPojo(any(), any())).thenReturn(new EfecteEntityIdentifier());
 
@@ -355,9 +358,10 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(
                 exchange -> exchange.getIn().setBody(List.of(keyHolderEfecteEntity)));
         when(helper.writeAsJson(efecteEntityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + keyHolderEntityId;
-        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedPersonId;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + keyHolderEntityId;
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedPersonId;
 
         verifyNoInteractions(redis);
         verifyNoInteractions(helper);

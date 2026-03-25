@@ -60,9 +60,12 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         testConfiguration().withUseRouteBuilder(false);
     }
 
+    static final String TEST_CC = "test-customer-code";
+
     @BeforeEach
-    void reset() {
+    void reset() throws Exception {
         iLoqPersonResolver.resetCache();
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
     }
 
     ////////////////////
@@ -73,7 +76,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
     @DisplayName("resolveILoqPersonId")
     void testShouldGetTheStoredILoqPersonIdFromRedis_KeyHolderId() throws Exception {
         String externalId = "irrelevant";
-        String expectedPrefix = ri.getMappedPersonEfectePrefix() + externalId;
+        String expectedPrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + externalId;
 
         when(redis.get(expectedPrefix)).thenReturn("something but not null");
 
@@ -150,7 +153,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         String expectedILoqPersonId = "2";
         ILoqPerson iLoqPerson = new ILoqPerson(expectedILoqPersonId);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + externalId;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + externalId;
 
         mocked.getGetILoqPersonByExternalId().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(
                 List.of(iLoqPerson)));
@@ -540,7 +543,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         String outsiderName = "John Smith";
         String outsiderEmail = "john.smith@outsider.com";
         String uniqueIdentifier = "this is a unique identifier value of email and name";
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + uniqueIdentifier;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + uniqueIdentifier;
 
         when(redis.get(expectedEfectePrefix)).thenReturn("something but not null");
         when(helper.createIdentifier(anyString(), anyString())).thenReturn(uniqueIdentifier);
@@ -594,7 +597,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         String uniqueIdentifier = "this is a unique identifier of email and name";
         ILoqPerson iLoqPerson = new ILoqPerson(expectedILoqPersonId);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + uniqueIdentifier;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + uniqueIdentifier;
 
         when(helper.createIdentifier(any(), any())).thenReturn(uniqueIdentifier);
         mocked.getGetILoqPersonByExternalId().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(
@@ -686,8 +689,8 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         String expectedILoqPersonId = "2";
         ILoqPerson iLoqPerson = new ILoqPerson(firstName, lastName, expectedILoqPersonId);
 
-        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + uniqueIdentifier;
-        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        String expectedEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + uniqueIdentifier;
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
 
         setDefaultResponses();
 
@@ -774,6 +777,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
 
     private void setDefaultResponses() throws Exception {
         when(redis.get(anyString())).thenReturn(null);
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
         mocked.getGetILoqPersonByExternalId()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
         mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(

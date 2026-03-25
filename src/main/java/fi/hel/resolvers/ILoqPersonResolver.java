@@ -60,8 +60,9 @@ public class ILoqPersonResolver {
             EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier(
                     keyHolderEntityId, personEfecteId);
 
-            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + keyHolderEntityId, iLoqPersonId);
-            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + iLoqPersonId,
+            String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + cc + ":" + keyHolderEntityId, iLoqPersonId);
+            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId,
                     ri.getHelper().writeAsJson(efecteEntityIdentifier));
         }
 
@@ -94,9 +95,10 @@ public class ILoqPersonResolver {
             efecteEntityIdentifier.setOutsiderName(outsiderName);
             efecteEntityIdentifier.setOutsiderEmail(outsiderEmail);
 
+            String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
             ri.getRedis().set(
-                    ri.getMappedPersonEfectePrefix() + uniqueIdentifier, iLoqPersonId);
-            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + iLoqPersonId,
+                    ri.getMappedPersonEfectePrefix() + cc + ":" + uniqueIdentifier, iLoqPersonId);
+            ri.getRedis().set(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId,
                     ri.getHelper().writeAsJson(efecteEntityIdentifier));
         }
 
@@ -133,7 +135,8 @@ public class ILoqPersonResolver {
     }
 
     private String getMappedId(String externalId) throws Exception {
-        String iLoqPersonId = ri.getRedis().get(ri.getMappedPersonEfectePrefix() + externalId);
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+        String iLoqPersonId = ri.getRedis().get(ri.getMappedPersonEfectePrefix() + cc + ":" + externalId);
 
         if (iLoqPersonId != null) {
             return iLoqPersonId;
@@ -143,7 +146,7 @@ public class ILoqPersonResolver {
 
         if (iLoqPersonsByExternalId.size() == 1) {
             iLoqPersonId = iLoqPersonsByExternalId.get(0).getPersonId();
-            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + externalId, iLoqPersonId);
+            ri.getRedis().set(ri.getMappedPersonEfectePrefix() + cc + ":" + externalId, iLoqPersonId);
 
             return iLoqPersonId;
         } else if (iLoqPersonsByExternalId.size() > 1) {
