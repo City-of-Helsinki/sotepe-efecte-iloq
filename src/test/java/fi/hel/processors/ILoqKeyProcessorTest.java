@@ -22,6 +22,7 @@ import com.devikone.transports.Redis;
 
 import fi.hel.configurations.ConfigProvider;
 import fi.hel.mappers.ILoqKeyMapper;
+import fi.hel.resolvers.EfectePersonResolver;
 import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntitySet;
 import fi.hel.models.EfecteReference;
@@ -60,6 +61,8 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
     AuditExceptionProcessor auditExceptionProcessor;
     @InjectMock
     Helper helper;
+    @InjectMock
+    EfectePersonResolver efectePersonResolver;
 
     @Override
     protected void doPreSetup() throws Exception {
@@ -826,6 +829,24 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         assertThat(result.getPerson().getFirstName()).isEqualTo(expectedFirstName);
         assertThat(result.getPerson().getLastName()).isEqualTo(expectedLastName);
         assertThat(result.getPerson().getPersonId()).isEqualTo(expectedILoqPersonId);
+    }
+
+    @Test
+    @DisplayName("savePersonMapping")
+    void testShouldResolveTheEfectePersonIdentifierForTheEnrichedKeyPerson() throws Exception {
+        String expectedILoqPersonId = "abc-123";
+        ILoqPerson expectedILoqPerson = new ILoqPerson("Matti", "Meikäläinen", expectedILoqPersonId);
+        EnrichedILoqKey enrichedKey = new EnrichedILoqKey();
+        enrichedKey.setPerson(expectedILoqPerson);
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("enrichedILoqKey", enrichedKey);
+
+        verifyNoInteractions(efectePersonResolver);
+
+        iLoqKeyProcessor.savePersonMapping(ex);
+
+        verify(efectePersonResolver).resolveEfectePersonIdentifier(expectedILoqPerson);
     }
 
 }
