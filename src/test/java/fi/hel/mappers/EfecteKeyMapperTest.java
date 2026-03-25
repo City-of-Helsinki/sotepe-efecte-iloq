@@ -37,6 +37,8 @@ import jakarta.inject.Inject;
 @QuarkusTest
 public class EfecteKeyMapperTest {
 
+    static final String TEST_CC = "test-customer-code";
+
     @Inject
     ResourceInjector ri;
     @Inject
@@ -61,10 +63,11 @@ public class EfecteKeyMapperTest {
         enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
 
         when(redis.get(anyString())).thenReturn("irrelevant but not null");
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
         when(helper.writeAsPojo(any(), any()))
                 .thenReturn(new EfecteEntityIdentifier("irrelevant", "irrelevant"));
 
-        String expectedPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
+        String expectedPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + iLoqPersonId;
 
         verifyNoInteractions(redis);
 

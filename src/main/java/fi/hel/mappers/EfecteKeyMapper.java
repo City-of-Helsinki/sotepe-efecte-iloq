@@ -31,7 +31,8 @@ public class EfecteKeyMapper {
     public EfecteEntitySetImport buildNewEfecteEntitySetImport(EnrichedILoqKey enrichedILoqKey) throws Exception {
         ILoqPerson iLoqPerson = enrichedILoqKey.getPerson();
         String iLoqPersonId = iLoqPerson.getPersonId();
-        String keyHolderEntityIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + iLoqPersonId);
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+        String keyHolderEntityIdentifierJson = ri.getRedis().get(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId);
 
         if (keyHolderEntityIdentifierJson == null) {
             String auditMessage = "Unable to create a new key card in Efecte. No matching key holder was found for the specified iLOQ person (%s)."

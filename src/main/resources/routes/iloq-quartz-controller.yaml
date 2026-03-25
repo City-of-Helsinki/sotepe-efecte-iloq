@@ -54,10 +54,13 @@
                               # TODO: kun avain palautetaan iLOQ managerissa, tulee tätä kutsua:
                               # - to: "{{app.routes.redis.deleteKey}}"
                               - to: "{{app.routes.controller.iLoq.enrichKeyWithSecurityAccesses}}"
+                              - setProperty:
+                                  name: currentCustomerCode
+                                  simple: ${bean:redis.get({{app.redis.prefix.iLoqCurrentCustomerCode}})}
                               - choice:
                                   when:
                                     - description: We populate the iLOQ key with the person information when previous person mapping is missing
-                                      simple: ${bean:redis.get({{app.redis.prefix.mapped.person.iLoq}}${exchangeProperty.iLoqPersonId})} == null
+                                      simple: ${bean:redis.get({{app.redis.prefix.mapped.person.iLoq}}${exchangeProperty.currentCustomerCode}:${exchangeProperty.iLoqPersonId})} == null
                                       steps:
                                         - log: "{{app.name}} :: iLoqQuartzController :: Populating key with person information"
                                         - to: "{{app.routes.iLoq.getILoqPerson}}"

@@ -72,6 +72,8 @@ public class EfecteKeyProcessorTest {
     @InjectMock
     ILoqKeyMapper iLoqKeyMapper;
 
+    static final String TEST_CC = "test-customer-code";
+
     @BeforeEach
     void setup() {
         mocked.getGetEfecteEntity().reset();
@@ -730,8 +732,9 @@ public class EfecteKeyProcessorTest {
 
         String expectedKeyEfectePrefix = ri.getMappedKeyEfectePrefix() + efecteId;
         String expectedKeyILoqPrefix = ri.getMappedKeyILoqPrefix() + expectedILoqKeyId;
-        String expectedOutsiderEfectePrefix = ri.getMappedPersonEfectePrefix() + expectedOutsiderIdentifier;
-        String expectedOutsiderILoqPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String expectedOutsiderEfectePrefix = ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + expectedOutsiderIdentifier;
+        String expectedOutsiderILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
 
         when(helper.writeAsJson(any(EfecteEntityIdentifier.class)))
                 .thenReturn(expectedEfecteKeyIdentifierJson)

@@ -317,8 +317,9 @@ public class EfecteKeyProcessor {
             efecteEntityPersonIdentifier.setOutsiderEmail(outsiderEmail);
             String uniqueIdentifier = ri.getHelper().createIdentifier(outsiderEmail, outsiderName);
 
-            String efectePersonPrefix = ri.getMappedPersonEfectePrefix() + uniqueIdentifier;
-            String iLoqPersonPrefix = ri.getMappedPersonILoqPrefix() + iLoqPersonId;
+            String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+            String efectePersonPrefix = ri.getMappedPersonEfectePrefix() + cc + ":" + uniqueIdentifier;
+            String iLoqPersonPrefix = ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId;
             String efecteEntityPersonIdentifierJson = ri.getHelper().writeAsJson(efecteEntityPersonIdentifier);
 
             ri.getRedis().set(efectePersonPrefix, iLoqPersonId);

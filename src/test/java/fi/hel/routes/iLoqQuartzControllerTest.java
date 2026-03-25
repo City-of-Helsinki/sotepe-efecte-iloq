@@ -74,6 +74,8 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
     @InjectMock
     LeaderResolver leaderResolver;
 
+    static final String TEST_CC = "test-customer-code";
+
     private String iLoqControllerEndpoint = "direct:iLoqController";
     private String enrichKeyWithSecurityAccessesEndpoint = "direct:enrichKeyWithSecurityAccesses";
 
@@ -326,12 +328,12 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
             return null;
         }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
 
-        String expectedPrefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String expectedPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
         when(redis.get(expectedPrefix)).thenReturn(null);
 
         mocked.getGetILoqPerson().expectedMessageCount(1);
         mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
-        verifyNoInteractions(redis);
         verifyNoInteractions(iLoqKeyProcessor);
 
         template.send(iLoqControllerEndpoint, ex);
@@ -358,7 +360,8 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
             return null;
         }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
 
-        String prefix = ri.getMappedPersonILoqPrefix() + expectedILoqPersonId;
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String prefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
         when(redis.get(prefix)).thenReturn("efecte entity json");
 
         mocked.getGetILoqPerson().expectedMessageCount(0);
