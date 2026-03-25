@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.9](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.8...sotepe-efecte-iloq-v1.0.9) (2026-03-25)
+
+
+### Bug Fixes
+
+* Resolve and save person mapping when it is missing ([#113](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/113)) ([3d86562](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/3d865625bea1fd144b448b149d2836d479a9280c))
+
 ## [1.0.8](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.7...sotepe-efecte-iloq-v1.0.8) (2026-03-25)
 
 
