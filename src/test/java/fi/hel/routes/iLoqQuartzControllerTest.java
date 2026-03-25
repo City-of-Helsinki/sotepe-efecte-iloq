@@ -374,6 +374,60 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
 
     @Test
     @DisplayName("direct:iLoqController")
+    void testShouldSavePersonMappingWhenTheKeyPersonIsNotPreviouslyMapped() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+        String expectedILoqPersonId = "abc-123";
+        ILoqKeyResponse keyResponse = new ILoqKeyResponse();
+        keyResponse.setPersonId(expectedILoqPersonId);
+
+        setDefaultResponse();
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+            exchange.getIn().setBody(List.of(keyResponse));
+            return null;
+        }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
+
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String expectedPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
+        when(redis.get(expectedPrefix)).thenReturn(null);
+
+        verifyNoInteractions(iLoqKeyProcessor);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        verify(iLoqKeyProcessor).savePersonMapping(any(Exchange.class));
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
+    void testShouldNotSavePersonMappingWhenTheKeyPersonIsAlreadyMapped() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+        String expectedILoqPersonId = "abc-123";
+        ILoqKeyResponse keyResponse = new ILoqKeyResponse();
+        keyResponse.setPersonId(expectedILoqPersonId);
+
+        setDefaultResponse();
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+            exchange.getIn().setBody(List.of(keyResponse));
+            return null;
+        }).when(iLoqKeyProcessor).getILoqKeysWithVerifiedRealEstate(any(Exchange.class));
+
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        String prefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + expectedILoqPersonId;
+        when(redis.get(prefix)).thenReturn("efecte entity json");
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        verify(iLoqKeyProcessor, times(0)).savePersonMapping(any(Exchange.class));
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
     void testShouldBuildAnEfecteKeyForNonPassiveILoqKey() throws Exception {
         Exchange ex = testUtils.createExchange();
 

@@ -67,6 +67,9 @@
                                         - bean:
                                             ref: iLoqKeyProcessor
                                             method: enrichKeyWithPerson
+                                        - bean:
+                                            ref: iLoqKeyProcessor
+                                            method: savePersonMapping
                               - bean:
                                   ref: efecteKeyProcessor
                                   method: buildEfecteKey

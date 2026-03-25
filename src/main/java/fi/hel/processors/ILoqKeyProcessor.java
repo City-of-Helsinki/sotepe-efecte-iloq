@@ -238,6 +238,12 @@ public class ILoqKeyProcessor {
         enrichedILoqKey.setPerson(iLoqPerson);
     }
 
+    public void savePersonMapping(Exchange ex) throws Exception {
+        EnrichedILoqKey enrichedILoqKey = ex.getProperty("enrichedILoqKey", EnrichedILoqKey.class);
+        ILoqPerson iLoqPerson = enrichedILoqKey.getPerson();
+        ri.getEfectePersonResolver().resolveEfectePersonIdentifier(iLoqPerson);
+    }
+
     public boolean isMissingAPerson(Exchange ex) {
         ILoqKeyResponse iLoqKey = ex.getProperty("currentILoqKey", ILoqKeyResponse.class);
 
