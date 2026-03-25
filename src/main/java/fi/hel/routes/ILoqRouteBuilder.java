@@ -229,33 +229,20 @@ public class ILoqRouteBuilder extends RouteBuilder {
             .convertBodyTo(List.class)
         ;
 
-        from("direct:createILoqPerson")
-            .routeId("direct:createILoqPerson")
+        from("direct:processILoqPerson")
+            .routeId("direct:processILoqPerson")
             .to("{{app.routes.iLoq.configureILoqSession}}")
-            .setBody(simple("${header.newILoqPerson}"))
-            .log("{{app.name}} :: createILoqPerson :: Creating a new iLOQ person '${body.getPerson().getFirstName().substring(0, 1)}. ${body.getPerson().getLastName()}'")
+            .log("{{app.name}} :: processILoqPerson :: Processing an iLOQ person, operation: ${header.operation}")
+            .setBody(simple("${header.iLoqPayload}"))
             .marshal().json()
             .setHeaders(
-                Exchange.HTTP_METHOD, constant("POST"),
+                Exchange.HTTP_METHOD, simple("${header.method}"),
                 Exchange.HTTP_PATH, constant("/Persons")
             )
             .to("{{app.endpoints.oldhost}}")
-            .log("{{app.name}} :: createILoqPerson :: Creating iLOQ person succeeded")
+            .log("{{app.name}} :: processILoqPerson :: Processing succeeded")
             .setBody(jsonpath("$.PersonIds.[0]"))
-        ;
-
-        from("direct:updateILoqPerson")
-            .routeId("direct:updateILoqPerson")
-            .to("{{app.routes.iLoq.configureILoqSession}}")
-            .setBody(simple("${header.updatedILoqPerson}"))
-            .log("{{app.name}} :: updateILoqPerson :: Updating iLOQ person's ExternalPersonId '${header.iLoqPersonId}'")
-            .marshal().json()
-            .setHeaders(
-                Exchange.HTTP_METHOD, constant("PUT"),
-                Exchange.HTTP_PATH, simple("/Persons/${header.iLoqPersonId}")
-            )
-            .to("{{app.endpoints.oldhost}}")
-            .log("{{app.name}} :: updateILoqPerson :: Updating iLOQ person succeeded")
+            .removeHeaders("*")
         ;
 
         from("direct:processILoqKey")

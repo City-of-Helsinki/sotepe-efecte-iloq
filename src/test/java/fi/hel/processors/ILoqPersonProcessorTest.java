@@ -66,7 +66,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         when(redis.get(anyString())).thenReturn(expectedEfectePersonXml);
         when(helper.writeAsPojo(expectedEfectePersonXml, EfecteEntity.class)).thenReturn(
                 new EfecteEntityBuilder().withDefaults(EnumEfecteTemplate.PERSON).build());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
@@ -91,7 +91,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         when(helper.writeAsPojo(any(), any())).thenReturn(expectedEfectePersonEntity);
         when(iLoqPersonMapper.mapToNewILoqPerson(expectedEfectePersonEntity))
                 .thenReturn(new ILoqPersonImport());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
@@ -115,21 +115,21 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         when(iLoqPersonMapper.mapToNewILoqPerson(any())).thenReturn(iLoqPersonImport);
         when(helper.writeAsPojo(any(), any()))
                 .thenReturn(new EfecteEntityBuilder().withDefaults(EnumEfecteTemplate.PERSON).build());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
-        mocked.getCreateILoqPerson().expectedMessageCount(1);
-        mocked.getCreateILoqPerson().expectedPropertyReceived("newILoqPerson", iLoqPersonImport);
+        mocked.getProcessILoqPerson().expectedMessageCount(1);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", iLoqPersonImport);
 
         iLoqPersonProcessor.createILoqPerson(efecteKey, expectedZoneIds);
 
-        mocked.getCreateILoqPerson().assertIsSatisfied();
+        mocked.getProcessILoqPerson().assertIsSatisfied();
 
-        ILoqPersonImport newILoqPerson = mocked.getCreateILoqPerson().getExchanges().get(0)
-                .getProperty("newILoqPerson", ILoqPersonImport.class);
+        ILoqPersonImport iLoqPayload = mocked.getProcessILoqPerson().getExchanges().get(0)
+                .getProperty("iLoqPayload", ILoqPersonImport.class);
 
-        assertThat(newILoqPerson.getZoneIds()).isEqualTo(expectedZoneIds);
+        assertThat(iLoqPayload.getZoneIds()).isEqualTo(expectedZoneIds);
     }
 
     @Test
@@ -153,7 +153,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
 
         when(iLoqPersonMapper.mapToNewILoqPerson(any())).thenReturn(new ILoqPersonImport());
         when(helper.writeAsPojo(any(), any())).thenReturn(efectePersonEntity);
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(expectedILoqPersonId));
         when(helper.writeAsJson(entityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
 
@@ -180,7 +180,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
 
         when(iLoqPersonMapper.mapToNewILoqPersonForOutsider(expectedEfecteKey))
                 .thenReturn(new ILoqPersonImport());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
@@ -203,21 +203,21 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         ILoqPersonImport iLoqPersonImport = new ILoqPersonImport();
 
         when(iLoqPersonMapper.mapToNewILoqPersonForOutsider(any())).thenReturn(iLoqPersonImport);
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
-        mocked.getCreateILoqPerson().expectedMessageCount(1);
-        mocked.getCreateILoqPerson().expectedPropertyReceived("newILoqPerson", iLoqPersonImport);
+        mocked.getProcessILoqPerson().expectedMessageCount(1);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", iLoqPersonImport);
 
         iLoqPersonProcessor.createILoqPerson(efecteKey, expectedZoneIds);
 
-        mocked.getCreateILoqPerson().assertIsSatisfied();
+        mocked.getProcessILoqPerson().assertIsSatisfied();
 
-        ILoqPersonImport newILoqPerson = mocked.getCreateILoqPerson().getExchanges().get(0)
-                .getProperty("newILoqPerson", ILoqPersonImport.class);
+        ILoqPersonImport iLoqPayload = mocked.getProcessILoqPerson().getExchanges().get(0)
+                .getProperty("iLoqPayload", ILoqPersonImport.class);
 
-        assertThat(newILoqPerson.getZoneIds()).isEqualTo(expectedZoneIds);
+        assertThat(iLoqPayload.getZoneIds()).isEqualTo(expectedZoneIds);
     }
 
     @Test
@@ -241,7 +241,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         entityIdentifier.setOutsiderEmail(outsiderEmail);
 
         when(iLoqPersonMapper.mapToNewILoqPersonForOutsider(any())).thenReturn(new ILoqPersonImport());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(expectedILoqPersonId));
         when(helper.writeAsJson(entityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
         when(helper.createIdentifier(outsiderEmail, outsiderName)).thenReturn(efectePersonIdentifier);
@@ -272,7 +272,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         when(iLoqPersonMapper.mapToNewILoqPerson(any())).thenReturn(iLoqPersonImport);
         when(helper.writeAsPojo(any(), any()))
                 .thenReturn(new EfecteEntityBuilder().withDefaults(EnumEfecteTemplate.PERSON).build());
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody("irrelevant"));
         when(helper.writeAsJson(any())).thenReturn("efecte entity identifier json");
 
@@ -280,7 +280,7 @@ public class ILoqPersonProcessorTest extends CamelQuarkusTestSupport {
         String expectedExceptionMessage = "ILoqPersonProcessor: Creating an iLOQ person failed: "
                 + exceptionMessage;
 
-        mocked.getCreateILoqPerson()
+        mocked.getProcessILoqPerson()
                 .whenAnyExchangeReceived(exchange -> {
 
                     Exception exception = new Exception(exceptionMessage);
