@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.7...sotepe-efecte-iloq-v1.0.8) (2026-03-25)
+
+
+### Bug Fixes
+
+* Update redis keys to support multiple customer codes ([#111](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/111)) ([5275905](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/5275905c2dc92ddc75ee2dba463747d04939e48a))
+
 ## [1.0.7](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.6...sotepe-efecte-iloq-v1.0.7) (2026-03-25)
 
 
