@@ -73,10 +73,12 @@ public class ILoqPersonProcessor {
 
     private String forwardNewPersonToILoq(ILoqPersonImport iLoqNewPerson) throws Exception {
         Exchange ex = new ExchangeBuilder(ri.getContext())
-                .withProperty("newILoqPerson", iLoqNewPerson)
+                .withProperty("iLoqPayload", iLoqNewPerson)
+                .withProperty("method", "POST")
+                .withProperty("operation", "create")
                 .build();
 
-        String newPersonId = ri.getTemplate().send(ri.getCreateILoqPersonEndpointUri(), ex).getIn()
+        String newPersonId = ri.getTemplate().send(ri.getProcessILoqPersonEndpointUri(), ex).getIn()
                 .getBody(String.class);
 
         if (ex.getProperty(Exchange.EXCEPTION_CAUGHT) != null) {

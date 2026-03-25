@@ -342,16 +342,17 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
 
         mocked.getGetILoqPerson().expectedMessageCount(1);
         mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
-        mocked.getUpdateILoqPerson().expectedMessageCount(1);
-        mocked.getUpdateILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
-        mocked.getUpdateILoqPerson().expectedPropertyReceived("updatedILoqPerson", existingILoqPerson);
+        mocked.getProcessILoqPerson().expectedMessageCount(1);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", existingILoqPerson);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("method", "PUT");
+        mocked.getProcessILoqPerson().expectedPropertyReceived("operation", "update");
 
         iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
 
         assertThat(existingILoqPerson.getExternalPersonId()).isEqualTo(keyHolderEntityId);
         MockEndpoint.assertIsSatisfied(
                 mocked.getGetILoqPerson(),
-                mocked.getUpdateILoqPerson());
+                mocked.getProcessILoqPerson());
     }
 
     @Test
@@ -378,16 +379,17 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
 
         mocked.getGetILoqPerson().expectedMessageCount(1);
         mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
-        mocked.getUpdateILoqPerson().expectedMessageCount(1);
-        mocked.getUpdateILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
-        mocked.getUpdateILoqPerson().expectedPropertyReceived("updatedILoqPerson", existingILoqPerson);
+        mocked.getProcessILoqPerson().expectedMessageCount(1);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", existingILoqPerson);
+        mocked.getProcessILoqPerson().expectedPropertyReceived("method", "PUT");
+        mocked.getProcessILoqPerson().expectedPropertyReceived("operation", "update");
 
         iLoqPersonResolver.resolveILoqPersonIdForOutsider(outsiderEmail, outsiderName);
 
         assertThat(existingILoqPerson.getExternalPersonId()).isEqualTo(uniqueIdentifier);
         MockEndpoint.assertIsSatisfied(
                 mocked.getGetILoqPerson(),
-                mocked.getUpdateILoqPerson());
+                mocked.getProcessILoqPerson());
     }
 
     @Test
@@ -412,13 +414,13 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         mocked.getListILoqPersons().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
 
         mocked.getGetILoqPerson().expectedMessageCount(0);
-        mocked.getUpdateILoqPerson().expectedMessageCount(0);
+        mocked.getProcessILoqPerson().expectedMessageCount(0);
 
         iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
 
         MockEndpoint.assertIsSatisfied(
                 mocked.getGetILoqPerson(),
-                mocked.getUpdateILoqPerson());
+                mocked.getProcessILoqPerson());
     }
 
     @Test

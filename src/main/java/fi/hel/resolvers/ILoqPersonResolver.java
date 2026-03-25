@@ -118,11 +118,12 @@ public class ILoqPersonResolver {
         iLoqPerson.setExternalPersonId(externalId);
 
         Exchange updateEx = new ExchangeBuilder(ri.getContext())
-                .withProperty("iLoqPersonId", iLoqPersonId)
-                .withProperty("updatedILoqPerson", iLoqPerson)
+                .withProperty("iLoqPayload", iLoqPerson)
+                .withProperty("method", "PUT")
+                .withProperty("operation", "update")
                 .build();
 
-        ri.getTemplate().send(ri.getUpdateILoqPersonEndpointUri(), updateEx);
+        ri.getTemplate().send(ri.getProcessILoqPersonEndpointUri(), updateEx);
 
         if (updateEx.getProperty(Exchange.EXCEPTION_CAUGHT) != null) {
             throw new Exception(
