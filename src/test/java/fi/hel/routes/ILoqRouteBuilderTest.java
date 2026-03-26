@@ -945,6 +945,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     @DisplayName("direct:processILoqPerson")
     void testShouldTransformTheResponseToAPersonId() throws Exception {
         Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("method", "POST");
         String expectedPersonId = "6485ffbd-c9ed-44db-a3e0-ffe7386b0383";
         String fakeBody = """
                 {
@@ -961,6 +962,19 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
         String response = ex.getIn().getBody(String.class);
 
         assertThat(response).isEqualTo(expectedPersonId);
+    }
+
+    @Test
+    @DisplayName("direct:processILoqPerson")
+    void testShouldNotFailWhenUpdatingPerson() throws Exception {
+        Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("method", "PUT");
+
+        mocked.getOldhost().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(null));
+
+        template.send(processILoqPersonEndpoint, ex);
+
+        assertThat(ex.getException()).isNull();
     }
 
     @Test

@@ -241,7 +241,10 @@ public class ILoqRouteBuilder extends RouteBuilder {
             )
             .to("{{app.endpoints.oldhost}}")
             .log("{{app.name}} :: processILoqPerson :: Processing succeeded")
-            .setBody(jsonpath("$.PersonIds.[0]"))
+            .choice()
+                .when(simple("${header.method} == 'POST'"))
+                    .setBody(jsonpath("$.PersonIds.[0]"))
+            .end()
             .removeHeaders("*")
         ;
 
