@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.11](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.10...sotepe-efecte-iloq-v1.0.11) (2026-03-26)
+
+
+### Bug Fixes
+
+* Conditionally handle processILoqPerson response ([#118](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/118)) ([f1379f0](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/f1379f0de7885ed065754e25f0f626976a150a1b))
+
 ## [1.0.10](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.9...sotepe-efecte-iloq-v1.0.10) (2026-03-26)
 
 
