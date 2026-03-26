@@ -161,6 +161,7 @@ public class ILoqKeyProcessor {
         if (previouslySetCustomerCode == null || !previouslySetCustomerCode.equals(customerCode)) {
             ri.getRedis().set(ri.getILoqCurrentCustomerCodeHasChangedPrefix(), "true");
             ri.getConfigProvider().saveCurrentCredentialsToRedis(customerCode);
+            ex.setProperty("currentCustomerCode", customerCode);
         } else {
             ri.getRedis().set(ri.getILoqCurrentCustomerCodeHasChangedPrefix(), "false");
         }

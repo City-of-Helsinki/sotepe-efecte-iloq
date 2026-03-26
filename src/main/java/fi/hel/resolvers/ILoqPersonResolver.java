@@ -10,6 +10,7 @@ import org.apache.camel.builder.ExchangeBuilder;
 import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.ILoqPerson;
+import fi.hel.models.ILoqPersonImport;
 import fi.hel.models.enumerations.EnumEfecteAttribute;
 import fi.hel.processors.ResourceInjector;
 import org.apache.camel.Exchange;
@@ -119,8 +120,11 @@ public class ILoqPersonResolver {
 
         iLoqPerson.setExternalPersonId(externalId);
 
+        ILoqPersonImport iLoqPersonImport = new ILoqPersonImport();
+        iLoqPersonImport.setPerson(iLoqPerson);
+
         Exchange updateEx = new ExchangeBuilder(ri.getContext())
-                .withProperty("iLoqPayload", iLoqPerson)
+                .withProperty("iLoqPayload", iLoqPersonImport)
                 .withProperty("method", "PUT")
                 .withProperty("operation", "update")
                 .build();
