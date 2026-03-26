@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.9...sotepe-efecte-iloq-v1.0.10) (2026-03-26)
+
+
+### Bug Fixes
+
+* Updating iLOQ person should use a Person wrapper in the payload ([#116](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/116)) ([f0c60aa](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/f0c60aadf3f2b91dd3dfc24a2155b44c1c23a3ba))
+
 ## [1.0.9](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.8...sotepe-efecte-iloq-v1.0.9) (2026-03-25)
 
 
