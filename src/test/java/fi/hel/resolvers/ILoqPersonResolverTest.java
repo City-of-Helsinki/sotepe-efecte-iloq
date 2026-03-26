@@ -27,6 +27,7 @@ import com.devikone.transports.Redis;
 import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.ILoqPerson;
+import fi.hel.models.ILoqPersonImport;
 import fi.hel.models.builders.EfecteEntityBuilder;
 import fi.hel.models.enumerations.EnumEfecteTemplate;
 import fi.hel.processors.Helper;
@@ -346,7 +347,6 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         mocked.getGetILoqPerson().expectedMessageCount(1);
         mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
         mocked.getProcessILoqPerson().expectedMessageCount(1);
-        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", existingILoqPerson);
         mocked.getProcessILoqPerson().expectedPropertyReceived("method", "PUT");
         mocked.getProcessILoqPerson().expectedPropertyReceived("operation", "update");
 
@@ -356,6 +356,11 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         MockEndpoint.assertIsSatisfied(
                 mocked.getGetILoqPerson(),
                 mocked.getProcessILoqPerson());
+
+        ILoqPersonImport sentPayload = (ILoqPersonImport) mocked.getProcessILoqPerson()
+                .getExchanges().get(0).getProperty("iLoqPayload");
+        assertThat(sentPayload.getPerson()).isEqualTo(existingILoqPerson);
+        assertThat(sentPayload.getZoneIds()).isNull();
     }
 
     @Test
@@ -383,7 +388,6 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         mocked.getGetILoqPerson().expectedMessageCount(1);
         mocked.getGetILoqPerson().expectedPropertyReceived("iLoqPersonId", expectedILoqPersonId);
         mocked.getProcessILoqPerson().expectedMessageCount(1);
-        mocked.getProcessILoqPerson().expectedPropertyReceived("iLoqPayload", existingILoqPerson);
         mocked.getProcessILoqPerson().expectedPropertyReceived("method", "PUT");
         mocked.getProcessILoqPerson().expectedPropertyReceived("operation", "update");
 
@@ -393,6 +397,11 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         MockEndpoint.assertIsSatisfied(
                 mocked.getGetILoqPerson(),
                 mocked.getProcessILoqPerson());
+
+        ILoqPersonImport sentPayload = (ILoqPersonImport) mocked.getProcessILoqPerson()
+                .getExchanges().get(0).getProperty("iLoqPayload");
+        assertThat(sentPayload.getPerson()).isEqualTo(existingILoqPerson);
+        assertThat(sentPayload.getZoneIds()).isNull();
     }
 
     @Test
