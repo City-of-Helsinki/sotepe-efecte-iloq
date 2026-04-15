@@ -34,7 +34,7 @@
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
     <maven.exec-plugin.version>3.2.0</maven.exec-plugin.version>
     <quarkus-logging-sentry.version>2.3.0</quarkus-logging-sentry.version>
-    <json-schema-validator.version>1.5.6</json-schema-validator.version>
+    <json-schema-validator.version>3.0.2</json-schema-validator.version>
   </properties>
 
   <dependencyManagement>
