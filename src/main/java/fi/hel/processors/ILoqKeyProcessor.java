@@ -166,6 +166,8 @@ public class ILoqKeyProcessor {
             ri.getRedis().set(ri.getILoqCurrentCustomerCodeHasChangedPrefix(), "false");
         }
 
+        ri.getConfigProvider().setCurrentILoqGetUrlAddress(ex);
+
     }
 
     private String getILoqKeyId(EfecteEntity efecteKey) throws Exception {

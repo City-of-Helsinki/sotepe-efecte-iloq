@@ -172,6 +172,22 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
 
     @Test
     @DisplayName("direct:iLoqController")
+    void testShouldSetTheCurrentILoqGetUrlAddress() throws Exception {
+        Exchange ex = testUtils.createExchange();
+        String customerCode = "abc123";
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of(customerCode));
+        setDefaultResponse();
+
+        verifyNoInteractions(configProvider);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        verify(configProvider).setCurrentILoqGetUrlAddress(any(Exchange.class));
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController")
     void testShouldListTheILoqKeys() throws Exception {
         Exchange ex = testUtils.createExchange();
         String customerCode = "irrelevant";
