@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.12](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.11...sotepe-efecte-iloq-v1.0.12) (2026-05-18)
+
+
+### Bug Fixes
+
+* Set iLOQ GetUrl as customer code specific ([#128](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/128)) ([673361f](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/673361f21e74c4b0f7171da87c8b63bea2019053))
+
 ## [1.0.11](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.10...sotepe-efecte-iloq-v1.0.11) (2026-03-26)
 
 
