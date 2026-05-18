@@ -56,8 +56,6 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     @InjectMock
     AuditExceptionProcessor auditExceptionProcessor;
 
-    @ConfigProperty(name = "ILOQ_GET_URL_ADDRESS")
-    String iLoqGetUrlAddress;
     @ConfigProperty(name = "ILOQ_USERNAME")
     String iLoqUsername;
 
@@ -267,10 +265,12 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     @Test
     @DisplayName("direct:getILoqUri")
     void testShouldSetTheGetUrlAddress() throws Exception {
+        String expectedGetUrlAddress = "https://test.iloq.com/iloqws/api/v2/Url/GetUrl";
         Exchange ex = testUtils.createExchange(null);
+        ex.setProperty("currentILoqGetUrlAddress", expectedGetUrlAddress);
 
         mocked.getOldhost().expectedMessageCount(1);
-        mocked.getOldhost().expectedHeaderReceived("CamelHttpUri", iLoqGetUrlAddress);
+        mocked.getOldhost().expectedHeaderReceived("CamelHttpUri", expectedGetUrlAddress);
 
         template.send(getILoqUriEndpoint, ex);
 

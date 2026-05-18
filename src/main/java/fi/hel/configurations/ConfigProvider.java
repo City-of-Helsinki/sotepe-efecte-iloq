@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -100,6 +101,12 @@ public class ConfigProvider {
 
         ri.getRedis().set(ri.getILoqCurrentCustomerCodePasswordPrefix(),
                 customerConfiguration.getCustomerCodePassword());
+    }
+
+    public void setCurrentILoqGetUrlAddress(Exchange ex) throws Exception {
+        CustomerConfiguration customerConfiguration = getCustomerConfiguration();
+
+        ex.setProperty("currentILoqGetUrlAddress", customerConfiguration.getILoqGetUrlAddress());
     }
 
     public String getILoqRealEstateIdByEfecteAddressEntityId(String efecteAddressEntityId)

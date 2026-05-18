@@ -615,6 +615,20 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         verify(redis).set(ri.getILoqCurrentCustomerCodeHasChangedPrefix(), expectedStatus);
     }
 
+    @Test
+    @DisplayName("setCurrentILoqCredentials")
+    void testShouldSetTheCurrentILoqGetUrlAddress() throws Exception {
+        EfecteEntity efecteEntity = new EfecteEntityBuilder()
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("efecteKey", efecteEntity);
+
+        iLoqKeyProcessor.setCurrentILoqCredentials(ex);
+
+        verify(configProvider).setCurrentILoqGetUrlAddress(ex);
+    }
+
     ////////////////////
     // iLOQ -> Efecte //
     ////////////////////

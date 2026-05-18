@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.apache.camel.Exchange;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ public class ConfigProviderTest {
 
     private String testCustomerCode1 = "customer-code-1";
     private String testCustomerPassword1 = "customer-password-1";
+    private String testILoqGetUrlAddress1 = "https://ils-se.iloq.com/iloqws/api/v2/Url/GetUrl";
     private String testCustomerCode2 = "customer-code-2";
     private String testEfecteAddressName1 = "Testikatu 1, 00510, Helsinki";
     private String testEfecteAddressEntityId1 = "testikatu-1-entity-id";
@@ -79,6 +81,7 @@ public class ConfigProviderTest {
 
         assertThat(customerConfiguration.getCustomerCode()).isEqualTo(testCustomerCode1);
         assertThat(customerConfiguration.getCustomerCodePassword()).isEqualTo(testCustomerPassword1);
+        assertThat(customerConfiguration.getILoqGetUrlAddress()).isEqualTo(testILoqGetUrlAddress1);
 
         assertThat(customerConfiguration.getRealEstates().get(0)
                 .getEfecte().getName()).isEqualTo(testEfecteAddressName1);
@@ -193,6 +196,32 @@ public class ConfigProviderTest {
 
         assertThatThrownBy(() -> configProvider.saveCurrentCredentialsToRedis(
                 invalidCustomerCode))
+                .hasMessage(expectedExceptionMessage);
+    }
+
+    @Test
+    @DisplayName("setCurrentILoqGetUrlAddress")
+    void testShouldSetTheCurrentILoqGetUrlAddressAsAnExchangeProperty() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        configProvider.setCurrentILoqGetUrlAddress(ex);
+
+        assertThat(ex.getProperty("currentILoqGetUrlAddress")).isEqualTo(testILoqGetUrlAddress1);
+    }
+
+    @Test
+    @DisplayName("setCurrentILoqGetUrlAddress")
+    void testShouldThrowAnExceptionWhenACustomerConfigurationIsNotFoundForTheCustomerCode_SetCurrentILoqGetUrlAddress()
+            throws Exception {
+        String invalidCustomerCode = "invalid_customer_code";
+        String expectedExceptionMessage = "ConfigProvider: No iLOQ customer configuration found for customer code '"
+                + invalidCustomerCode + "'";
+
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(invalidCustomerCode);
+
+        Exchange ex = testUtils.createExchange();
+
+        assertThatThrownBy(() -> configProvider.setCurrentILoqGetUrlAddress(ex))
                 .hasMessage(expectedExceptionMessage);
     }
 

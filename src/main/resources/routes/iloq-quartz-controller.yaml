@@ -152,6 +152,9 @@
         - bean:
             ref: configProvider
             method: saveCurrentCredentialsToRedis(${body})
+        - bean:
+            ref: configProvider
+            method: setCurrentILoqGetUrlAddress
 
 - route:
     id: direct:enrichKeyWithSecurityAccesses
