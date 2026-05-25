@@ -214,6 +214,7 @@ public class RedisRouteBuilderTest extends CamelQuarkusTestSupport {
         verify(redis).del(ri.getILoqCurrentCustomerCodePrefix());
         verify(redis).del(ri.getILoqCurrentCustomerCodeHasChangedPrefix());
         verify(redis).del(ri.getILoqCurrentCustomerCodePasswordPrefix());
+        verify(redis).del(ri.getILoqCurrentGetUrlAddressPrefix());
     }
 
     @Test

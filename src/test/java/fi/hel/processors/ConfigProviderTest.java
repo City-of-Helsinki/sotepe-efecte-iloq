@@ -211,6 +211,16 @@ public class ConfigProviderTest {
 
     @Test
     @DisplayName("setCurrentILoqGetUrlAddress")
+    void testShouldSaveTheCurrentILoqGetUrlAddressToRedis() throws Exception {
+        Exchange ex = testUtils.createExchange();
+
+        configProvider.setCurrentILoqGetUrlAddress(ex);
+
+        verify(redis).set(ri.getILoqCurrentGetUrlAddressPrefix(), testILoqGetUrlAddress1);
+    }
+
+    @Test
+    @DisplayName("setCurrentILoqGetUrlAddress")
     void testShouldThrowAnExceptionWhenACustomerConfigurationIsNotFoundForTheCustomerCode_SetCurrentILoqGetUrlAddress()
             throws Exception {
         String invalidCustomerCode = "invalid_customer_code";

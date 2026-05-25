@@ -51,7 +51,7 @@ public class ILoqRouteBuilder extends RouteBuilder {
             .setHeaders(
                 Exchange.HTTP_METHOD, constant("POST"),
                 Exchange.CONTENT_TYPE, constant("application/json"),
-                Exchange.HTTP_URI, simple("${exchangeProperty.currentILoqGetUrlAddress}")
+                Exchange.HTTP_URI, method(ri.getRedis(), "get({{app.redis.prefix.iLoqCurrentGetUrlAddress}})")
             )
             .setBody(simple("""
                     {

@@ -105,8 +105,10 @@ public class ConfigProvider {
 
     public void setCurrentILoqGetUrlAddress(Exchange ex) throws Exception {
         CustomerConfiguration customerConfiguration = getCustomerConfiguration();
+        String iLoqGetUrlAddress = customerConfiguration.getILoqGetUrlAddress();
 
-        ex.setProperty("currentILoqGetUrlAddress", customerConfiguration.getILoqGetUrlAddress());
+        ri.getRedis().set(ri.getILoqCurrentGetUrlAddressPrefix(), iLoqGetUrlAddress);
+        ex.setProperty("currentILoqGetUrlAddress", iLoqGetUrlAddress);
     }
 
     public String getILoqRealEstateIdByEfecteAddressEntityId(String efecteAddressEntityId)
