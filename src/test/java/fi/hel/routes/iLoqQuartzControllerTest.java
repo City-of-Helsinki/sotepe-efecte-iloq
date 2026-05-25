@@ -719,10 +719,49 @@ public class iLoqQuartzControllerTest extends CamelQuarkusTestSupport {
         mocked.getProcessILoqKey().expectedPropertyReceived("method", "PUT");
         mocked.getProcessILoqKey().expectedPropertyReceived("from", EnumDirection.ILOQ);
         mocked.getProcessILoqKey().expectedPropertyReceived("to", EnumDirection.EFECTE);
+        mocked.getUpdateILoqKeySecurityAccesses().expectedMessageCount(0);
 
         template.send(iLoqControllerEndpoint, ex);
 
-        mocked.getProcessILoqKey().assertIsSatisfied();
+        MockEndpoint.assertIsSatisfied(
+                mocked.getProcessILoqKey(),
+                mocked.getUpdateILoqKeySecurityAccesses());
+    }
+
+    @Test
+    @DisplayName("direct:iLoqController - matching Efecte key is passive")
+    void testShouldClearILoqKeySecurityAccessesWhenMatchingEfecteKeyIsPassive() throws Exception {
+        String expectedILoqId = "abc-123";
+        ILoqKeyImport expectedILoqPayload = new ILoqKeyImport(new ILoqKey(expectedILoqId));
+        Set<String> expectedILoqSecurityAccessIds = Set.of();
+        Exchange ex = testUtils.createExchange();
+
+        when(configProvider.getConfiguredCustomerCodes()).thenReturn(List.of("irrelevant customer code"));
+
+        mocked.getListILoqKeys()
+                .whenAnyExchangeReceived(
+                        exchange -> exchange.getIn().setBody(List.of(new ILoqKeyResponse(expectedILoqId))));
+
+        doAnswer(i -> {
+            Exchange exchange = i.getArgument(0);
+            exchange.setProperty("shouldUpdateILoqKey", true);
+            exchange.setProperty("shouldClearILoqSecurityAccesses", true);
+            exchange.setProperty("iLoqPayload", expectedILoqPayload);
+            exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
+            return null;
+        }).when(efecteKeyProcessor).buildEfecteKey(any(Exchange.class));
+
+        mocked.getProcessILoqKey().expectedMessageCount(1);
+        mocked.getUpdateILoqKeySecurityAccesses().expectedMessageCount(1);
+        mocked.getUpdateILoqKeySecurityAccesses().expectedPropertyReceived("iLoqKeyId", expectedILoqId);
+        mocked.getUpdateILoqKeySecurityAccesses().expectedPropertyReceived("newILoqSecurityAccessIds",
+                expectedILoqSecurityAccessIds);
+
+        template.send(iLoqControllerEndpoint, ex);
+
+        MockEndpoint.assertIsSatisfied(
+                mocked.getProcessILoqKey(),
+                mocked.getUpdateILoqKeySecurityAccesses());
     }
 
     @Test

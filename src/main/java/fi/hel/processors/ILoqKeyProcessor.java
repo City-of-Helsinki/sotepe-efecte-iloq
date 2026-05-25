@@ -48,6 +48,7 @@ public class ILoqKeyProcessor {
         boolean shouldCreateILoqKey = false;
         boolean shouldUpdateILoqKey = false;
         boolean shouldDisableILoqKey = false;
+        boolean shouldClearILoqSecurityAccesses = false;
         Set<String> newILoqSecurityAccessIds = null;
         PreviousEfecteKey oldPreviousEfecteKey = null;
         PreviousEfecteKey newPreviousEfecteKey = null;
@@ -110,9 +111,10 @@ public class ILoqKeyProcessor {
                         }
                     } else if (keyState.equals(EnumEfecteKeyState.PASSIIVINEN.getName())) {
                         shouldDisableILoqKey = true;
+                        shouldClearILoqSecurityAccesses = true;
                         newILoqSecurityAccessIds = new HashSet<>();
+                        iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(efecteKey, true);
                         newPreviousEfecteKey = new PreviousEfecteKey(keyState, newEfecteSecurityAccessEntityIds);
-                        // Note: While we remove the connection between Efecte and iLOQ keys from Efecte, currently we do not remove this connection from iLOQ (InfoText-field remains as is).
                         efectePayload = new EfecteEntitySet(new EfecteEntityBuilder()
                                 .withTemplate(EnumEfecteTemplate.KEY.getCode())
                                 .withKeyEfecteId(efecteId)
@@ -144,6 +146,7 @@ public class ILoqKeyProcessor {
         ex.setProperty("shouldCreateILoqKey", shouldCreateILoqKey);
         ex.setProperty("shouldUpdateILoqKey", shouldUpdateILoqKey);
         ex.setProperty("shouldDisableILoqKey", shouldDisableILoqKey);
+        ex.setProperty("shouldClearILoqSecurityAccesses", shouldClearILoqSecurityAccesses);
         ex.setProperty("newPreviousEfecteKey", newPreviousEfecteKey);
         ex.setProperty("newILoqSecurityAccessIds", newILoqSecurityAccessIds);
         ex.setProperty("efectePayload", efectePayload);

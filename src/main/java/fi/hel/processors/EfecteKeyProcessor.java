@@ -1,5 +1,6 @@
 package fi.hel.processors;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -118,6 +119,7 @@ public class EfecteKeyProcessor {
         boolean shouldUpdateEfecteKey = false;
         boolean shouldCreateEfecteKey = false;
         boolean shouldUpdateILoqKey = false;
+        boolean shouldClearILoqSecurityAccesses = false;
         EfecteEntitySetImport efectePayload = null;
         ILoqKeyImport iLoqPayload = null;
         String efecteKeyEntityId = null;
@@ -158,6 +160,8 @@ public class EfecteKeyProcessor {
 
                 if (matchingEfecteKeyState.equals(EnumEfecteKeyState.PASSIIVINEN.getName())) {
                     iLoqPayload = ri.getILoqKeyMapper().buildUpdatedILoqKey(foundMatchingKey, iLoqKeyResponse, true);
+                    shouldClearILoqSecurityAccesses = true;
+                    newILoqSecurityAccessIds = new HashSet<>();
                 } else {
                     shouldUpdateEfecteKey = true;
                     saveMappedKeys(enrichedILoqKey, foundMatchingKey, iLoqKeyResponse);
@@ -233,6 +237,7 @@ public class EfecteKeyProcessor {
         ex.setProperty("shouldUpdateEfecteKey", shouldUpdateEfecteKey);
         ex.setProperty("shouldCreateEfecteKey", shouldCreateEfecteKey);
         ex.setProperty("shouldUpdateILoqKey", shouldUpdateILoqKey);
+        ex.setProperty("shouldClearILoqSecurityAccesses", shouldClearILoqSecurityAccesses);
         ex.setProperty("newPreviousEfecteKey", newPreviousEfecteKey);
         ex.setProperty("newILoqSecurityAccessIds", newILoqSecurityAccessIds);
 

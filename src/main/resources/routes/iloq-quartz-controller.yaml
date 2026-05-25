@@ -123,6 +123,12 @@
                                             name: to
                                             simple: ${type:fi.hel.models.enumerations.EnumDirection.EFECTE}
                                         - to: "{{app.routes.iLoq.processILoqKey}}"
+                                        - choice:
+                                            when:
+                                              - simple: ${header.shouldClearILoqSecurityAccesses}
+                                                steps:
+                                                  - log: "{{app.name}} :: iLoqQuartzController :: Matching Efecte key is passive, clearing iLOQ key security accesses"
+                                                  - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
                               - choice:
                                   when:
                                     - simple: ${header.newPreviousEfecteKey} != null

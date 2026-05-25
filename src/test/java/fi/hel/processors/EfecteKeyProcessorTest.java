@@ -963,6 +963,7 @@ public class EfecteKeyProcessorTest {
         boolean shouldUpdateEfecteKey = ex.getProperty("shouldUpdateEfecteKey", boolean.class);
         boolean shouldCreateEfecteKey = ex.getProperty("shouldCreateEfecteKey", boolean.class);
         boolean shouldUpdateILoqKey = ex.getProperty("shouldUpdateILoqKey", boolean.class);
+        boolean shouldClearILoqSecurityAccesses = ex.getProperty("shouldClearILoqSecurityAccesses", boolean.class);
         Set<String> newILoqSecurityAccessIds = ex.getProperty("newILoqSecurityAccessIds", Set.class);
         PreviousEfecteKey newPreviousEfecteKey = ex.getProperty("newPreviousEfecteKey",
                 PreviousEfecteKey.class);
@@ -975,8 +976,8 @@ public class EfecteKeyProcessorTest {
         assertThat(shouldUpdateEfecteKey).isFalse();
         assertThat(shouldCreateEfecteKey).isFalse();
         assertThat(shouldUpdateILoqKey).isTrue();
-        assertThat(newILoqSecurityAccessIds).containsExactlyInAnyOrder(expectedILoqSecurityAccessId1,
-                expectedILoqSecurityAccessId2);
+        assertThat(shouldClearILoqSecurityAccesses).isTrue();
+        assertThat(newILoqSecurityAccessIds).isEmpty();
         assertThat(newPreviousEfecteKey).isNull();
         assertThat(iLoqPayload).isEqualTo(expectedILoqKeyImport);
         assertThat(efecteKeyEntityId).isNull();

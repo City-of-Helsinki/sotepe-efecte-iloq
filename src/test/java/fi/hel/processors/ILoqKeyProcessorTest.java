@@ -398,8 +398,11 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         PreviousEfecteKey expectedNewPreviousEfecteKey = new PreviousEfecteKey(
                 keyState.getName(), Set.of(securityAccessEntityId));
 
+        ILoqKeyImport expectedILoqPayload = new ILoqKeyImport(new ILoqKey(expectedILoqKeyId));
+
         when(redis.get(anyString())).thenReturn(previousEfecteKeyJson);
         when(helper.writeAsPojo(previousEfecteKeyJson, PreviousEfecteKey.class)).thenReturn(previousEfecteKey);
+        when(iLoqKeyMapper.buildUpdatedILoqKey(efecteEntity, true)).thenReturn(expectedILoqPayload);
 
         iLoqKeyProcessor.processKey(ex);
 
@@ -408,19 +411,21 @@ public class ILoqKeyProcessorTest extends CamelQuarkusTestSupport {
         boolean shouldCreateILoqKey = ex.getProperty("shouldCreateILoqKey", boolean.class);
         boolean shouldUpdateILoqKey = ex.getProperty("shouldUpdateILoqKey", boolean.class);
         boolean shouldDisableILoqKey = ex.getProperty("shouldDisableILoqKey", boolean.class);
+        boolean shouldClearILoqSecurityAccesses = ex.getProperty("shouldClearILoqSecurityAccesses", boolean.class);
         Set<String> newILoqSecurityAccessIds = ex.getProperty("newILoqSecurityAccessIds", Set.class);
         PreviousEfecteKey newPreviousEfecteKey = ex.getProperty("newPreviousEfecteKey",
                 PreviousEfecteKey.class);
         EfecteEntitySet efectePayload = ex.getProperty("efectePayload", EfecteEntitySet.class);
 
-        assertThat(iLoqPayload).isNull();
+        assertThat(iLoqPayload).isEqualTo(expectedILoqPayload);
         assertThat(iLoqKeyId).isEqualTo(expectedILoqKeyId);
         assertThat(shouldCreateILoqKey).isFalse();
         assertThat(shouldUpdateILoqKey).isFalse();
         assertThat(shouldDisableILoqKey).isTrue();
+        assertThat(shouldClearILoqSecurityAccesses).isTrue();
         assertThat(newPreviousEfecteKey).isEqualTo(expectedNewPreviousEfecteKey);
         assertThat(newILoqSecurityAccessIds).isEmpty();
-        verifyNoInteractions(iLoqKeyMapper);
+        verify(iLoqKeyMapper).buildUpdatedILoqKey(efecteEntity, true);
         assertThat(efectePayload).isEqualTo(expectedEfectePayload);
     }
 
