@@ -70,8 +70,13 @@
                                   #           - to: "{{app.routes.iLoq.orderKey}}"
                               - simple: ${header.shouldDisableILoqKey}
                                 steps:
-                                  - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been disabled, and its security accesses needs to be removed"
-                                  - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
+                                  - log: "{{app.name}} :: efecteKeyCardsHandler :: The key has been disabled, updating iLOQ key infoText and clearing security accesses"
+                                  - to: direct:handleILoqKeyUpdate
+                                  - choice:
+                                      when:
+                                        - simple: ${header.shouldClearILoqSecurityAccesses}
+                                          steps:
+                                            - to: "{{app.routes.iLoq.updateILoqKeySecurityAccesses}}"
                                   # Enable this if API security accesses are being used
                                   # - to: "{{app.routes.iLoq.canOrderKey}}"
                                   # - choice:

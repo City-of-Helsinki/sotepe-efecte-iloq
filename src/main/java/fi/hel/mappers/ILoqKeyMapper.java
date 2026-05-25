@@ -76,11 +76,15 @@ public class ILoqKeyMapper {
     }
 
     public ILoqKeyImport buildUpdatedILoqKey(EfecteEntity efecteEntity) throws Exception {
+        return buildUpdatedILoqKey(efecteEntity, false);
+    }
+
+    public ILoqKeyImport buildUpdatedILoqKey(EfecteEntity efecteEntity, boolean isPassive) throws Exception {
         // We need to retrieve the current iLOQ key first to preserve values that are not being updated
         ILoqKeyResponse iLoqKeyResponse = getILoqKey(
                 efecteEntity.getAttributeValue(EnumEfecteAttribute.KEY_EXTERNAL_ID));
 
-        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse, false);
+        return mapILoqKeyResponse(efecteEntity, iLoqKeyResponse, isPassive);
     }
 
     ////////////////////

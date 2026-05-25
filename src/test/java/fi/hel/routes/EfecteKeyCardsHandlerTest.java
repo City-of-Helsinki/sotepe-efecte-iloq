@@ -547,23 +547,30 @@ public class EfecteKeyCardsHandlerTest extends CamelQuarkusTestSupport {
 
         String expectedILoqKeyId = "abc-123";
         Set<String> expectedILoqSecurityAccessIds = Set.of();
+        ILoqKeyImport expectedILoqPayload = new ILoqKeyImport(new ILoqKey(expectedILoqKeyId));
 
         when(efecteKeyProcessor.isValidated(any(Exchange.class))).thenReturn(true);
         doAnswer(i -> {
             Exchange exchange = i.getArgument(0);
 
             exchange.setProperty("shouldDisableILoqKey", true);
+            exchange.setProperty("shouldClearILoqSecurityAccesses", true);
             exchange.setProperty("iLoqKeyId", expectedILoqKeyId);
+            exchange.setProperty("iLoqPayload", expectedILoqPayload);
             exchange.setProperty("newILoqSecurityAccessIds", expectedILoqSecurityAccessIds);
 
             return null;
         }).when(iLoqKeyProcessor).processKey(any(Exchange.class));
 
+        mocked.getProcessILoqKey().expectedMessageCount(1);
+        mocked.getProcessILoqKey().expectedPropertyReceived("iLoqPayload", expectedILoqPayload);
+        mocked.getProcessILoqKey().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
+        mocked.getProcessILoqKey().expectedPropertyReceived("operation", "update");
+        mocked.getProcessILoqKey().expectedPropertyReceived("method", "PUT");
         mocked.getUpdateILoqKeySecurityAccesses().expectedMessageCount(1);
         mocked.getUpdateILoqKeySecurityAccesses().expectedPropertyReceived("iLoqKeyId", expectedILoqKeyId);
         mocked.getUpdateILoqKeySecurityAccesses().expectedPropertyReceived("newILoqSecurityAccessIds",
                 expectedILoqSecurityAccessIds);
-        mocked.getProcessILoqKey().expectedMessageCount(0);
 
         template.send(efecteKeyCardsHandlerEndpoint, ex);
 
