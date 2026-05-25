@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.0...sotepe-efecte-iloq-v1.1.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* Store iLOQ GetUrl address in Redis for cross-exchange access ([#134](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/134)) ([9dbe1c8](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/9dbe1c83c756a7ec11bc3dcf45abcf7569233bb7))
+
 ## [1.1.0](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.12...sotepe-efecte-iloq-v1.1.0) (2026-05-25)
 
 
