@@ -24,6 +24,7 @@ app:
       iLoqCurrentCustomerCode: ${app.name}:iLoqCurrentCustomerCode
       iLoqCurrentCustomerCodePassword: ${app.name}:iLoqCurrentCustomerCodePassword
       iLoqCurrentCustomerCodeHasChanged: ${app.name}:iLoqCurrentCustomerCodeHasChanged
+      iLoqCurrentGetUrlAddress: ${app.name}:iLoqCurrentGetUrlAddress
       auditMessage: ${app.name}:auditMessage
       auditException: "${app.name}:auditException:"
       auditExceptionInProgress: ${app.name}:auditExceptionInProgress

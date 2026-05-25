@@ -73,6 +73,7 @@ public class RedisRouteBuilder extends RouteBuilder {
             .bean(ri.getRedis(), "del({{app.redis.prefix.iLoqCurrentCustomerCode}})")
             .bean(ri.getRedis(), "del({{app.redis.prefix.iLoqCurrentCustomerCodePassword}})")
             .bean(ri.getRedis(), "del({{app.redis.prefix.iLoqCurrentCustomerCodeHasChanged}})")
+            .bean(ri.getRedis(), "del({{app.redis.prefix.iLoqCurrentGetUrlAddress}})")
         ;
 
         from("direct:saveMappedKeys")

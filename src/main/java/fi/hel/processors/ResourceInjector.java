@@ -69,6 +69,8 @@ public class ResourceInjector {
     String iLoqCurrentCustomerCodePasswordPrefix;
     @ConfigProperty(name = "app.redis.prefix.iLoqCurrentCustomerCodeHasChanged")
     String iLoqCurrentCustomerCodeHasChangedPrefix;
+    @ConfigProperty(name = "app.redis.prefix.iLoqCurrentGetUrlAddress")
+    String iLoqCurrentGetUrlAddressPrefix;
     @ConfigProperty(name = "app.redis.prefix.auditMessage")
     String auditMessagePrefix;
     @ConfigProperty(name = "app.redis.prefix.auditException")
@@ -274,6 +276,10 @@ public class ResourceInjector {
 
     public String getILoqCurrentCustomerCodeHasChangedPrefix() {
         return this.iLoqCurrentCustomerCodeHasChangedPrefix;
+    }
+
+    public String getILoqCurrentGetUrlAddressPrefix() {
+        return this.iLoqCurrentGetUrlAddressPrefix;
     }
 
     public String getSaveILoqSessionStatusToRedisEndpointUri() {

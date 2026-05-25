@@ -267,7 +267,7 @@ public class ILoqRouteBuilderTest extends CamelQuarkusTestSupport {
     void testShouldSetTheGetUrlAddress() throws Exception {
         String expectedGetUrlAddress = "https://test.iloq.com/iloqws/api/v2/Url/GetUrl";
         Exchange ex = testUtils.createExchange(null);
-        ex.setProperty("currentILoqGetUrlAddress", expectedGetUrlAddress);
+        when(redis.get(ri.getILoqCurrentGetUrlAddressPrefix())).thenReturn(expectedGetUrlAddress);
 
         mocked.getOldhost().expectedMessageCount(1);
         mocked.getOldhost().expectedHeaderReceived("CamelHttpUri", expectedGetUrlAddress);
