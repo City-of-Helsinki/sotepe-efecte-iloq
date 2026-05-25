@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.12...sotepe-efecte-iloq-v1.1.0) (2026-05-25)
+
+
+### Features
+
+* Clear iLOQ key security accesses when Efecte counterpart is passive ([#132](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/132)) ([b78951c](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/b78951ce9ffe824818459fca24762ad374b485e2))
+
 ## [1.0.12](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.0.11...sotepe-efecte-iloq-v1.0.12) (2026-05-18)
 
 
