@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -23,12 +24,15 @@ import com.devikone.test_utils.TestUtils;
 import com.devikone.transports.Redis;
 
 import fi.hel.exceptions.AuditException;
+import fi.hel.models.EfecteAttribute;
 import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
 import fi.hel.models.EnrichedILoqKey;
 import fi.hel.models.ILoqPerson;
+import fi.hel.models.builders.EfecteAttributeBuilder;
 import fi.hel.models.builders.EfecteEntityBuilder;
 import fi.hel.models.enumerations.EnumDirection;
+import fi.hel.models.enumerations.EnumEfecteAttribute;
 import fi.hel.models.enumerations.EnumEfecteTemplate;
 import fi.hel.processors.AuditExceptionProcessor;
 import fi.hel.processors.Helper;
@@ -375,5 +379,110 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
         verify(redis).set(expectedEfectePrefix, expectedPersonId);
         verify(redis).set(expectedILoqPrefix, expectedEfecteEntityIdentifierJson);
         verify(helper).writeAsJson(efecteEntityIdentifier);
+    }
+
+    @Test
+    @DisplayName("resolveEfectePersonIdentifier - ExternalPersonId")
+    void testShouldResolveTheEfectePersonByTheILoqPersonExternalPersonId() throws Exception {
+        String iLoqPersonId = "abc-123";
+        String keyHolderEntityId = "5198858";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", iLoqPersonId);
+        iLoqPerson.setExternalPersonId(keyHolderEntityId);
+        EfecteEntity efectePerson = new EfecteEntityBuilder()
+                .withId(keyHolderEntityId)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withAttributes(statusAttribute("Active"))
+                .build();
+        String expectedEfecteQuery = "SELECT entity FROM entity WHERE template.code = 'person' AND entity.id = '"
+                + keyHolderEntityId + "'";
+
+        mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(efectePerson)));
+        mocked.getGetEfecteEntity().expectedMessageCount(1);
+        mocked.getGetEfecteEntity().expectedPropertyReceived("efecteQuery", expectedEfecteQuery);
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
+
+        assertThat(result).isEqualTo(keyHolderEntityId);
+        verify(redis).set(ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + keyHolderEntityId, iLoqPersonId);
+        mocked.getGetEfecteEntity().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("resolveEfectePersonIdentifier - ExternalPersonId")
+    void testShouldResolveTheEfectePersonByNameWhenTheExternalPersonIdPersonIsInactive() throws Exception {
+        String iLoqPersonId = "abc-123";
+        String inactiveEntityId = "111";
+        String expectedEntityId = "222";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", iLoqPersonId);
+        iLoqPerson.setExternalPersonId(inactiveEntityId);
+        EfecteEntity inactivePerson = new EfecteEntityBuilder()
+                .withId(inactiveEntityId)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withAttributes(statusAttribute("Inactive"))
+                .build();
+        EfecteEntity activePerson = new EfecteEntityBuilder()
+                .withId(expectedEntityId)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withAttributes(statusAttribute("Active"))
+                .build();
+
+        mocked.getGetEfecteEntity().whenExchangeReceived(1, exchange -> exchange.getIn().setBody(List.of(inactivePerson)));
+        mocked.getGetEfecteEntity().whenExchangeReceived(2, exchange -> exchange.getIn().setBody(List.of(activePerson)));
+        mocked.getGetEfecteEntity().expectedMessageCount(2);
+
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
+
+        assertThat(result).isEqualTo(expectedEntityId);
+        mocked.getGetEfecteEntity().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("resolveEfectePersonIdentifier - ExternalPersonId")
+    void testShouldNotUseAnOutsiderExternalPersonIdAsAnEfecteEntityId() throws Exception {
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", "abc-123");
+        iLoqPerson.setExternalPersonId("john.doe@outsider.com#JODO");
+
+        mocked.getGetEfecteEntity().whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of()));
+        mocked.getGetEfecteEntity().expectedMessageCount(1);
+
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
+
+        assertThat(result).isEqualTo("John Doe");
+        mocked.getGetEfecteEntity().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("resolveEfectePersonIdentifier")
+    void testShouldResolveTheOnlyActiveEfectePersonWhenMultiplePersonsAreFoundByName() throws Exception {
+        String iLoqPersonId = "abc-123";
+        String expectedEntityId = "222";
+        ILoqPerson iLoqPerson = new ILoqPerson("John", "Doe", iLoqPersonId);
+        EfecteEntity inactivePerson = new EfecteEntityBuilder()
+                .withId("111")
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withAttributes(statusAttribute("Inactive"))
+                .build();
+        EfecteEntity activePerson = new EfecteEntityBuilder()
+                .withId(expectedEntityId)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .withAttributes(statusAttribute("Active"))
+                .build();
+
+        mocked.getGetEfecteEntity().whenAnyExchangeReceived(
+                exchange -> exchange.getIn().setBody(List.of(inactivePerson, activePerson)));
+
+        String result = efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
+
+        assertThat(result).isEqualTo(expectedEntityId);
+        verify(auditExceptionProcessor, never()).throwAuditException(any(), any(), any(), any(), any(), any());
+    }
+
+    private EfecteAttribute statusAttribute(String status) {
+        return new EfecteAttributeBuilder()
+                .withId(EnumEfecteAttribute.PERSON_STATUS.getId())
+                .withCode(EnumEfecteAttribute.PERSON_STATUS.getCode())
+                .withValue(status)
+                .build();
     }
 }

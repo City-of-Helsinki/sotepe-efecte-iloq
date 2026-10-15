@@ -37,6 +37,12 @@ public class ILoqPersonResolver {
         String iLoqPersonId = getMappedId(keyHolderEntityId);
 
         if (iLoqPersonId != null) {
+            if (!hasILoqPersonMapping(iLoqPersonId)) {
+                EfecteEntity efectePerson = getEfectePerson(keyHolderEntityId);
+                saveILoqPersonMapping(iLoqPersonId, new EfecteEntityIdentifier(
+                        keyHolderEntityId, efectePerson.getAttributeValue(EnumEfecteAttribute.PERSON_EFECTE_ID)));
+            }
+
             return iLoqPersonId;
         }
 
@@ -75,6 +81,13 @@ public class ILoqPersonResolver {
         String iLoqPersonId = getMappedId(uniqueIdentifier);
 
         if (iLoqPersonId != null) {
+            if (!hasILoqPersonMapping(iLoqPersonId)) {
+                EfecteEntityIdentifier efecteEntityIdentifier = new EfecteEntityIdentifier();
+                efecteEntityIdentifier.setOutsiderName(outsiderName);
+                efecteEntityIdentifier.setOutsiderEmail(outsiderEmail);
+                saveILoqPersonMapping(iLoqPersonId, efecteEntityIdentifier);
+            }
+
             return iLoqPersonId;
         }
 
@@ -136,6 +149,21 @@ public class ILoqPersonResolver {
                     "ILoqPersonResolver: Updating iLOQ person ExternalPersonId failed: "
                             + updateEx.getException().getMessage());
         }
+    }
+
+    // The iLOQ -> Efecte direction needs the reverse mapping, otherwise the person is resolved again by name
+    private boolean hasILoqPersonMapping(String iLoqPersonId) throws Exception {
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+
+        return ri.getRedis().exists(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId);
+    }
+
+    private void saveILoqPersonMapping(String iLoqPersonId, EfecteEntityIdentifier efecteEntityIdentifier)
+            throws Exception {
+        String cc = ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix());
+
+        ri.getRedis().set(ri.getMappedPersonILoqPrefix() + cc + ":" + iLoqPersonId,
+                ri.getHelper().writeAsJson(efecteEntityIdentifier));
     }
 
     private String getMappedId(String externalId) throws Exception {

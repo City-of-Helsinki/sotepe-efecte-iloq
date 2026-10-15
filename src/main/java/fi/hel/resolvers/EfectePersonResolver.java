@@ -24,6 +24,8 @@ public class EfectePersonResolver {
     @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
     long auditExceptionExpirationTime;
 
+    private static final String ACTIVE_STATUS = "Active";
+
     ////////////////////
     // iLOQ -> Efecte //
     ////////////////////
@@ -36,27 +38,39 @@ public class EfectePersonResolver {
         String efectePersonIdentifierValue = null;
 
         if (efectePersonIdentifierJson == null) {
-            String firstName = getNormalizedString(iLoqPerson.getFirstName());
-            String lastName = getNormalizedString(iLoqPerson.getLastName());
+            // The iLOQ person's ExternalPersonId is the Efecte person entity id when the person has been linked earlier
+            EfecteEntity efecteKeyHolder = getEfectePersonByExternalPersonId(iLoqPerson.getExternalPersonId());
 
-            List<EfecteEntity> efectePersons = getEfectePerson(firstName, lastName);
+            if (efecteKeyHolder == null) {
+                String firstName = getNormalizedString(iLoqPerson.getFirstName());
+                String lastName = getNormalizedString(iLoqPerson.getLastName());
 
-            if (efectePersons.isEmpty()) {
-                return firstName + " " + lastName;
-            } else if (efectePersons.size() > 1) {
-                // When multiple Efecte persons match, store them in auditRecord to allow the user to select the correct match in the UI
-                String prefix = ri.getAuditRecordPersonPrefix() + iLoqPersonId;
-                ri.getRedis().setex(prefix, efectePersons.toString(), auditExceptionExpirationTime);
+                List<EfecteEntity> efectePersons = getEfectePerson(firstName, lastName);
 
-                String auditMessage = "Multiple matching key holders found for iLOQ person '" + firstName + " "
-                        + lastName
-                        + "' at Efecte";
+                if (efectePersons.isEmpty()) {
+                    return firstName + " " + lastName;
+                } else if (efectePersons.size() > 1) {
+                    List<EfecteEntity> activeEfectePersons = getActiveEfectePersons(efectePersons);
 
-                ri.getAuditExceptionProcessor().throwAuditException(
-                        EnumDirection.ILOQ, EnumDirection.EFECTE, null, null, iLoqPersonId, auditMessage);
+                    if (activeEfectePersons.size() == 1) {
+                        efectePersons = activeEfectePersons;
+                    } else {
+                        // When multiple Efecte persons match, store them in auditRecord to allow the user to select the correct match in the UI
+                        String prefix = ri.getAuditRecordPersonPrefix() + iLoqPersonId;
+                        ri.getRedis().setex(prefix, efectePersons.toString(), auditExceptionExpirationTime);
+
+                        String auditMessage = "Multiple matching key holders found for iLOQ person '" + firstName + " "
+                                + lastName
+                                + "' at Efecte";
+
+                        ri.getAuditExceptionProcessor().throwAuditException(
+                                EnumDirection.ILOQ, EnumDirection.EFECTE, null, null, iLoqPersonId, auditMessage);
+                    }
+                }
+
+                efecteKeyHolder = efectePersons.get(0);
             }
 
-            EfecteEntity efecteKeyHolder = efectePersons.get(0);
             efectePersonIdentifierValue = efecteKeyHolder.getId();
             saveMappedKeys(cc, iLoqPersonId, efecteKeyHolder);
         } else {
@@ -87,6 +101,10 @@ public class EfectePersonResolver {
                 .replaceAll("\\s+", " ")
                 .trim();
 
+        return fetchEfectePersons(query);
+    }
+
+    private List<EfecteEntity> fetchEfectePersons(String query) throws Exception {
         Exchange ex = new ExchangeBuilder(ri.getContext())
                 .withProperty("efecteEntityType", "person")
                 .withProperty("efecteQuery", query)
@@ -101,6 +119,53 @@ public class EfectePersonResolver {
         }
 
         return (List<EfecteEntity>) ex.getIn().getBody(List.class);
+    }
+
+    private EfecteEntity getEfectePersonByExternalPersonId(String externalPersonId) throws Exception {
+        // Outsiders have an email based identifier as the ExternalPersonId, only Efecte entity ids are numeric
+        if (externalPersonId == null || !externalPersonId.matches("\\d+")) {
+            return null;
+        }
+
+        String query = """
+                SELECT entity
+                FROM entity
+                WHERE
+                    template.code = 'person'
+                    AND entity.id = '%s'
+                """.formatted(externalPersonId)
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        List<EfecteEntity> efectePersons = fetchEfectePersons(query);
+
+        if (efectePersons == null || efectePersons.isEmpty()) {
+            return null;
+        }
+
+        EfecteEntity efectePerson = efectePersons.get(0);
+        String status = getStatus(efectePerson);
+
+        // An inactive person is ignored, the person is then resolved by name instead
+        if (status != null && !status.equals(ACTIVE_STATUS)) {
+            return null;
+        }
+
+        return efectePerson;
+    }
+
+    private List<EfecteEntity> getActiveEfectePersons(List<EfecteEntity> efectePersons) {
+        return efectePersons.stream()
+                .filter(efectePerson -> ACTIVE_STATUS.equals(getStatus(efectePerson)))
+                .toList();
+    }
+
+    private String getStatus(EfecteEntity efectePerson) {
+        try {
+            return efectePerson.getAttributeValue(EnumEfecteAttribute.PERSON_STATUS);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void saveMappedKeys(String cc, String iLoqPersonId, EfecteEntity efecteKeyHolder) throws Exception {
