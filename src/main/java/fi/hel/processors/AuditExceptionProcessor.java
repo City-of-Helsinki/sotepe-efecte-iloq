@@ -35,8 +35,10 @@ public class AuditExceptionProcessor {
         String iLoqKeyId = enrichedILoqKey.getFnKeyId();
 
         this.auditExceptionRecord.setILoqKey(enrichedILoqKey);
+        // The UI needs the customer code to write person mappings with the correct Redis key
+        this.auditExceptionRecord.setCustomerCode(ri.getRedis().get(ri.getILoqCurrentCustomerCodePrefix()));
         String prefix = ri.getAuditRecordKeyPrefix() + realEstateId + ":" + iLoqKeyId;
-        ri.getRedis().set(prefix, this.auditExceptionRecord.toJson());
+        ri.getRedis().setex(prefix, this.auditExceptionRecord.toJson(), auditExceptionExpirationTime);
 
         this.auditExceptionRecord = null;
     }

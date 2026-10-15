@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.quarkus.test.CamelQuarkusTestSupport;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +54,9 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
     AuditExceptionProcessor auditExceptionProcessor;
     @InjectMock
     Helper helper;
+
+    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
+    long auditExceptionExpirationTime;
 
     static final String TEST_CC = "test-customer-code";
 
@@ -279,7 +283,7 @@ public class EfectePersonResolverTest extends CamelQuarkusTestSupport {
 
         efecteKeyHolderResolver.resolveEfectePersonIdentifier(iLoqPerson);
 
-        verify(redis).set(expectedPrefix, expectedValue);
+        verify(redis).setex(expectedPrefix, expectedValue, auditExceptionExpirationTime);
     }
 
     @Test

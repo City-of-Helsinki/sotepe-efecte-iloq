@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.ExchangeBuilder;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import fi.hel.models.EfecteEntity;
 import fi.hel.models.EfecteEntityIdentifier;
@@ -20,6 +21,8 @@ public class EfectePersonResolver {
 
     @Inject
     ResourceInjector ri;
+    @ConfigProperty(name = "AUDIT_EXCEPTION_EXPIRATION_SECONDS")
+    long auditExceptionExpirationTime;
 
     ////////////////////
     // iLOQ -> Efecte //
@@ -43,7 +46,7 @@ public class EfectePersonResolver {
             } else if (efectePersons.size() > 1) {
                 // When multiple Efecte persons match, store them in auditRecord to allow the user to select the correct match in the UI
                 String prefix = ri.getAuditRecordPersonPrefix() + iLoqPersonId;
-                ri.getRedis().set(prefix, efectePersons.toString());
+                ri.getRedis().setex(prefix, efectePersons.toString(), auditExceptionExpirationTime);
 
                 String auditMessage = "Multiple matching key holders found for iLOQ person '" + firstName + " "
                         + lastName
