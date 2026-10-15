@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.1...sotepe-efecte-iloq-v1.1.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* Add customer code to audit records and expire them ([#153](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/153)) ([063d497](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/063d49730eef752be4f022fa05883600fd816d55))
+
 ## [1.1.1](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.0...sotepe-efecte-iloq-v1.1.1) (2026-05-25)
 
 
