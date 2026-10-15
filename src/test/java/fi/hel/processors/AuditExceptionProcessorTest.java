@@ -3,6 +3,7 @@ package fi.hel.processors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -77,11 +78,11 @@ public class AuditExceptionProcessorTest {
         Exchange ex = testUtils.createExchange();
         ex.setProperty("enrichedILoqKey", enrichedILoqKey);
         String expectedPrefix = ri.getAuditRecordKeyPrefix() + realEstateId + ":" + iLoqId;
+        String customerCode = "ABCD1234";
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(customerCode);
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
-
-        verifyNoInteractions(redis);
 
         try {
             auditExceptionProcessor.throwAuditException(from, to, entityId, efecteId, iLoqId, message);
@@ -89,7 +90,7 @@ public class AuditExceptionProcessorTest {
             auditExceptionProcessor.setAuditRecord(ex);
         }
 
-        verify(redis).set(keyCaptor.capture(), valueCaptor.capture());
+        verify(redis).setex(keyCaptor.capture(), valueCaptor.capture(), eq(auditExceptionExpirationTime));
 
         String key = keyCaptor.getValue();
         String value = valueCaptor.getValue();
@@ -102,6 +103,7 @@ public class AuditExceptionProcessorTest {
         assertThat(auditExceptionRecord.getEfecteId()).isEqualTo(efecteId);
         assertThat(auditExceptionRecord.getILoqId()).isEqualTo(iLoqId);
         assertThat(auditExceptionRecord.getMessage()).isEqualTo(message);
+        assertThat(auditExceptionRecord.getCustomerCode()).isEqualTo(customerCode);
         assertThat(auditExceptionRecord.getILoqKey().getRealEstateId()).isEqualTo(realEstateId);
         assertThat(auditExceptionRecord.getILoqKey().getRealEstateName()).isEqualTo(realEstateName);
         assertThat(auditExceptionRecord.getILoqKey().getPerson().getFirstName()).isEqualTo(iLoqPersonFirstName);

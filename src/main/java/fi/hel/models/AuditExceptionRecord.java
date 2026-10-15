@@ -24,6 +24,7 @@ public class AuditExceptionRecord {
     private String iLoqId;
     private String message;
     private EnrichedILoqKey iLoqKey;
+    private String customerCode;
 
     public AuditExceptionRecord() {
         this.id = UUID.randomUUID().toString();
@@ -133,6 +134,14 @@ public class AuditExceptionRecord {
 
     public void setILoqKey(EnrichedILoqKey iLoqKey) {
         this.iLoqKey = iLoqKey;
+    }
+
+    public String getCustomerCode() {
+        return this.customerCode;
+    }
+
+    public void setCustomerCode(String customerCode) {
+        this.customerCode = customerCode;
     }
 
 }
