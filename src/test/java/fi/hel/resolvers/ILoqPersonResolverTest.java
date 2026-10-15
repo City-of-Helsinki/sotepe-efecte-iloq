@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -67,6 +70,7 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
     void reset() throws Exception {
         iLoqPersonResolver.resetCache();
         when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        when(redis.exists(startsWith(ri.getMappedPersonILoqPrefix()))).thenReturn(true);
     }
 
     ////////////////////
@@ -164,6 +168,76 @@ public class ILoqPersonResolverTest extends CamelQuarkusTestSupport {
         iLoqPersonResolver.resolveILoqPersonId(externalId);
 
         verify(redis).set(expectedEfectePrefix, expectedILoqPersonId);
+    }
+
+    @Test
+    @DisplayName("resolveILoqPersonId - iLOQ person mapping is missing")
+    void testShouldSaveTheMissingILoqPersonMapping_KeyHolder() throws Exception {
+        String keyHolderEntityId = "12345";
+        String keyHolderEfecteId = "PER-0001";
+        String iLoqPersonId = "abc-123";
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + iLoqPersonId;
+        String expectedEfecteEntityIdentifierJson = "efecte entity identifier json";
+        EfecteEntity efectePerson = new EfecteEntityBuilder()
+                .withId(keyHolderEntityId)
+                .withPersonEfecteId(keyHolderEfecteId)
+                .withDefaults(EnumEfecteTemplate.PERSON)
+                .build();
+
+        when(redis.get(ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + keyHolderEntityId))
+                .thenReturn(iLoqPersonId);
+        when(redis.exists(expectedILoqPrefix)).thenReturn(false);
+        when(helper.writeAsJson(new EfecteEntityIdentifier(keyHolderEntityId, keyHolderEfecteId)))
+                .thenReturn(expectedEfecteEntityIdentifierJson);
+        mocked.getGetEfecteEntity()
+                .whenAnyExchangeReceived(exchange -> exchange.getIn().setBody(List.of(efectePerson)));
+
+        String result = iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
+
+        assertThat(result).isEqualTo(iLoqPersonId);
+        verify(redis).set(expectedILoqPrefix, expectedEfecteEntityIdentifierJson);
+    }
+
+    @Test
+    @DisplayName("resolveILoqPersonId - iLOQ person mapping exists")
+    void testShouldNotOverwriteAnExistingILoqPersonMapping() throws Exception {
+        String keyHolderEntityId = "12345";
+        String iLoqPersonId = "abc-123";
+        String iLoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + iLoqPersonId;
+
+        when(redis.get(ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + keyHolderEntityId))
+                .thenReturn(iLoqPersonId);
+        mocked.getGetEfecteEntity().expectedMessageCount(0);
+
+        iLoqPersonResolver.resolveILoqPersonId(keyHolderEntityId);
+
+        verify(redis, never()).set(eq(iLoqPrefix), anyString());
+        mocked.getGetEfecteEntity().assertIsSatisfied();
+    }
+
+    @Test
+    @DisplayName("resolveILoqPersonIdForOutsider - iLOQ person mapping is missing")
+    void testShouldSaveTheMissingILoqPersonMapping_Outsider() throws Exception {
+        String outsiderName = "John Smith";
+        String outsiderEmail = "john.smith@outsider.com";
+        String uniqueIdentifier = "this is a unique identifier value of email and name";
+        String iLoqPersonId = "abc-123";
+        String expectedILoqPrefix = ri.getMappedPersonILoqPrefix() + TEST_CC + ":" + iLoqPersonId;
+        String expectedEfecteEntityIdentifierJson = "efecte entity identifier json";
+        EfecteEntityIdentifier expectedEfecteEntityIdentifier = new EfecteEntityIdentifier();
+        expectedEfecteEntityIdentifier.setOutsiderName(outsiderName);
+        expectedEfecteEntityIdentifier.setOutsiderEmail(outsiderEmail);
+
+        when(helper.createIdentifier(outsiderEmail, outsiderName)).thenReturn(uniqueIdentifier);
+        when(redis.get(ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + uniqueIdentifier))
+                .thenReturn(iLoqPersonId);
+        when(redis.exists(expectedILoqPrefix)).thenReturn(false);
+        when(helper.writeAsJson(expectedEfecteEntityIdentifier)).thenReturn(expectedEfecteEntityIdentifierJson);
+
+        String result = iLoqPersonResolver.resolveILoqPersonIdForOutsider(outsiderEmail, outsiderName);
+
+        assertThat(result).isEqualTo(iLoqPersonId);
+        verify(redis).set(expectedILoqPrefix, expectedEfecteEntityIdentifierJson);
     }
 
     @Test
