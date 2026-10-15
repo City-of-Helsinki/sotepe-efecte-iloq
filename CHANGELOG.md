@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.2...sotepe-efecte-iloq-v1.1.3) (2026-10-15)
+
+
+### Bug Fixes
+
+* Resolve persons by ExternalPersonId and save person mappings in both directions ([#155](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/155)) ([dc117e0](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/dc117e0e8197ba46b2e1c335958446019c0c174c))
+
 ## [1.1.2](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.1...sotepe-efecte-iloq-v1.1.2) (2026-10-15)
 
 
