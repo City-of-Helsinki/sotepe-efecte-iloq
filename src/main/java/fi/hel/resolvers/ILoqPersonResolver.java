@@ -123,7 +123,7 @@ public class ILoqPersonResolver {
         this.iLoqPersons = null;
     }
 
-    private void updateILoqPersonExternalId(String iLoqPersonId, String externalId) throws Exception {
+    public void updateILoqPersonExternalId(String iLoqPersonId, String externalId) throws Exception {
         Exchange getEx = new ExchangeBuilder(ri.getContext())
                 .withProperty("iLoqPersonId", iLoqPersonId)
                 .build();

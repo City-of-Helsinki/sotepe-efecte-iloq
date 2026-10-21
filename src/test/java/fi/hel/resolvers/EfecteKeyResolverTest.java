@@ -433,6 +433,52 @@ public class EfecteKeyResolverTest extends CamelQuarkusTestSupport {
     }
 
     @Test
+    @DisplayName("findMatchingEfecteKey - with outsider - email and name with small differences")
+    void testShouldReturnTheMatchingKeyWithOutsiderWhenOnlyCaseWhitespaceOrQuotesDiffer() throws Exception {
+        String securityAccessEntityId = "234567";
+        EfecteEntity builtEqualEfecteKey = new EfecteEntityBuilder()
+                .withIsOutsider(true)
+                .withOutsiderName("Umid \"Tobi\" Usan")
+                .withOutsiderEmail("Aulapalvelut.KampinPerhekeskus@hel.fi")
+                .withSecurityAccesses(new EfecteReference(securityAccessEntityId))
+                .build();
+        EfecteEntity matchingKey = new EfecteEntityBuilder()
+                .withIsOutsider(true)
+                .withOutsiderName(" Umid  \u201DTobi\u201D usan ")
+                .withOutsiderEmail("aulapalvelut.kampinperhekeskus@hel.fi ")
+                .withSecurityAccesses(new EfecteReference(securityAccessEntityId))
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+
+        EfecteEntity result = efecteKeyResolver.findMatchingEfecteKey(builtEqualEfecteKey, List.of(matchingKey));
+
+        assertThat(result).isEqualTo(matchingKey);
+    }
+
+    @Test
+    @DisplayName("findMatchingEfecteKey - with outsider - different email")
+    void testShouldNotReturnAKeyWithOutsiderWhenTheEmailIsDifferent() throws Exception {
+        String securityAccessEntityId = "234567";
+        EfecteEntity builtEqualEfecteKey = new EfecteEntityBuilder()
+                .withIsOutsider(true)
+                .withOutsiderName("Umid \"Tobi\" Usan")
+                .withOutsiderEmail("Aulapalvelut.KampinPerhekeskus@hel.fi")
+                .withSecurityAccesses(new EfecteReference(securityAccessEntityId))
+                .build();
+        EfecteEntity nonMatchingKey = new EfecteEntityBuilder()
+                .withIsOutsider(true)
+                .withOutsiderName("Umid \"Tobi\" Usan")
+                .withOutsiderEmail("umid.usan@kavi.fi")
+                .withSecurityAccesses(new EfecteReference(securityAccessEntityId))
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+
+        EfecteEntity result = efecteKeyResolver.findMatchingEfecteKey(builtEqualEfecteKey, List.of(nonMatchingKey));
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     @DisplayName("findMatchingEfecteKey - with outsider - name")
     void testShouldReturnTheMatchingKeyWithOutsiderName() throws Exception {
         String matchingOutsiderName = "John Smith";

@@ -137,7 +137,8 @@ public class EfecteKeyResolver {
                 String keyOutsiderEmail = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_EMAIL);
                 String keyOutsiderName = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
 
-                return keyOutsiderEmail.equals(builtKeyOutsiderEmail) && keyOutsiderName.equals(builtKeyOutsiderName);
+                return normalize(keyOutsiderEmail).equals(normalize(builtKeyOutsiderEmail))
+                        && normalize(keyOutsiderName).equals(normalize(builtKeyOutsiderName));
             } catch (Exception e) {
                 return false;
             }
@@ -145,11 +146,21 @@ public class EfecteKeyResolver {
             try {
                 String keyOutsiderName = key.getAttributeValue(EnumEfecteAttribute.KEY_OUTSIDER_NAME);
 
-                return keyOutsiderName.equals(builtKeyOutsiderName);
+                return normalize(keyOutsiderName).equals(normalize(builtKeyOutsiderName));
             } catch (Exception e) {
                 return false;
             }
         }
+    }
+
+    // Small differences in letter case, whitespace or quotation marks should not prevent matching an outsider
+    private String normalize(String value) {
+        return value
+                .replaceAll("[\u201C\u201D\u201E\u201F\u2033\u00AB\u00BB]", "\"")
+                .replaceAll("[\u2018\u2019\u201A\u201B\u2032]", "'")
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase();
     }
 
     private boolean hasMatchingSecurityAccesses(EfecteEntity builtKey, EfecteEntity key) throws Exception {

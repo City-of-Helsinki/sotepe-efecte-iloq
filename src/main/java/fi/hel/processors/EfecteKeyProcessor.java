@@ -329,6 +329,15 @@ public class EfecteKeyProcessor {
 
             ri.getRedis().set(efectePersonPrefix, iLoqPersonId);
             ri.getRedis().set(iLoqPersonPrefix, efecteEntityPersonIdentifierJson);
+
+            // Same as when the outsider is linked from Efecte, so the iLOQ person shows it has been linked
+            try {
+                ri.getILoqPersonResolver().updateILoqPersonExternalId(iLoqPersonId, uniqueIdentifier);
+            } catch (Exception e) {
+                // The key has been linked already, a failed update of the iLOQ person must not prevent it
+                System.out.println("Warning: Updating the ExternalPersonId of the iLOQ person '" + iLoqPersonId
+                        + "' failed: " + e.getMessage());
+            }
         }
     }
 

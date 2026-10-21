@@ -1,9 +1,11 @@
 package fi.hel.processors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +45,7 @@ import fi.hel.models.enumerations.EnumEfecteAttribute;
 import fi.hel.models.enumerations.EnumEfecteKeyState;
 import fi.hel.models.enumerations.EnumEfecteTemplate;
 import fi.hel.resolvers.EfecteKeyResolver;
+import fi.hel.resolvers.ILoqPersonResolver;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -71,6 +74,8 @@ public class EfecteKeyProcessorTest {
     ConfigProvider configProvider;
     @InjectMock
     ILoqKeyMapper iLoqKeyMapper;
+    @InjectMock
+    ILoqPersonResolver iLoqPersonResolver;
 
     static final String TEST_CC = "test-customer-code";
 
@@ -752,6 +757,45 @@ public class EfecteKeyProcessorTest {
         verify(redis).set(expectedKeyILoqPrefix, expectedEfecteKeyIdentifierJson);
         verify(redis).set(expectedOutsiderEfectePrefix, expectedILoqPersonId);
         verify(redis).set(expectedOutsiderILoqPrefix, expectedEfectePersonIdentifierJson);
+        verify(iLoqPersonResolver).updateILoqPersonExternalId(expectedILoqPersonId, expectedOutsiderIdentifier);
+    }
+
+    @Test
+    @DisplayName("buildEfecteKey - key IS NOT previously mapped - a match for Efecte key IS found - outsider - updating iLOQ person fails")
+    void testShouldLinkTheOutsiderKeyEvenIfUpdatingTheILoqPersonExternalIdFails() throws Exception {
+        String iLoqPersonId = "xyz-456";
+        String outsiderIdentifier = "matti.meikalainen@hel.fi#MAME";
+
+        ILoqKeyResponse currentILoqKey = new ILoqKeyResponse();
+        currentILoqKey.setPersonId(iLoqPersonId);
+
+        EnrichedILoqKey enrichedILoqKey = new EnrichedILoqKey("abc-123");
+        enrichedILoqKey.setRealEstateId("irrelevant, but not null");
+        enrichedILoqKey.setSecurityAccesses(Set.of(new ILoqSecurityAccess("irrelevant")));
+
+        Exchange ex = testUtils.createExchange();
+        ex.setProperty("currentILoqKey", currentILoqKey);
+        ex.setProperty("enrichedILoqKey", enrichedILoqKey);
+
+        EfecteEntity matchingEfecteKey = new EfecteEntityBuilder()
+                .withId("12345")
+                .withKeyEfecteId("KEY-001")
+                .withIsOutsider(true)
+                .withOutsiderName("Matti Meikäläinen")
+                .withOutsiderEmail("matti.meikalainen@hel.fi")
+                .withDefaults(EnumEfecteTemplate.KEY)
+                .build();
+        when(efecteKeyResolver.findMatchingEfecteKey(any(), any())).thenReturn(matchingEfecteKey);
+        setDefaultResponses();
+        when(redis.get(ri.getILoqCurrentCustomerCodePrefix())).thenReturn(TEST_CC);
+        when(helper.createIdentifier(any(), any())).thenReturn(outsiderIdentifier);
+        doThrow(new Exception("iLOQ is not available"))
+                .when(iLoqPersonResolver).updateILoqPersonExternalId(any(), any());
+
+        assertThatCode(() -> efecteKeyProcessor.buildEfecteKey(ex)).doesNotThrowAnyException();
+
+        verify(redis).set(ri.getMappedPersonEfectePrefix() + TEST_CC + ":" + outsiderIdentifier, iLoqPersonId);
+        assertThat(ex.getProperty("shouldUpdateEfecteKey", Boolean.class)).isTrue();
     }
 
     @Test
