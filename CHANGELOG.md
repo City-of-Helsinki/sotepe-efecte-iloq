@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.3...sotepe-efecte-iloq-v1.2.0) (2026-10-21)
+
+
+### Features
+
+* Add iLOQ person details to audit records and match outsiders tolerantly ([#157](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/issues/157)) ([47edea2](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/commit/47edea201da6ab3d5b91dbd5776a56b2346a8ac4))
+
 ## [1.1.3](https://github.com/City-of-Helsinki/sotepe-efecte-iloq/compare/sotepe-efecte-iloq-v1.1.2...sotepe-efecte-iloq-v1.1.3) (2026-10-15)
 
 
